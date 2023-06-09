@@ -1,3 +1,11 @@
+mod network;
+
+use bevy::prelude::*;
+use network::NetworkManagerPlugin;
+
 fn main() {
-    println!("Hello, world!");
+  App::new()
+    .add_plugins(MinimalPlugins)
+    .add_plugin(NetworkManagerPlugin)
+    .run();
 }
