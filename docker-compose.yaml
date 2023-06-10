@@ -1,11 +1,16 @@
 version: '3'
 services:
-  mongodbdev:
+  frontend:
+    build:
+      context: .
+    ports:
+      - 23:23
+  db:
     image: mongo:6.0.6-jammy
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: dev
-      MONGO_INITDB_ROOT_PASSWORD: dev
+      MONGO_INITDB_ROOT_USERNAME: $MONGODB_USER
+      MONGO_INITDB_ROOT_PASSWORD: $MONGODB_PASS
     volumes:
       - type: bind
         source: ./.private/mongodb
