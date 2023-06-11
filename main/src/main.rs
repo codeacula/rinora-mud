@@ -1,7 +1,4 @@
-mod network;
-
 use bevy::prelude::*;
-use network::NetworkPlugin;
 
 fn main() -> std::io::Result<()> {
   App::new()
