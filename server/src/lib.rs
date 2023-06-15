@@ -1,15 +1,19 @@
 pub struct ServerPlugin;
 
-use std::net::TcpListener;
+use std::net::{TcpListener, TcpStream};
 
 use bevy::{ecs::system::Commands, prelude::*};
 
 #[derive(Resource)]
 struct Server(TcpListener);
 
+struct ConnectionEvent {
+  stream: TcpStream,
+};
+
 fn start_listening(mut commands: Commands) {
   let listener = match TcpListener::bind("0.0.0.0:23") {
-    Ok(l) => l,
+    Ok(listener) => listener,
     Err(e) => panic!("{:?}", e),
   };
 
@@ -17,10 +21,10 @@ fn start_listening(mut commands: Commands) {
   commands.insert_resource(server);
 }
 
-fn check_connections(server: ResMut<Server>) {
+fn check_connections(server: ResMut<Server>, mut event_writer: EventWriter<ConnectionEvent>) {
   for conn in server.0.incoming() {
     match conn {
-      Ok(_stream) => println!("We have a connection!"),
+      Ok(newStream) => event_writer.send(ConnectionEvent { stream: newStream }),
       Err(err) => println!("Um, err? {}", err),
     }
   }
