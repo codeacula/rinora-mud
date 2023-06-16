@@ -1,6 +1,9 @@
 pub struct ServerPlugin;
 
-use std::net::{TcpListener, TcpStream};
+use std::{
+  io::{Read, Write},
+  net::{TcpListener, TcpStream},
+};
 
 use bevy::{ecs::system::Commands, prelude::*};
 
@@ -10,10 +13,12 @@ struct Connection {
 }
 
 #[derive(Resource)]
-struct Server(TcpListener);
+struct Server {
+  listener: TcpListener,
+}
 
 struct ConnectionEvent {
-  pub connection: &Connection,
+  pub connection: Entity,
 }
 
 fn start_listening(mut commands: Commands) {
@@ -22,26 +27,44 @@ fn start_listening(mut commands: Commands) {
     Err(e) => panic!("{:?}", e),
   };
 
-  let server = Server(listener);
+  let server = Server { listener };
   commands.insert_resource(server);
 }
 
-fn check_connections(
+fn check_for_new_connections(
   mut commands: Commands,
-  server: ResMut<Server>,
+  server: Res<Server>,
   mut event_writer: EventWriter<ConnectionEvent>,
 ) {
-  for conn in server.0.incoming() {
+  for conn in server.listener.incoming() {
     match conn {
       Ok(stream) => {
         let connection = Connection { stream };
+        let cmds = commands.spawn(connection);
+
+        connection.stream.write(String::from("Ahoy!").as_bytes());
 
         event_writer.send(ConnectionEvent {
-          connection: &connection,
+          connection: cmds.id(),
         });
-        commands.spawn(connection);
       }
       Err(err) => println!("Um, err? {}", err),
+    }
+  }
+}
+
+fn check_for_waiting_input(all_connections: Query<&Connection>) {
+  for conn in all_connections.iter() {
+    let mut buf = String::new();
+    let mut stream_copy = match conn.stream.try_clone() {
+      Ok(stream) => stream,
+      Err(e) => panic!("{:?}", e),
+    };
+
+    let _ = stream_copy.read_to_string(&mut buf);
+
+    if buf.len() > 0 {
+      println!("Received: {}", buf);
     }
   }
 }
@@ -50,6 +73,8 @@ impl Plugin for ServerPlugin {
   fn build(&self, app: &mut App) {
     app
       .add_startup_system(start_listening)
-      .add_system(check_connections);
+      .add_event::<ConnectionEvent>()
+      .add_system(check_for_new_connections)
+      .add_system(check_for_waiting_input);
   }
 }
