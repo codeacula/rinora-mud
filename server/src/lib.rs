@@ -4,12 +4,17 @@ use std::net::{TcpListener, TcpStream};
 
 use bevy::{ecs::system::Commands, prelude::*};
 
+#[derive(Component)]
+struct Connection {
+  stream: TcpStream,
+}
+
 #[derive(Resource)]
 struct Server(TcpListener);
 
 struct ConnectionEvent {
-  stream: TcpStream,
-};
+  pub connection: &Connection,
+}
 
 fn start_listening(mut commands: Commands) {
   let listener = match TcpListener::bind("0.0.0.0:23") {
@@ -21,10 +26,21 @@ fn start_listening(mut commands: Commands) {
   commands.insert_resource(server);
 }
 
-fn check_connections(server: ResMut<Server>, mut event_writer: EventWriter<ConnectionEvent>) {
+fn check_connections(
+  mut commands: Commands,
+  server: ResMut<Server>,
+  mut event_writer: EventWriter<ConnectionEvent>,
+) {
   for conn in server.0.incoming() {
     match conn {
-      Ok(newStream) => event_writer.send(ConnectionEvent { stream: newStream }),
+      Ok(stream) => {
+        let connection = Connection { stream };
+
+        event_writer.send(ConnectionEvent {
+          connection: &connection,
+        });
+        commands.spawn(connection);
+      }
       Err(err) => println!("Um, err? {}", err),
     }
   }
