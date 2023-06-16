@@ -13,7 +13,7 @@ struct Connection {
 struct Server(TcpListener);
 
 struct ConnectionEvent {
-  pub connection: &Connection,
+  pub connection: Entity,
 }
 
 fn start_listening(mut commands: Commands) {
@@ -35,11 +35,12 @@ fn check_connections(
     match conn {
       Ok(stream) => {
         let connection = Connection { stream };
+        let conn_commands = commands.spawn(connection);
+        let new_id = conn_commands.id();
 
         event_writer.send(ConnectionEvent {
-          connection: &connection,
+          connection: new_id,
         });
-        commands.spawn(connection);
       }
       Err(err) => println!("Um, err? {}", err),
     }
