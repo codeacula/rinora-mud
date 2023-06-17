@@ -32,7 +32,7 @@ fn check_for_new_connections(mut commands: Commands, server: Res<Server>) {
     match conn {
       Ok(stream) => {
         let connection = Connection { stream };
-        commands.entity(commands.spawn()).insert(connection);
+        commands.spawn(connection);
         println!("New connection!");
       }
       Err(err) => println!("Um, err? {}", err),
