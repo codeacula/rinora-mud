@@ -1,7 +1,7 @@
 pub struct ServerPlugin;
 
 use std::{
-  io::{Read, Write},
+  io::Read,
   net::{TcpListener, TcpStream},
 };
 
@@ -17,10 +17,6 @@ struct Server {
   listener: TcpListener,
 }
 
-struct ConnectionEvent {
-  pub connection: Entity,
-}
-
 fn start_listening(mut commands: Commands) {
   let listener = match TcpListener::bind("0.0.0.0:23") {
     Ok(listener) => listener,
@@ -31,22 +27,13 @@ fn start_listening(mut commands: Commands) {
   commands.insert_resource(server);
 }
 
-fn check_for_new_connections(
-  mut commands: Commands,
-  server: Res<Server>,
-  mut event_writer: EventWriter<ConnectionEvent>,
-) {
+fn check_for_new_connections(mut commands: Commands, server: Res<Server>) {
   for conn in server.listener.incoming() {
     match conn {
       Ok(stream) => {
         let connection = Connection { stream };
-        let cmds = commands.spawn(connection);
-
-        connection.stream.write(String::from("Ahoy!").as_bytes());
-
-        event_writer.send(ConnectionEvent {
-          connection: cmds.id(),
-        });
+        commands.entity(commands.spawn()).insert(connection);
+        println!("New connection!");
       }
       Err(err) => println!("Um, err? {}", err),
     }
@@ -73,7 +60,6 @@ impl Plugin for ServerPlugin {
   fn build(&self, app: &mut App) {
     app
       .add_startup_system(start_listening)
-      .add_event::<ConnectionEvent>()
       .add_system(check_for_new_connections)
       .add_system(check_for_waiting_input);
   }
