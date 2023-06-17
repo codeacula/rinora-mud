@@ -6,4 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.10.1"
+bevy = { version = "0.10.1", default-features = false } # We don't need to build the window management code
+shared = { path = "../shared" }
