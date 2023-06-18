@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.10.1", default-features = false } # We don't need to build the window management code
 shared = { path = "../shared" }
+tokio = { version = "1", features = ["full"] }

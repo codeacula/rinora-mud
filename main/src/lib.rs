@@ -1,3 +1,4 @@
+use std::env;
 use std::time::Duration;
 
 use bevy::{
@@ -7,12 +8,12 @@ use bevy::{
 };
 use server::ServerPlugin;
 
-pub fn hello_us() {
-    println!("hello us!");
-}
-
 /// Sets up the application to run correctly
 pub fn init_app(app: &mut App) -> &mut App {
+
+    let server_host = env::var("SERVER_HOST").unwrap_or(String::from("0.0.0.0"));
+    let server_port = env::var("SERVER_PORT").unwrap_or(String::from("23"));
+
     app.add_plugin(LogPlugin {
         level: Level::DEBUG,
         filter: "bevy_ecs=trace".to_string(),
@@ -21,8 +22,10 @@ pub fn init_app(app: &mut App) -> &mut App {
         1.0 / 60.0,
     )))
     .add_plugins(MinimalPlugins)
-    .add_system(hello_us)
-    .add_plugin(ServerPlugin);
+    .add_plugin(ServerPlugin {
+        host: server_host,
+        port: server_port,
+    });
     return app;
 }
 

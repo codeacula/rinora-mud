@@ -1,4 +1,7 @@
-pub struct ServerPlugin;
+pub struct ServerPlugin {
+    pub host: String,
+    pub port: String,
+}
 
 use std::{
     io::Read,
@@ -14,7 +17,7 @@ struct Connection {
 
 #[derive(Resource)]
 struct Server {
-    listener: TcpListener,
+    listener: TcpListener
 }
 
 #[derive(Component)]
@@ -23,26 +26,14 @@ struct Person;
 #[derive(Component)]
 struct Name(String);
 
-fn start_listening(mut commands: Commands) {
-    let listener = match TcpListener::bind("0.0.0.0:23") {
-        Ok(listener) => listener,
-        Err(e) => panic!("{:?}", e),
-    };
-
-    let server = Server { listener };
-    commands.insert_resource(server);
-}
 
 fn check_for_new_connections(mut commands: Commands, server: Res<Server>) {
-    for conn in server.listener.incoming() {
-        match conn {
-            Ok(stream) => {
-                commands.spawn((Connection { stream },));
-                commands.spawn((Person, Name("Elaina Proctor".to_string())));
-                println!("New connection!");
-            }
-            Err(err) => println!("Um, err? {}", err),
-        }
+    for new_connection in server.listener.incoming() {
+        let conn = match new_connection {
+            Ok(conn) => conn,
+            Err(_e) => { continue; }
+        };
+        commands.spawn(Connection { stream: conn });
     }
 }
 
@@ -75,7 +66,20 @@ fn greet_people(query: Query<&Name, With<Person>>) {
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(start_listening)
+
+        let listener = match TcpListener::bind(format!("{}:{}", self.host, self.port)) {
+            Ok(listener) => listener,
+            Err(e) => panic!("{:?}", e),
+        };
+
+        listener.set_nonblocking(true).expect("Cannot set non-blocking");
+
+        let server = Server {
+            listener,
+        };
+
+        app
+            .insert_resource(server)
             .add_system(check_for_new_connections)
             .add_system(check_for_waiting_input)
             .add_system(greet_people);
