@@ -17,7 +17,7 @@ struct Connection {
 
 #[derive(Resource)]
 struct Server {
-    listener: TcpListener
+    listener: TcpListener,
 }
 
 #[derive(Component)]
@@ -26,12 +26,13 @@ struct Person;
 #[derive(Component)]
 struct Name(String);
 
-
 fn check_for_new_connections(mut commands: Commands, server: Res<Server>) {
     for new_connection in server.listener.incoming() {
         let conn = match new_connection {
             Ok(conn) => conn,
-            Err(_e) => { continue; }
+            Err(_e) => {
+                break;
+            }
         };
         commands.spawn(Connection { stream: conn });
     }
@@ -39,21 +40,17 @@ fn check_for_new_connections(mut commands: Commands, server: Res<Server>) {
 
 fn check_for_waiting_input(all_connections: Query<&Connection>) {
     for conn in all_connections.iter() {
-        let mut buf = String::new();
+        let mut buf = [0; 1024];
         let mut stream_copy = match conn.stream.try_clone() {
             Ok(stream) => stream,
             Err(e) => panic!("{:?}", e),
         };
 
-        match stream_copy.read_to_string(&mut buf) {
-            Err(err) => {
-                panic!("{:?}", err);
+        match stream.read(&mut buf) {
+            Ok(size) => {}
+            Err(e) => {
+                println!("Failed to read from client: {:?}", e);
             }
-            _ => (),
-        }
-
-        if buf.len() > 0 {
-            println!("Received: {}", buf);
         }
     }
 }
@@ -66,20 +63,18 @@ fn greet_people(query: Query<&Name, With<Person>>) {
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut App) {
-
         let listener = match TcpListener::bind(format!("{}:{}", self.host, self.port)) {
             Ok(listener) => listener,
             Err(e) => panic!("{:?}", e),
         };
 
-        listener.set_nonblocking(true).expect("Cannot set non-blocking");
+        listener
+            .set_nonblocking(true)
+            .expect("Cannot set non-blocking");
 
-        let server = Server {
-            listener,
-        };
+        let server = Server { listener };
 
-        app
-            .insert_resource(server)
+        app.insert_resource(server)
             .add_system(check_for_new_connections)
             .add_system(check_for_waiting_input)
             .add_system(greet_people);
