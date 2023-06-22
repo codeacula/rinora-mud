@@ -1,10 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-  "main",
-  "server",
-  "shared",
-]
+members = ["main", "shared"]
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

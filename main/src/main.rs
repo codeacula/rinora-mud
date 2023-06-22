@@ -1,8 +1,9 @@
-use bevy::prelude::*;
 use main::*;
+use tokio;
 
-fn main() {
-    let mut app = App::new();
-    init_app(&mut app);
-    run_app(&mut app);
+#[tokio::main]
+async fn main() {
+    let mut game_server = GameServer::new();
+    game_server.start_server().await;
+    game_server.start_game_loop();
 }
