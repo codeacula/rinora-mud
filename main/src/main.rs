@@ -1,7 +1,6 @@
-use main::*;
-use tokio;
+use main::start_game;
 
-#[tokio::main]
-async fn main() {
-    let app = App::new();
+
+fn main() {
+    start_game();
 }

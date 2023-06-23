@@ -1,41 +1,31 @@
-use std::{env, net::TcpListener, sync::mpsc, thread};
+mod game_server;
 
-pub struct GameServer {
-    listener: Option<TcpListener>,
-}
+use std::time::Duration;
 
-impl GameServer {
-    pub fn new() -> GameServer {
-        GameServer { listener: None }
-    }
+use bevy_ecs::prelude::*;
+use game_server::GameServer;
 
-    pub async fn start_server(&mut self) {
-        let (tx, rx) = mpsc::channel();
-        thread::spawn(move || {
-            let server_host = env::var("SERVER_HOST").unwrap_or(String::from("0.0.0.0"));
-            let server_port = env::var("SERVER_PORT").unwrap_or(String::from("23"));
+pub fn start_game() {
+    let mut world = World::new();
 
-            let listener = match TcpListener::bind(format!("{}:{}", server_host, server_port)) {
-                Ok(listener) => listener,
-                Err(e) => {
-                    panic!("Error starting TCP listener: {}", e);
-                }
-            };
+    
+    let server = GameServer::new();
 
-            for conn in listener.incoming() {
-                match conn {
-                    Ok(conn) => {
-                        tx.send(conn).unwrap();
-                    }
-                    Err(e) => {
-                        panic!("Error accepting connection: {}", e);
-                    }
-                }
-            }
-        });
-    }
+    let mut schedule = Schedule::default();
 
-    pub async fn start_game_loop(&mut self) {
-        loop {}
+    let new_connection_listener = server.new_connection_listener;
+
+    println!("Starting game loop");
+    loop {
+        let new_connection = match new_connection_listener.recv_timeout(Duration::from_millis(0)) {
+            Err(_) => None,
+            Ok(conn) => Some(conn),
+        };
+
+        if new_connection.is_some() {
+            println!("New connection: {:?}", new_connection);
+        }
+        
+        schedule.run(&mut world);
     }
 }
