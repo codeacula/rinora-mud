@@ -1,4 +1,12 @@
-use std::{env, net::TcpListener, net::TcpStream, sync::mpsc::*, thread, io::{Write, Read}};
+use std::{
+    env,
+    io::{Read, Write},
+    net::TcpListener,
+    net::TcpStream,
+    sync::mpsc::*,
+    thread,
+    time::Duration,
+};
 
 pub struct GameServer {
     pub connection_activity_listener: Receiver<TcpStream>,
@@ -26,10 +34,13 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
             match conn {
                 Ok(mut conn) => {
                     println!("Passing new connection: {:?}", conn);
-                    conn.write("Beware, friends, for peril and challenge lurk inside...".as_bytes()).unwrap();
-                    conn.write("Built on the RinoraMUD engine alpha".as_bytes()).unwrap();
+                    conn.write(
+                        "Beware, friends, for peril and challenge lurk inside...".as_bytes(),
+                    )
+                    .unwrap();
+                    conn.write("Built on the RinoraMUD engine alpha".as_bytes())
+                        .unwrap();
 
-                    
                     between_threads_tx.send(conn.try_clone().unwrap()).unwrap();
                     new_conn_tx.send(conn.try_clone().unwrap()).unwrap();
                 }
@@ -44,21 +55,24 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
         let mut connections = Vec::<TcpStream>::new();
 
         loop {
-            let new_connection = between_threads_rx.recv().unwrap();
-            connections.push(new_connection.try_clone().unwrap());
+            let new_conn = match between_threads_rx.recv_timeout(Duration::from_millis(0)) {
+                Err(_) => None,
+                Ok(conn) => Some(conn),
+            };
 
             for mut conn in &connections {
-                let mut buf = [0; 1024];
-                let bytes_read = conn.read(&mut buf).unwrap();
+                let mut buf = Vec::<u8>::new();
+                let bytes_read = conn.read_to_end(&mut buf).unwrap();
                 if bytes_read > 0 {
                     println!("Received {} bytes from {:?}", bytes_read, conn);
                     conn_activity_tx.send(conn.try_clone().unwrap()).unwrap();
                 }
+                println!("Restarting loop");
             }
         }
     });
 
-    return (new_conn_rx, conn_activity_rx);   
+    return (new_conn_rx, conn_activity_rx);
 }
 
 impl GameServer {

@@ -8,7 +8,6 @@ use game_server::GameServer;
 pub fn start_game() {
     let mut world = World::new();
 
-    
     let server = GameServer::new();
 
     let mut schedule = Schedule::default();
@@ -25,7 +24,7 @@ pub fn start_game() {
         if new_connection.is_some() {
             println!("New connection: {:?}", new_connection);
         }
-        
+
         schedule.run(&mut world);
     }
 }
