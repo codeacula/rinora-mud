@@ -36,6 +36,5 @@ pub fn start_game() {
         }
 
         schedule.run(&mut world);
-        println!("Tick");
     }
 }

@@ -1,6 +1,6 @@
 use std::{
     env,
-    io::{Read, Write},
+    io::{Write, BufReader, BufRead, ErrorKind},
     net::TcpListener,
     net::TcpStream,
     sync::mpsc::*,
@@ -10,7 +10,7 @@ use std::{
 pub enum ConnectionEventTypes {
     NewConnection,
     DataReceived,
-ConnectionDropped,
+    ConnectionDropped,
 }
 
 pub struct ConnectionEvent {
@@ -39,28 +39,19 @@ fn start_server_thread() -> Receiver<ConnectionEvent> {
         let server_host = env::var("SERVER_HOST").unwrap_or(String::from("0.0.0.0"));
         let server_port = env::var("SERVER_PORT").unwrap_or(String::from("23"));
 
-        let listener = match TcpListener::bind(format!("{}:{}", server_host, server_port)) {
-            Ok(listener) => listener,
-            Err(e) => {
-                panic!("Error starting TCP listener: {}", e);
-            }
-        };
+        let listener = TcpListener::bind(format!("{}:{}", server_host, server_port)).expect("Error starting TCP listener");
 
         for conn in listener.incoming() {
-            match conn {
-                Ok(mut conn) => {
-                    conn.write("Beware, friends, for peril and challenge lurk inside...\n".as_bytes(),).unwrap();
-                    conn.write("     Built on the RinoraMUD engine alpha".as_bytes()).unwrap();
+            if let Ok(mut conn) = conn {
+                conn.write_all(b"Beware, friends, for peril and challenge lurk inside...\n").expect("Failed to send message");
+                conn.write_all(b"Built on the RinoraMUD engine alpha").expect("Failed to send message");
 
-                    between_threads_tx.send(GameConnection {
-                        id: counter,
-                        conn
-                    }).unwrap();
-                    counter += 1;
-                }
-                Err(e) => {
-                    panic!("Error accepting connection: {}", e);
-                }
+                conn.set_nonblocking(true).expect("Failed to set to non-blocking");
+                between_threads_tx.send(GameConnection {
+                    id: counter,
+                    conn
+                }).expect("Failed to send connection between threads");
+                counter += 1;
             }
         }
     });
@@ -68,65 +59,54 @@ fn start_server_thread() -> Receiver<ConnectionEvent> {
     thread::spawn(move || -> ! {
         let mut connections = Vec::<GameConnection>::new();
         loop {
-            let new_conn = match between_threads_rx.try_recv() {
-                Err(_) => None,
-                Ok(conn) => Some(conn),
-            };
-
-            if new_conn.is_some() {
+            if let Ok(new_conn) = between_threads_rx.try_recv() {
                 connection_event_tx.send(ConnectionEvent{
-                    id: new_conn.as_ref().unwrap().id,
+                    id: new_conn.id,
                     data: None,
                     event_type: ConnectionEventTypes::NewConnection
-                }).unwrap();
-                connections.push(new_conn.unwrap());
+                }).expect("Failed to send new connection event");
+                connections.push(new_conn);
             }
 
             let mut to_remove = Vec::<u64>::new();
 
             for game_connection in &mut connections {
                 let mut buf = [0; 1024];
-                let mut command = Vec::<u8>::new();
 
-                let mut bytes_read = 0;
+                match game_connection.conn.peek(&mut buf) {
+                    Ok(0) => {
+                        // Connection closed
+                        game_connection.conn.shutdown(std::net::Shutdown::Both).unwrap_or_default();
+                        to_remove.push(game_connection.id);
 
-                bytes_read += game_connection.conn.read(&mut buf).unwrap();
+                        connection_event_tx.send(ConnectionEvent{
+                            data: None,
+                            id: game_connection.id,
+                            event_type: ConnectionEventTypes::ConnectionDropped
+                        }).unwrap();
+                        continue;
+                    },
+                    Ok(_) => {
+                        let mut reader = BufReader::new(&game_connection.conn);
+                        let mut line = String::new();
 
-                if bytes_read > 0 {
-                    // Keep going and get the rest
-                    loop {
-                        let total_read = match game_connection.conn.read(&mut buf) {
-                            Err(_) => break,
-                            Ok(total_read) => total_read,
-                        };
-                        bytes_read += total_read;
-                        command.append(&mut buf.to_vec());
-                    }
-
-                    command.append(&mut buf.to_vec());
-
-                    connection_event_tx.send(ConnectionEvent{
-                        data: Some(command),
-                        id: game_connection.id,
-                        event_type: ConnectionEventTypes::DataReceived
-                    }).unwrap();
-                } else if bytes_read == 0 {
-                    println!("Connection closed: {:?}", game_connection.conn);
-
-                    game_connection
-                        .conn
-                        .shutdown(std::net::Shutdown::Both)
-                        .unwrap();
-
-                    connection_event_tx.send(ConnectionEvent{
-                        data: None,
-                        id: game_connection.id,
-                        event_type: ConnectionEventTypes::ConnectionDropped
-                    }).unwrap();
-
-                    to_remove.push(game_connection.id);
+                        if reader.read_line(&mut line).is_ok() {
+                        
+                            game_connection.conn.write_all("You said: ".as_bytes()).unwrap();
+                            game_connection.conn.write_all(line.as_bytes()).unwrap();
+                            game_connection.conn.write_all("\n".as_bytes()).unwrap();
+                            connection_event_tx.send(ConnectionEvent{
+                                data: Some(line.into_bytes()),
+                                id: game_connection.id,
+                                event_type: ConnectionEventTypes::DataReceived
+                            }).unwrap();
+                        }
+                    },
+                    Err(e) if e.kind() == ErrorKind::WouldBlock => {
+                        // No data available yet
+                    },
+                    Err(e) => panic!("Unexpected error: {}", e),
                 }
-                println!("Restarting loop");
             }
 
             for id in to_remove {
