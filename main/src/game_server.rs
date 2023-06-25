@@ -85,12 +85,28 @@ fn start_server_thread() -> Receiver<ConnectionEvent> {
             let mut to_remove = Vec::<u64>::new();
 
             for game_connection in &mut connections {
-                let mut buf = Vec::<u8>::new();
-                let bytes_read = game_connection.conn.read_to_end(&mut buf).unwrap();
+                let mut buf = [0; 1024];
+                let mut command = Vec::<u8>::new();
+
+                let mut bytes_read = 0;
+
+                bytes_read += game_connection.conn.read(&mut buf).unwrap();
+
                 if bytes_read > 0 {
-                    println!("Received {} bytes from {:?}", bytes_read, game_connection.conn);
+                    // Keep going and get the rest
+                    loop {
+                        let total_read = match game_connection.conn.read(&mut buf) {
+                            Err(_) => break,
+                            Ok(total_read) => total_read,
+                        };
+                        bytes_read += total_read;
+                        command.append(&mut buf.to_vec());
+                    }
+
+                    command.append(&mut buf.to_vec());
+
                     connection_event_tx.send(ConnectionEvent{
-                        data: Some(buf),
+                        data: Some(command),
                         id: game_connection.id,
                         event_type: ConnectionEventTypes::DataReceived
                     }).unwrap();
