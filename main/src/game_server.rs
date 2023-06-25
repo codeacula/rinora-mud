@@ -7,23 +7,35 @@ use std::{
     thread,
 };
 
-struct GameConnection {
+pub enum ConnectionEventTypes {
+    NewConnection,
+    DataReceived,
+ConnectionDropped,
+}
+
+pub struct ConnectionEvent {
+    pub id: u64,
+    pub data: Option<Vec<u8>>,
+    pub event_type: ConnectionEventTypes,
+}
+
+#[derive(Debug)]
+pub struct GameConnection {
     id: u64,
     conn: TcpStream,
 }
 
+#[derive(Debug)]
 pub struct GameServer {
-    pub connection_activity_listener: Receiver<TcpStream>,
-    pub new_connection_listener: Receiver<TcpStream>,
-    pub connections: Vec<TcpStream>,
+    pub connection_event_listener: Receiver<ConnectionEvent>,
 }
 
-fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
-    let (new_conn_tx, new_conn_rx) = channel();
-    let (conn_activity_tx, conn_activity_rx) = channel();
+fn start_server_thread() -> Receiver<ConnectionEvent> {
+    let (connection_event_tx, connection_event_rx) = channel();
     let (between_threads_tx, between_threads_rx) = channel();
 
     thread::spawn(move || {
+        let mut counter: u64 = 0;
         let server_host = env::var("SERVER_HOST").unwrap_or(String::from("0.0.0.0"));
         let server_port = env::var("SERVER_PORT").unwrap_or(String::from("23"));
 
@@ -37,16 +49,14 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
         for conn in listener.incoming() {
             match conn {
                 Ok(mut conn) => {
-                    println!("Passing new connection: {:?}", conn);
-                    conn.write(
-                        "Beware, friends, for peril and challenge lurk inside...\n".as_bytes(),
-                    )
-                    .unwrap();
-                    conn.write("     Built on the RinoraMUD engine alpha".as_bytes())
-                        .unwrap();
+                    conn.write("Beware, friends, for peril and challenge lurk inside...\n".as_bytes(),).unwrap();
+                    conn.write("     Built on the RinoraMUD engine alpha".as_bytes()).unwrap();
 
-                    between_threads_tx.send(conn.try_clone().unwrap()).unwrap();
-                    new_conn_tx.send(conn.try_clone().unwrap()).unwrap();
+                    between_threads_tx.send(GameConnection {
+                        id: counter,
+                        conn
+                    }).unwrap();
+                    counter += 1;
                 }
                 Err(e) => {
                     panic!("Error accepting connection: {}", e);
@@ -57,7 +67,6 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
 
     thread::spawn(move || -> ! {
         let mut connections = Vec::<GameConnection>::new();
-        let mut counter: u64 = 0;
         loop {
             let new_conn = match between_threads_rx.try_recv() {
                 Err(_) => None,
@@ -65,28 +74,40 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
             };
 
             if new_conn.is_some() {
-                connections.push(GameConnection {
-                    id: counter,
-                    conn: new_conn.unwrap(),
-                });
-                counter += 1;
+                connection_event_tx.send(ConnectionEvent{
+                    id: new_conn.as_ref().unwrap().id,
+                    data: None,
+                    event_type: ConnectionEventTypes::NewConnection
+                }).unwrap();
+                connections.push(new_conn.unwrap());
             }
 
             let mut to_remove = Vec::<u64>::new();
 
             for game_connection in &mut connections {
                 let mut buf = Vec::<u8>::new();
-                let mut conn = game_connection.conn.try_clone().unwrap();
-                let bytes_read = conn.read_to_end(&mut buf).unwrap();
+                let bytes_read = game_connection.conn.read_to_end(&mut buf).unwrap();
                 if bytes_read > 0 {
-                    println!("Received {} bytes from {:?}", bytes_read, conn);
-                    conn_activity_tx.send(conn).unwrap();
+                    println!("Received {} bytes from {:?}", bytes_read, game_connection.conn);
+                    connection_event_tx.send(ConnectionEvent{
+                        data: Some(buf),
+                        id: game_connection.id,
+                        event_type: ConnectionEventTypes::DataReceived
+                    }).unwrap();
                 } else if bytes_read == 0 {
-                    println!("Connection closed: {:?}", conn);
+                    println!("Connection closed: {:?}", game_connection.conn);
+
                     game_connection
                         .conn
                         .shutdown(std::net::Shutdown::Both)
                         .unwrap();
+
+                    connection_event_tx.send(ConnectionEvent{
+                        data: None,
+                        id: game_connection.id,
+                        event_type: ConnectionEventTypes::ConnectionDropped
+                    }).unwrap();
+
                     to_remove.push(game_connection.id);
                 }
                 println!("Restarting loop");
@@ -98,18 +119,16 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
         }
     });
 
-    return (new_conn_rx, conn_activity_rx);
+    return connection_event_rx;
 }
 
 impl GameServer {
     pub fn new() -> GameServer {
         println!("Starting server!");
-        let (new_conn_rx, conn_activity_rx) = start_server_thread();
+        let connection_event_rx = start_server_thread();
 
         GameServer {
-            connections: Vec::<TcpStream>::new(),
-            connection_activity_listener: conn_activity_rx,
-            new_connection_listener: new_conn_rx,
+            connection_event_listener: connection_event_rx,
         }
     }
 }
