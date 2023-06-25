@@ -1,7 +1,5 @@
 mod game_server;
 
-use std::time::Duration;
-
 use bevy_ecs::prelude::*;
 use game_server::GameServer;
 
@@ -16,7 +14,7 @@ pub fn start_game() {
 
     println!("Starting game loop");
     loop {
-        let new_connection = match new_connection_listener.recv_timeout(Duration::from_millis(0)) {
+        let new_connection = match new_connection_listener.try_recv() {
             Err(_) => None,
             Ok(conn) => Some(conn),
         };

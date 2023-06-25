@@ -5,8 +5,12 @@ use std::{
     net::TcpStream,
     sync::mpsc::*,
     thread,
-    time::Duration,
 };
+
+struct GameConnection {
+    id: u64,
+    conn: TcpStream,
+}
 
 pub struct GameServer {
     pub connection_activity_listener: Receiver<TcpStream>,
@@ -35,10 +39,10 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
                 Ok(mut conn) => {
                     println!("Passing new connection: {:?}", conn);
                     conn.write(
-                        "Beware, friends, for peril and challenge lurk inside...".as_bytes(),
+                        "Beware, friends, for peril and challenge lurk inside...\n".as_bytes(),
                     )
                     .unwrap();
-                    conn.write("Built on the RinoraMUD engine alpha".as_bytes())
+                    conn.write("     Built on the RinoraMUD engine alpha".as_bytes())
                         .unwrap();
 
                     between_threads_tx.send(conn.try_clone().unwrap()).unwrap();
@@ -51,23 +55,45 @@ fn start_server_thread() -> (Receiver<TcpStream>, Receiver<TcpStream>) {
         }
     });
 
-    thread::spawn(move || {
-        let mut connections = Vec::<TcpStream>::new();
-
+    thread::spawn(move || -> ! {
+        let mut connections = Vec::<GameConnection>::new();
+        let mut counter: u64 = 0;
         loop {
-            let new_conn = match between_threads_rx.recv_timeout(Duration::from_millis(0)) {
+            let new_conn = match between_threads_rx.try_recv() {
                 Err(_) => None,
                 Ok(conn) => Some(conn),
             };
 
-            for mut conn in &connections {
+            if new_conn.is_some() {
+                connections.push(GameConnection {
+                    id: counter,
+                    conn: new_conn.unwrap(),
+                });
+                counter += 1;
+            }
+
+            let mut to_remove = Vec::<u64>::new();
+
+            for game_connection in &mut connections {
                 let mut buf = Vec::<u8>::new();
+                let mut conn = game_connection.conn.try_clone().unwrap();
                 let bytes_read = conn.read_to_end(&mut buf).unwrap();
                 if bytes_read > 0 {
                     println!("Received {} bytes from {:?}", bytes_read, conn);
-                    conn_activity_tx.send(conn.try_clone().unwrap()).unwrap();
+                    conn_activity_tx.send(conn).unwrap();
+                } else if bytes_read == 0 {
+                    println!("Connection closed: {:?}", conn);
+                    game_connection
+                        .conn
+                        .shutdown(std::net::Shutdown::Both)
+                        .unwrap();
+                    to_remove.push(game_connection.id);
                 }
                 println!("Restarting loop");
+            }
+
+            for id in to_remove {
+                connections.retain(|conn| conn.id != id);
             }
         }
     });
