@@ -26,6 +26,12 @@ pub struct NetworkEvent {
     pub event_type: NetworkEventType,
 }
 
+pub struct OutgoingEvent {
+    pub id: u64,
+    pub text: Option<Vec<u8>>,
+    pub gmcp: Option<Vec<u8>>,
+}
+
 #[derive(Debug)]
 pub struct GameConnection {
     id: u64,
@@ -51,12 +57,19 @@ const DONT: i32 = 254;
 /// GMCP byte flag
 const GMCP: i32 = 201;
 
-pub struct NetworkListener(Receiver<NetworkEvent>);
+pub struct NewConnectionListener(Receiver<NetworkEvent>);
+pub struct OutgoingData(Sender<OutgoingEvent>);
+
+#[derive(Resource)]
+pub struct OutgoingQueue(Vec<OutgoingEvent>);
 
 fn start_listening(world: &mut World) {
-    let (connection_event_tx, connection_event_rx) = channel();
-    let (between_threads_tx, between_threads_rx) = channel();
+    let (connection_event_tx, connection_event_rx) = channel::<NetworkEvent>();
+    let (between_threads_tx, between_threads_rx) = channel::<GameConnection>();
+    let (outgoing_event_tx, outgoing_event_rx) = channel::<OutgoingEvent>();
 
+    // This is put into a separate thread because it blocks on the listener, and we don't want that to block listening
+    // to the currently connected clients
     thread::spawn(move || {
         let mut counter: u64 = 0;
         let server_host = env::var("SERVER_HOST").unwrap_or(String::from("0.0.0.0"));
@@ -66,12 +79,7 @@ fn start_listening(world: &mut World) {
             .expect("Error starting TCP listener");
 
         for conn in listener.incoming() {
-            if let Ok(mut conn) = conn {
-                conn.write_all(b"Beware, friends, for peril and challenge lurk inside...\n")
-                    .expect("Failed to send message");
-                conn.write_all(b"Built on the RinoraMUD engine alpha")
-                    .expect("Failed to send message");
-
+            if let Ok(conn) = conn {
                 conn.set_nonblocking(true)
                     .expect("Failed to set to non-blocking");
                 between_threads_tx
@@ -94,6 +102,21 @@ fn start_listening(world: &mut World) {
                     })
                     .expect("Failed to send new connection event");
                 connections.push(new_conn);
+            }
+
+            loop {
+                let new_event = match outgoing_event_rx.try_recv() {
+                    Ok(event) => event,
+                    Err(_) => break,
+                };
+
+                let mut connection = connections.iter_mut().find(|conn| conn.id == new_event.id);
+                connection
+                    .as_mut()
+                    .unwrap()
+                    .conn
+                    .write_all(new_event.text.as_ref().unwrap())
+                    .unwrap();
             }
 
             let mut to_remove = Vec::<u64>::new();
@@ -152,11 +175,58 @@ fn start_listening(world: &mut World) {
         }
     });
 
-    world.insert_non_send_resource(NetworkListener(connection_event_rx));
+    world.insert_non_send_resource(NewConnectionListener(connection_event_rx));
+    world.insert_non_send_resource(OutgoingData(outgoing_event_tx));
+    world.insert_resource(OutgoingQueue(Vec::new()));
+}
+
+/// Handles transferring new connections into the game world, and sending data from the game world to the client
+fn handle_new_connections(
+    connection_event_rx: NonSend<NewConnectionListener>,
+    mut outgoing_queue: ResMut<OutgoingQueue>,
+) {
+    loop {
+        let new_event = match connection_event_rx.0.try_recv() {
+            Ok(event) => event,
+            Err(_) => break,
+        };
+
+        match new_event.event_type {
+            NetworkEventType::NewConnection => {
+                println!("New connection: {}", new_event.id);
+                let greeting = OutgoingEvent {
+                    id: new_event.id,
+                    text: Some("Welcome to Rinora!\n".as_bytes().to_vec()),
+                    gmcp: None,
+                };
+                outgoing_queue.0.push(greeting);
+            }
+            NetworkEventType::InputReceived => {
+                println!("Input received: {}", new_event.id);
+            }
+            NetworkEventType::ConnectionDropped => {
+                println!("Connection dropped: {}", new_event.id);
+            }
+            NetworkEventType::GmcpReceived => {
+                println!("GMCP received: {}", new_event.id);
+            }
+        }
+    }
+}
+
+fn process_outgoing_data(
+    outgoing_data_rx: NonSend<OutgoingData>,
+    mut outgoing_queue: ResMut<OutgoingQueue>,
+) {
+    for event in outgoing_queue.0.drain(..) {
+        outgoing_data_rx.0.send(event).unwrap();
+    }
 }
 
 impl Plugin for GameServer {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(start_listening);
+        app.add_startup_system(start_listening)
+            .add_system(handle_new_connections)
+            .add_system(process_outgoing_data);
     }
 }
