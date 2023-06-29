@@ -1,10 +1,11 @@
 use bevy::prelude::*;
-use shared::networking::*;
+use shared::{networking::*, user::User};
 
 pub struct AccountPlugin;
 
 /// Handles transferring new connections into the game world, and sending data from the game world to the client
 fn handle_new_connections(
+    mut commands: Commands,
     connection_event_rx: NonSend<NewConnectionListener>,
     mut outgoing_queue: ResMut<OutgoingQueue>,
 ) {
@@ -16,13 +17,15 @@ fn handle_new_connections(
 
         match new_event.event_type {
             NetworkEventType::NewConnection => {
-                println!("New connection: {}", new_event.id);
-                let greeting = OutgoingEvent {
+                outgoing_queue.0.push(OutgoingEvent {
                     id: new_event.id,
                     text: Some("Welcome to Rinora!\n".as_bytes().to_vec()),
                     gmcp: None,
-                };
-                outgoing_queue.0.push(greeting);
+                });
+
+                commands.spawn(User {
+                    connection: new_event.id,
+                });
             }
             NetworkEventType::InputReceived => {
                 println!("Input received: {}", new_event.id);
