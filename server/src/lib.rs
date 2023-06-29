@@ -8,29 +8,9 @@ use std::{
 };
 
 use bevy::prelude::*;
+use shared::networking::*;
 
 pub struct GameServer;
-
-/// What type of events the server will issue the game
-pub enum NetworkEventType {
-    NewConnection,
-    InputReceived,
-    ConnectionDropped,
-    GmcpReceived,
-}
-
-/// A network
-pub struct NetworkEvent {
-    pub id: u64,
-    pub data: Option<Vec<u8>>,
-    pub event_type: NetworkEventType,
-}
-
-pub struct OutgoingEvent {
-    pub id: u64,
-    pub text: Option<Vec<u8>>,
-    pub gmcp: Option<Vec<u8>>,
-}
 
 #[derive(Debug)]
 pub struct GameConnection {
@@ -38,6 +18,7 @@ pub struct GameConnection {
     conn: TcpStream,
 }
 
+/*
 /// Telnet protocol constants
 /// Byte to signal subchannel negotiation
 const IAC: i32 = 255;
@@ -56,12 +37,9 @@ const DONT: i32 = 254;
 
 /// GMCP byte flag
 const GMCP: i32 = 201;
+*/
 
-pub struct NewConnectionListener(Receiver<NetworkEvent>);
 pub struct OutgoingData(Sender<OutgoingEvent>);
-
-#[derive(Resource)]
-pub struct OutgoingQueue(Vec<OutgoingEvent>);
 
 fn start_listening(world: &mut World) {
     let (connection_event_tx, connection_event_rx) = channel::<NetworkEvent>();
@@ -180,40 +158,6 @@ fn start_listening(world: &mut World) {
     world.insert_resource(OutgoingQueue(Vec::new()));
 }
 
-/// Handles transferring new connections into the game world, and sending data from the game world to the client
-fn handle_new_connections(
-    connection_event_rx: NonSend<NewConnectionListener>,
-    mut outgoing_queue: ResMut<OutgoingQueue>,
-) {
-    loop {
-        let new_event = match connection_event_rx.0.try_recv() {
-            Ok(event) => event,
-            Err(_) => break,
-        };
-
-        match new_event.event_type {
-            NetworkEventType::NewConnection => {
-                println!("New connection: {}", new_event.id);
-                let greeting = OutgoingEvent {
-                    id: new_event.id,
-                    text: Some("Welcome to Rinora!\n".as_bytes().to_vec()),
-                    gmcp: None,
-                };
-                outgoing_queue.0.push(greeting);
-            }
-            NetworkEventType::InputReceived => {
-                println!("Input received: {}", new_event.id);
-            }
-            NetworkEventType::ConnectionDropped => {
-                println!("Connection dropped: {}", new_event.id);
-            }
-            NetworkEventType::GmcpReceived => {
-                println!("GMCP received: {}", new_event.id);
-            }
-        }
-    }
-}
-
 fn process_outgoing_data(
     outgoing_data_rx: NonSend<OutgoingData>,
     mut outgoing_queue: ResMut<OutgoingQueue>,
@@ -226,7 +170,6 @@ fn process_outgoing_data(
 impl Plugin for GameServer {
     fn build(&self, app: &mut App) {
         app.add_startup_system(start_listening)
-            .add_system(handle_new_connections)
             .add_system(process_outgoing_data);
     }
 }
