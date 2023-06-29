@@ -125,12 +125,6 @@ fn start_listening(world: &mut World) {
                         let mut line = String::new();
 
                         if reader.read_line(&mut line).is_ok() {
-                            game_connection
-                                .conn
-                                .write_all("You said: ".as_bytes())
-                                .unwrap();
-                            game_connection.conn.write_all(line.as_bytes()).unwrap();
-                            game_connection.conn.write_all("\n".as_bytes()).unwrap();
                             connection_event_tx
                                 .send(NetworkEvent {
                                     data: Some(line.into_bytes()),
