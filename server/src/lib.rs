@@ -8,8 +8,8 @@ use std::{
 };
 
 use bevy::prelude::*;
-use shared::networking::*;
 
+// All good MUDs have a banner!
 const GREETING: &str = "
  _____  _                       __  __ _    _ _____  
 |  __ \\(_)  Welcome to:        |  \\/  | |  | |  __ \\ 
@@ -20,13 +20,40 @@ const GREETING: &str = "
 
 
 ";
-pub struct GameServer;
+pub struct NetworkServerPlugin;
 
-#[derive(Debug)]
-pub struct GameConnection {
+pub struct NetworkConnection {
     id: u64,
     conn: TcpStream,
 }
+
+pub struct NewConnectionListener(pub Receiver<NetworkEvent>);
+
+/// A network
+pub struct NetworkEvent {
+    pub id: u64,
+    pub data: Option<Vec<u8>>,
+    pub event_type: NetworkEventType,
+}
+
+/// What type of events the server will issue the game
+pub enum NetworkEventType {
+    NewConnection,
+    InputReceived,
+    ConnectionDropped,
+    GmcpReceived,
+}
+
+pub struct OutgoingEvent {
+    pub id: u64,
+    pub text: Option<Vec<u8>>,
+    pub gmcp: Option<Vec<u8>>,
+}
+
+pub struct NewConnectionEvent(u64);
+
+#[derive(Resource)]
+pub struct OutgoingQueue(pub Vec<OutgoingEvent>);
 
 /*
 /// Telnet protocol constants
@@ -53,7 +80,7 @@ pub struct OutgoingData(Sender<OutgoingEvent>);
 
 fn start_listening(world: &mut World) {
     let (connection_event_tx, connection_event_rx) = channel::<NetworkEvent>();
-    let (between_threads_tx, between_threads_rx) = channel::<GameConnection>();
+    let (between_threads_tx, between_threads_rx) = channel::<NetworkConnection>();
     let (outgoing_event_tx, outgoing_event_rx) = channel::<OutgoingEvent>();
 
     // This is put into a separate thread because it blocks on the listener, and we don't want that to block listening
@@ -74,7 +101,7 @@ fn start_listening(world: &mut World) {
                 conn.write_all(GREETING.as_bytes()).unwrap();
 
                 between_threads_tx
-                    .send(GameConnection { id: counter, conn })
+                    .send(NetworkConnection { id: counter, conn })
                     .expect("Failed to send connection between threads");
                 counter += 1;
             }
@@ -82,7 +109,7 @@ fn start_listening(world: &mut World) {
     });
 
     thread::spawn(move || -> ! {
-        let mut connections = Vec::<GameConnection>::new();
+        let mut connections = Vec::<NetworkConnection>::new();
         loop {
             if let Ok(new_conn) = between_threads_rx.try_recv() {
                 connection_event_tx
@@ -174,9 +201,44 @@ fn process_outgoing_data(
     }
 }
 
-impl Plugin for GameServer {
+/// Handles transferring new connections into the game world, and sending data from the game world to the client
+fn transfer_from_server_to_game(
+    connection_event_rx: NonSend<NewConnectionListener>,
+    mut outgoing_queue: ResMut<OutgoingQueue>,
+    mut ev_new_connection: EventWriter<NewConnectionEvent>,
+) {
+    loop {
+        let new_event = match connection_event_rx.0.try_recv() {
+            Ok(event) => event,
+            Err(_) => break,
+        };
+
+        match new_event.event_type {
+            NetworkEventType::NewConnection => {
+                outgoing_queue.0.push(OutgoingEvent {
+                    id: new_event.id,
+                    text: Some(
+                        "Welcome to RinoraMUD! Please select an option: \n"
+                            .as_bytes()
+                            .to_vec(),
+                    ),
+                    gmcp: None,
+                });
+
+                ev_new_connection.send(NewConnectionEvent(new_event.id));
+            }
+            NetworkEventType::InputReceived => todo!("Input received"),
+            NetworkEventType::ConnectionDropped => todo!("Connection dropped"),
+            NetworkEventType::GmcpReceived => todo!("GMCP not implemented yet"),
+        }
+    }
+}
+
+impl Plugin for NetworkServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(start_listening)
-            .add_system(process_outgoing_data);
+        app.add_event::<NewConnectionEvent>()
+            .add_startup_system(start_listening)
+            .add_system(process_outgoing_data)
+            .add_system(transfer_from_server_to_game);
     }
 }

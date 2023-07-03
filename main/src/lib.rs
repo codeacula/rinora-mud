@@ -6,7 +6,7 @@ use bevy::{
     log::{Level, LogPlugin},
     prelude::*,
 };
-use server::GameServer;
+use server::NetworkServerPlugin;
 
 pub fn start_game() {
     let mut app = App::new();
@@ -20,6 +20,6 @@ pub fn start_game() {
     )))
     .add_plugins(MinimalPlugins)
     .add_plugin(AccountPlugin)
-    .add_plugin(GameServer)
+    .add_plugin(NetworkServerPlugin)
     .run()
 }
