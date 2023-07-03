@@ -83,95 +83,170 @@ fn start_listening(world: &mut World) {
     let (between_threads_tx, between_threads_rx) = channel::<NetworkConnection>();
     let (outgoing_event_tx, outgoing_event_rx) = channel::<OutgoingEvent>();
 
-    // This is put into a separate thread because it blocks on the listener, and we don't want that to block listening
-    // to the currently connected clients
+
+    // Main thread for listening to new connections
     thread::spawn(move || {
-        let mut counter: u64 = 0;
+        // This is put into a separate thread because it blocks on the listener, and we don't want that to block 
+        // listening to the currently connected clients. I don't want to make the listener non-blocking because I don't 
+        // want to write error handling for that.
+
+        let mut connection_counter: u64 = 0;
         let server_host = env::var("SERVER_HOST").unwrap_or(String::from("0.0.0.0"));
         let server_port = env::var("SERVER_PORT").unwrap_or(String::from("23"));
 
-        let listener = TcpListener::bind(format!("{}:{}", server_host, server_port))
+        let tcp_listener = TcpListener::bind(format!("{}:{}", server_host, server_port))
             .expect("Error starting TCP listener");
 
-        for conn in listener.incoming() {
-            if let Ok(mut conn) = conn {
-                conn.set_nonblocking(true)
-                    .expect("Failed to set to non-blocking");
+        for connection_result in tcp_listener.incoming() {
+            let mut connection = match connection_result {
+                Ok(conn) => conn,
+                Err(err) => {
+                    println!("Error accepting connection: {}", err);
+                    break;
+                }
+            };
 
-                conn.write_all(GREETING.as_bytes()).unwrap();
-
-                between_threads_tx
-                    .send(NetworkConnection { id: counter, conn })
-                    .expect("Failed to send connection between threads");
-                counter += 1;
+            if let Err(err) = connection.set_nonblocking(true) {
+                println!("Failed to set to non-blocking: {}", err);
+                break;
             }
+
+            if let Err(err) = connection.write_all(GREETING.as_bytes()) {
+                println!("Failed to write greeting, closing connection: {}", err);
+                break;
+            };
+
+            if let Err(err) = between_threads_tx.send(NetworkConnection { id: connection_counter, conn: connection }) {
+                println!("Failed to send connection to managing thread: {}", err);
+                break;
+            };
+
+            connection_counter += 1;
         }
     });
 
-    thread::spawn(move || -> ! {
-        let mut connections = Vec::<NetworkConnection>::new();
+    // Sends new connections to the game world, along with new commands or GMCP commands. Also disconnects.
+    thread::spawn(move || {
+        let mut all_connections = Vec::<NetworkConnection>::new();
         loop {
-            if let Ok(new_conn) = between_threads_rx.try_recv() {
-                connection_event_tx
-                    .send(NetworkEvent {
-                        id: new_conn.id,
-                        data: None,
-                        event_type: NetworkEventType::NewConnection,
-                    })
-                    .expect("Failed to send new connection event");
-                connections.push(new_conn);
-            }
-
-            loop {
-                let new_event = match outgoing_event_rx.try_recv() {
-                    Ok(event) => event,
-                    Err(_) => break,
-                };
-
-                let mut connection = connections.iter_mut().find(|conn| conn.id == new_event.id);
-                connection
-                    .as_mut()
-                    .unwrap()
-                    .conn
-                    .write_all(new_event.text.as_ref().unwrap())
-                    .unwrap();
-            }
-
             let mut to_remove = Vec::<u64>::new();
 
-            for game_connection in &mut connections {
+            // Add new connections to our list, then pass them on to the junction that will send it to the game world
+            let new_conn = match between_threads_rx.try_recv() {
+                Ok(conn) => conn,
+                Err(err) => {
+                    if err == TryRecvError::Empty {
+                        continue;
+                    }
+
+                    println!("Error communicating between threads: {}", err);
+                    break;
+                },
+            };
+
+            if let Err(err) = connection_event_tx.send(NetworkEvent {
+                id: new_conn.id,
+                data: None,
+                event_type: NetworkEventType::NewConnection,
+            }) {
+                println!("Failed to send network event to junction: {}", err);
+                break;
+            };
+
+            all_connections.push(new_conn);
+
+            // Process outgoing events
+            loop {
+                let outgoing_event = match outgoing_event_rx.try_recv() {
+                    Ok(event) => event,
+                    Err(err) => {
+                        if err == TryRecvError::Empty {
+                            continue;
+                        }
+
+                        println!("Error receiving from outgoing event: {}", err);
+                        break;
+                    },
+                };
+
+                let outgoing_event_connection = match all_connections.iter_mut().find(|conn| conn.id == outgoing_event.id) {
+                    Some(conn) => conn,
+                    None => continue,
+                };
+
+                let outgoing_text = match outgoing_event.text {
+                    Some(text) => text,
+                    None => continue,
+                };
+
+                if outgoing_event_connection.conn.write_all(&outgoing_text).is_ok() {
+                    continue;
+                }
+
+                // Connection closed
+                to_remove.push(outgoing_event_connection.id);
+
+                if let Err(_) = outgoing_event_connection.conn.shutdown(std::net::Shutdown::Both){
+                    println!("Failed to shutdown connection");
+                    continue;
+                }
+
+                // Send the connection dropped event to the game because we can't write to them anymore
+                if let Err(err) = connection_event_tx.send(NetworkEvent {
+                    id: outgoing_event_connection.id,
+                    data: None,
+                    event_type: NetworkEventType::ConnectionDropped,
+                }){
+                    let mut error_message: String = String::from("Failed to send connection dropped event: ");
+                    error_message.push_str(&err.to_string());
+                    println!("{}", error_message);
+                };
+
+                continue;
+            }
+
+            for network_connection in &mut all_connections {
                 let mut buf = [0; 1024];
 
-                match game_connection.conn.peek(&mut buf) {
+                match network_connection.conn.peek(&mut buf) {
                     Ok(0) => {
                         // Connection closed
-                        game_connection
-                            .conn
-                            .shutdown(std::net::Shutdown::Both)
-                            .unwrap_or_default();
-                        to_remove.push(game_connection.id);
+                        if let Err(_) = network_connection.conn.shutdown(std::net::Shutdown::Both){
+                            to_remove.push(network_connection.id);
+                            println!("Failed to shutdown connection, still discarding.");
+                            continue;
+                        }
 
-                        connection_event_tx
-                            .send(NetworkEvent {
-                                data: None,
-                                id: game_connection.id,
-                                event_type: NetworkEventType::ConnectionDropped,
-                            })
-                            .unwrap();
+                        to_remove.push(network_connection.id);
+
+                        let send_success = connection_event_tx.send(NetworkEvent {
+                            data: None,
+                            id: network_connection.id,
+                            event_type: NetworkEventType::ConnectionDropped,
+                        });
+
+                        if let Err(err) = send_success {
+                            println!("Failed to send connection dropped event: {}", err);
+                        };
+                        
                         continue;
                     }
                     Ok(_) => {
-                        let mut reader = BufReader::new(&game_connection.conn);
+                        let mut reader = BufReader::new(&network_connection.conn);
                         let mut line = String::new();
 
-                        if reader.read_line(&mut line).is_ok() {
-                            connection_event_tx
-                                .send(NetworkEvent {
-                                    data: Some(line.into_bytes()),
-                                    id: game_connection.id,
-                                    event_type: NetworkEventType::InputReceived,
-                                })
-                                .unwrap();
+                        if let Err(err) = reader.read_line(&mut line) {
+                            println!("Error reading line: {}", err);
+                            continue;
+                        }
+
+                        if let Err(err) = connection_event_tx.send(NetworkEvent {
+                            data: Some(line.into_bytes()),
+                            id: network_connection.id,
+                            event_type: NetworkEventType::InputReceived,
+                        }) {
+                            println!("Failed to send network event to junction: {}", err);
+                            continue;
                         }
                     }
                     Err(e) if e.kind() == ErrorKind::WouldBlock => {
@@ -182,7 +257,7 @@ fn start_listening(world: &mut World) {
             }
 
             for id in to_remove {
-                connections.retain(|conn| conn.id != id);
+                all_connections.retain(|conn| conn.id != id);
             }
         }
     });
@@ -197,7 +272,9 @@ fn process_outgoing_data(
     mut outgoing_queue: ResMut<OutgoingQueue>,
 ) {
     for event in outgoing_queue.0.drain(..) {
-        outgoing_data_rx.0.send(event).unwrap();
+        if let Err(err) = outgoing_data_rx.0.send(event) {
+            println!("Failed to send outgoing event: {}", err);
+        }
     }
 }
 
