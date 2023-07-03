@@ -10,6 +10,16 @@ use std::{
 use bevy::prelude::*;
 use shared::networking::*;
 
+const GREETING: &str = "
+ _____  _                       __  __ _    _ _____  
+|  __ \\(_)  Welcome to:        |  \\/  | |  | |  __ \\ 
+| |__) |_ _ __   ___  _ __ __ _| \\  / | |  | | |  | |
+|  _  /| | '_ \\ / _ \\| '__/ _` | |\\/| | |  | | |  | |
+| | \\ \\| | | | | (_) | | | (_| | |  | | |__| | |__| |
+|_|  \\_\\_|_| |_|\\___/|_|  \\__,_|_|  |_|\\____/|_____/ 
+
+
+";
 pub struct GameServer;
 
 #[derive(Debug)]
@@ -57,9 +67,12 @@ fn start_listening(world: &mut World) {
             .expect("Error starting TCP listener");
 
         for conn in listener.incoming() {
-            if let Ok(conn) = conn {
+            if let Ok(mut conn) = conn {
                 conn.set_nonblocking(true)
                     .expect("Failed to set to non-blocking");
+
+                conn.write_all(GREETING.as_bytes()).unwrap();
+
                 between_threads_tx
                     .send(GameConnection { id: counter, conn })
                     .expect("Failed to send connection between threads");

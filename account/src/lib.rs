@@ -19,7 +19,11 @@ fn handle_new_connections(
             NetworkEventType::NewConnection => {
                 outgoing_queue.0.push(OutgoingEvent {
                     id: new_event.id,
-                    text: Some("Welcome to Rinora!\n".as_bytes().to_vec()),
+                    text: Some(
+                        "Welcome to Rinora! Please select an option: \n"
+                            .as_bytes()
+                            .to_vec(),
+                    ),
                     gmcp: None,
                 });
 
