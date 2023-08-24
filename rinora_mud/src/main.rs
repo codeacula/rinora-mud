@@ -1,4 +1,4 @@
-use main::start_game;
+use rinora_mud::start_game;
 
 fn main() {
     start_game();

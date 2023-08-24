@@ -7,15 +7,11 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable 'main'",
+      "name": "Debug executable 'rinora_mud'",
       "cargo": {
-        "args": [
-          "build",
-          "--bin=main",
-          "--package=main"
-        ],
+        "args": ["build", "--bin=rinora_mud", "--package=rinora_mud"],
         "filter": {
-          "name": "main",
+          "name": "rinora_mud",
           "kind": "bin"
         }
       },
@@ -25,16 +21,16 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug unit tests in executable 'main'",
+      "name": "Debug unit tests in executable 'rinora_mud'",
       "cargo": {
         "args": [
           "test",
           "--no-run",
-          "--bin=main",
-          "--package=main"
+          "--bin=rinora_mud",
+          "--package=rinora_mud"
         ],
         "filter": {
-          "name": "main",
+          "name": "rinora_mud",
           "kind": "bin"
         }
       },
@@ -46,12 +42,7 @@
       "request": "launch",
       "name": "Debug unit tests in library 'server'",
       "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--lib",
-          "--package=server"
-        ],
+        "args": ["test", "--no-run", "--lib", "--package=server"],
         "filter": {
           "name": "server",
           "kind": "lib"
@@ -65,12 +56,7 @@
       "request": "launch",
       "name": "Debug unit tests in library 'shared'",
       "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--lib",
-          "--package=shared"
-        ],
+        "args": ["test", "--no-run", "--lib", "--package=shared"],
         "filter": {
           "name": "shared",
           "kind": "lib"
