@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     env,
     io::{BufRead, BufReader, ErrorKind, Write},
     net::TcpListener,
@@ -8,8 +9,11 @@ use std::{
 };
 
 use bevy::{prelude::*, utils::Uuid};
-use shared::network_events::{
-    DisconnectionEvent, GmcpReceivedEvent, InputReceivedEvent, NewConnectionEvent,
+use shared::{
+    network::{
+        DisconnectionEvent, GmcpReceivedEvent, InputReceivedEvent, NetworkInfo, NewConnectionEvent,
+    },
+    user::{User, UserStatus},
 };
 
 // All good MUDs have a banner!
@@ -313,6 +317,8 @@ fn transfer_from_server_to_game(
     mut ev_dropped_connection: EventWriter<DisconnectionEvent>,
     mut ev_input_received_connection: EventWriter<InputReceivedEvent>,
     mut ev_gmcp_received_connection: EventWriter<GmcpReceivedEvent>,
+    mut network_info: ResMut<NetworkInfo>,
+    mut commands: Commands,
 ) {
     loop {
         let new_event = match connection_event_rx.0.try_recv() {
@@ -322,20 +328,41 @@ fn transfer_from_server_to_game(
 
         match new_event.event_type {
             NetworkEventType::NewConnection => {
-                ev_new_connection.send(NewConnectionEvent(new_event.id));
+                let entity = commands
+                    .spawn(User {
+                        connection: new_event.id,
+                        status: UserStatus::NeedsUsername,
+                    })
+                    .id();
+                network_info
+                    .connection_to_entity
+                    .insert(new_event.id, entity);
+                ev_new_connection.send(NewConnectionEvent { entity });
             }
             NetworkEventType::InputReceived => {
+                let entity = *network_info
+                    .connection_to_entity
+                    .get(&new_event.id)
+                    .unwrap();
                 ev_input_received_connection.send(InputReceivedEvent {
-                    connection: new_event.id,
+                    entity,
                     input: String::from_utf8(new_event.data.unwrap()).unwrap(),
                 });
             }
             NetworkEventType::ConnectionDropped => {
-                ev_dropped_connection.send(DisconnectionEvent(new_event.id));
+                let entity = network_info
+                    .connection_to_entity
+                    .remove(&new_event.id)
+                    .unwrap();
+                ev_dropped_connection.send(DisconnectionEvent { entity });
             }
             NetworkEventType::GmcpReceived => {
+                let entity = *network_info
+                    .connection_to_entity
+                    .get(&new_event.id)
+                    .unwrap();
                 ev_gmcp_received_connection.send(GmcpReceivedEvent {
-                    connection: new_event.id,
+                    entity,
                     data: new_event.data.unwrap(),
                 });
             }
@@ -345,14 +372,19 @@ fn transfer_from_server_to_game(
 
 impl Plugin for NetworkServerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<NewConnectionEvent>()
-            .add_event::<InputReceivedEvent>()
-            .add_event::<DisconnectionEvent>()
-            .add_event::<GmcpReceivedEvent>()
-            .add_systems(Startup, start_listening)
-            .add_systems(
-                Update,
-                (process_outgoing_data, transfer_from_server_to_game),
-            );
+        let connection_hashmap = HashMap::<Uuid, Entity>::new();
+
+        app.insert_resource(NetworkInfo {
+            connection_to_entity: connection_hashmap,
+        })
+        .add_event::<NewConnectionEvent>()
+        .add_event::<InputReceivedEvent>()
+        .add_event::<DisconnectionEvent>()
+        .add_event::<GmcpReceivedEvent>()
+        .add_systems(Startup, start_listening)
+        .add_systems(
+            Update,
+            (process_outgoing_data, transfer_from_server_to_game),
+        );
     }
 }
