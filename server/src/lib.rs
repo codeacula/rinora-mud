@@ -329,11 +329,9 @@ fn transfer_from_server_to_game(
                     connection: new_event.id,
                     input: String::from_utf8(new_event.data.unwrap()).unwrap(),
                 });
-                info!("Input received: {}", new_event.id);
             }
             NetworkEventType::ConnectionDropped => {
                 ev_dropped_connection.send(DisconnectionEvent(new_event.id));
-                info!("Connection dropped: {}", new_event.id);
             }
             NetworkEventType::GmcpReceived => {
                 ev_gmcp_received_connection.send(GmcpReceivedEvent {

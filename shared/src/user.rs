@@ -1,12 +1,16 @@
-use bevy::prelude::Component;
+use bevy::{prelude::Component, utils::Uuid};
 
 pub enum UserStatus {
-    Login,
-    CharacterSelect,
-    InGame,
+    NeedsUsername,
+    NeedsPassword,
+    Authenticated,
+    ConfirmCreate,
+    CreatingPassword,
+    ConfirmingPassword,
 }
 
 #[derive(Component)]
 pub struct User {
-    pub connection: u64,
+    pub connection: Uuid,
+    pub status: UserStatus,
 }
