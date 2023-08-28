@@ -12,8 +12,9 @@ use bevy::{prelude::*, utils::Uuid};
 use shared::{
     network::{
         DisconnectionEvent, GmcpReceivedEvent, InputReceivedEvent, NetworkInfo, NewConnectionEvent,
+        OutgoingEvent, OutgoingQueue,
     },
-    user::{User, UserStatus},
+    user::{Login, User},
 };
 
 // All good MUDs have a banner!
@@ -50,16 +51,6 @@ pub enum NetworkEventType {
     ConnectionDropped,
     GmcpReceived,
 }
-
-#[derive(Event)]
-pub struct OutgoingEvent {
-    pub id: Uuid,
-    pub text: Option<Vec<u8>>,
-    pub gmcp: Option<Vec<u8>>,
-}
-
-#[derive(Resource)]
-pub struct OutgoingQueue(pub Vec<OutgoingEvent>);
 
 /*
 /// Telnet protocol constants
@@ -98,7 +89,7 @@ fn check_for_new_connections(recv: &Receiver<NetworkConnection>) -> Vec<NetworkC
                     break;
                 }
 
-                debug!("Error communicating between threads: {}", err);
+                warn!("Error communicating between threads: {}", err);
                 break;
             }
         }
@@ -124,9 +115,7 @@ fn start_listening(world: &mut World) {
         let tcp_listener = TcpListener::bind(format!("{}:{}", server_host, server_port))
             .expect("Error starting TCP listener");
 
-        debug!("Checking for incoming connections.");
         for connection_result in tcp_listener.incoming() {
-            debug!("New connection found! Getting stream.");
             let mut connection = match connection_result {
                 Ok(conn) => conn,
                 Err(err) => {
@@ -135,7 +124,6 @@ fn start_listening(world: &mut World) {
                 }
             };
 
-            debug!("Setting new connection to non-blocking.");
             if let Err(err) = connection.set_nonblocking(true) {
                 error!("Failed to set to non-blocking: {}", err);
                 break;
@@ -159,7 +147,6 @@ fn start_listening(world: &mut World) {
     // Sends new connections to the game world, along with new commands or GMCP commands. Also disconnects.
     thread::spawn(move || {
         let mut all_connections = Vec::<NetworkConnection>::new();
-        debug!("Starting main server loop");
 
         loop {
             let mut to_remove = Vec::<Uuid>::new();
@@ -230,7 +217,7 @@ fn start_listening(world: &mut World) {
                     let mut error_message: String =
                         String::from("Failed to send connection dropped event: ");
                     error_message.push_str(&err.to_string());
-                    debug!("{}", error_message);
+                    warn!("{}", error_message);
                 };
 
                 continue;
@@ -244,7 +231,7 @@ fn start_listening(world: &mut World) {
                         // Connection closed
                         if let Err(_) = network_connection.conn.shutdown(std::net::Shutdown::Both) {
                             to_remove.push(network_connection.id);
-                            debug!("Failed to shutdown connection, still discarding.");
+                            warn!("Failed to shutdown connection, still discarding.");
                             continue;
                         }
 
@@ -305,7 +292,7 @@ fn process_outgoing_data(
 ) {
     for event in outgoing_queue.0.drain(..) {
         if let Err(err) = outgoing_data_rx.0.send(event) {
-            debug!("Failed to send outgoing event: {}", err);
+            warn!("Failed to send outgoing event: {}", err);
         }
     }
 }
@@ -329,15 +316,20 @@ fn transfer_from_server_to_game(
         match new_event.event_type {
             NetworkEventType::NewConnection => {
                 let entity = commands
-                    .spawn(User {
-                        connection: new_event.id,
-                        status: UserStatus::NeedsUsername,
-                    })
+                    .spawn((
+                        User {
+                            connection: new_event.id,
+                        },
+                        Login,
+                    ))
                     .id();
                 network_info
                     .connection_to_entity
                     .insert(new_event.id, entity);
-                ev_new_connection.send(NewConnectionEvent { entity });
+                ev_new_connection.send(NewConnectionEvent {
+                    entity,
+                    id: new_event.id,
+                });
             }
             NetworkEventType::InputReceived => {
                 let entity = *network_info
