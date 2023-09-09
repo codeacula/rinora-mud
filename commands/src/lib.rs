@@ -2,6 +2,7 @@ mod account;
 mod game_command;
 
 use bevy::prelude::*;
+use game_command::GameCommand;
 use shared::network::InputReceivedEvent;
 
 pub struct CommandsPlugin;
@@ -16,7 +17,11 @@ fn clean_incoming_command(command: Vec<u8>) -> Vec<String> {
         .collect()
 }
 
-pub fn process_incoming_commands(mut ev_incoming_commands: EventReader<InputReceivedEvent>) {
+pub fn process_incoming_commands(
+    commands: NonSend<Vec<Box<dyn GameCommand>>>,
+    mut ev_incoming_commands: EventReader<InputReceivedEvent>,
+    mut world: World,
+) {
     for ev in ev_incoming_commands.iter() {
         let command_parts = clean_incoming_command(ev.input.clone().into_bytes());
 
@@ -24,18 +29,11 @@ pub fn process_incoming_commands(mut ev_incoming_commands: EventReader<InputRece
             continue;
         }
 
-        let command = command_parts[0].to_lowercase();
-
-        match command.as_str() {
-            "quit" => {
-                debug!("Quitting");
-                std::process::exit(0);
-            }
-            "help" => {
-                debug!("Help");
-            }
-            _ => {
-                debug!("Unknown command: {}", command);
+        for command in commands.iter() {
+            if command.can_execute(command_parts.clone(), &ev.entity, &world) {
+                if let Err(e) = command.execute(command_parts.clone(), &ev.entity, &mut world) {
+                    error!("Error executing command: {}", e);
+                }
             }
         }
     }
@@ -43,6 +41,10 @@ pub fn process_incoming_commands(mut ev_incoming_commands: EventReader<InputRece
 
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, process_incoming_commands);
+        let command: Vec<Box<dyn GameCommand>> =
+            vec![Box::new(account::read_username::ReadUsername {})];
+
+        app.insert_non_send_resource(command)
+            .add_systems(First, process_incoming_commands);
     }
 }
