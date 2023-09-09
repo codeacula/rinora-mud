@@ -1,3 +1,9 @@
 {
-  "rust-analyzer.linkedProjects": [".\\Cargo.toml", ".\\shared\\Cargo.toml"]
+  "rust-analyzer.linkedProjects": [
+    ".\\Cargo.toml",
+    ".\\shared\\Cargo.toml",
+    ".\\commands\\Cargo.toml",
+    ".\\commands\\Cargo.toml",
+    ".\\commands\\Cargo.toml"
+  ]
 }

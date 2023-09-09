@@ -14,7 +14,7 @@ use shared::{
         DisconnectionEvent, GmcpReceivedEvent, InputReceivedEvent, NetworkInfo, NewConnectionEvent,
         OutgoingEvent, OutgoingQueue,
     },
-    user::{Login, User},
+    user::{Login, User, UserStatus},
 };
 
 // All good MUDs have a banner!
@@ -319,6 +319,8 @@ fn transfer_from_server_to_game(
                     .spawn((
                         User {
                             connection: new_event.id,
+                            status: UserStatus::NeedUsername,
+                            username: String::new(),
                         },
                         Login,
                     ))

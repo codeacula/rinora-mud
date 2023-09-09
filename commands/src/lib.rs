@@ -1,3 +1,6 @@
+mod account;
+mod game_command;
+
 use bevy::prelude::*;
 use shared::network::InputReceivedEvent;
 
