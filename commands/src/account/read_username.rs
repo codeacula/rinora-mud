@@ -12,7 +12,7 @@ impl GameCommand for ReadUsername {
 
     fn can_execute(
         &self,
-        _command: Vec<String>,
+        _command: &Vec<String>,
         acting_entity: &bevy::prelude::Entity,
         world: &bevy::prelude::World,
     ) -> bool {
@@ -26,7 +26,7 @@ impl GameCommand for ReadUsername {
 
     fn execute(
         &self,
-        command: Vec<String>,
+        command: &Vec<String>,
         acting_entity: &bevy::prelude::Entity,
         world: &mut bevy::prelude::World,
     ) -> Result<(), String> {

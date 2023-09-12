@@ -1,7 +1,7 @@
 mod account;
 mod game_command;
 
-use bevy::prelude::*;
+use bevy::{ecs::system::SystemState, prelude::*};
 use game_command::GameCommand;
 use shared::network::InputReceivedEvent;
 
@@ -17,34 +17,35 @@ fn clean_incoming_command(command: Vec<u8>) -> Vec<String> {
         .collect()
 }
 
-pub fn process_incoming_commands(
-    commands: NonSend<Vec<Box<dyn GameCommand>>>,
-    mut ev_incoming_commands: EventReader<InputReceivedEvent>,
-    mut world: World,
-) {
-    for ev in ev_incoming_commands.iter() {
-        let command_parts = clean_incoming_command(ev.input.clone().into_bytes());
+pub fn process_incoming_commands(world: &mut World) {
+    let mut event_system_state: SystemState<EventReader<InputReceivedEvent>> =
+        SystemState::new(world);
+    let mut events = event_system_state.get_mut(world);
 
-        if command_parts.len() == 0 {
-            continue;
-        }
+    let game_commands = world
+        .get_non_send_resource::<Vec<Box<dyn GameCommand>>>()
+        .unwrap();
 
-        for command in commands.iter() {
-            if command.can_execute(command_parts.clone(), &ev.entity, &world) {
-                if let Err(e) = command.execute(command_parts.clone(), &ev.entity, &mut world) {
-                    error!("Error executing command: {}", e);
-                }
+    for event in events.iter() {
+        let cleaned_command = clean_incoming_command(event.input.clone().as_bytes().to_vec());
+
+        for boxed_command in game_commands.iter() {
+            let command = boxed_command.as_ref();
+
+            if command.can_execute(&cleaned_command, &event.entity, world) {
+                command.execute(&cleaned_command, &event.entity, world);
             }
         }
     }
 }
 
+fn add_commands(commands: NonSend<Vec<Box<dyn GameCommand>>>) {
+    commands.push(Box::new(account::read_username::ReadUsername {}))
+}
+
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
-        let command: Vec<Box<dyn GameCommand>> =
-            vec![Box::new(account::read_username::ReadUsername {})];
-
-        app.insert_non_send_resource(command)
+        app.add_systems(Startup, add_commands)
             .add_systems(First, process_incoming_commands);
     }
 }
