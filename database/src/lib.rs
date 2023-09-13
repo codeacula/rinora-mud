@@ -1,15 +1,11 @@
 use bevy::prelude::*;
-use shared::prelude::*;
 use std::env;
 
-use mongodb::{bson::doc, sync::Client};
+use crate::db_interface::DbInterface;
+
+mod db_interface;
 
 pub struct DatabasePlugin;
-
-#[derive(Resource)]
-pub struct DbInfo {
-    pub client: Client,
-}
 
 fn get_env(key: &str, default: &str) -> String {
     match env::var(key) {
@@ -50,17 +46,12 @@ impl Plugin for DatabasePlugin {
         let host_string = get_connection_string();
         let database_name = get_database();
 
-        let dbinfo: DbInfo = DbInfo {
-            client: Client::with_uri_str(host_string).unwrap(),
-        };
+        let repo = DbInterface::new(host_string, database_name.clone());
 
         info!("Connecting to database...");
-        dbinfo
-            .client
-            .database(&database_name)
-            .run_command(doc! {"ping": 1}, None)
-            .unwrap();
 
-        app.insert_resource(dbinfo);
+        repo.ping().unwrap();
+
+        app.insert_resource(repo);
     }
 }
