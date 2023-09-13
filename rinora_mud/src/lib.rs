@@ -4,20 +4,19 @@ use bevy::{
     prelude::*,
 };
 use commands::CommandsPlugin;
+use database::DatabasePlugin;
 use server::NetworkServerPlugin;
 
 pub fn start_game() {
     let mut app = App::new();
 
-    let commands: Vec<Box<dyn GameCommand>> = Vec::new();
-
     app.add_plugins(LogPlugin {
         level: Level::DEBUG,
         filter: "debug,rinora_mud=debug".into(),
     })
-    .insert_non_send_resource(commands)
     .add_plugins((
         MinimalPlugins,
+        DatabasePlugin,
         AccountPlugin,
         NetworkServerPlugin,
         CommandsPlugin,

@@ -1,9 +1,8 @@
 mod account;
 mod game_command;
 
-use bevy::{ecs::system::SystemState, prelude::*};
-use game_command::GameCommand;
-use shared::network::InputReceivedEvent;
+use bevy::prelude::*;
+use shared::prelude::*;
 
 pub struct CommandsPlugin;
 
@@ -17,35 +16,46 @@ fn clean_incoming_command(command: Vec<u8>) -> Vec<String> {
         .collect()
 }
 
-pub fn process_incoming_commands(world: &mut World) {
-    let mut event_system_state: SystemState<EventReader<InputReceivedEvent>> =
-        SystemState::new(world);
-    let mut events = event_system_state.get_mut(world);
+pub fn process_incoming_commands(
+    query: Query<&User>,
+    mut ev_incoming_commands: EventReader<InputReceivedEvent>,
+    mut ev_outgoing_account_events: EventWriter<AccountEvent>,
+    mut outgoing_queue: ResMut<OutgoingQueue>,
+) {
+    for command in ev_incoming_commands.iter() {
+        let user = query.get(command.entity).unwrap();
+        let cleaned_command = clean_incoming_command(command.input.as_bytes().to_vec());
 
-    let game_commands = world
-        .get_non_send_resource::<Vec<Box<dyn GameCommand>>>()
-        .unwrap();
-
-    for event in events.iter() {
-        let cleaned_command = clean_incoming_command(event.input.clone().as_bytes().to_vec());
-
-        for boxed_command in game_commands.iter() {
-            let command = boxed_command.as_ref();
-
-            if command.can_execute(&cleaned_command, &event.entity, world) {
-                command.execute(&cleaned_command, &event.entity, world);
+        if user.status == UserStatus::InGame {
+            if cleaned_command[0] == "say" {
+                let mut message = String::new();
+                for word in cleaned_command.iter().skip(1) {
+                    message.push_str(word);
+                    message.push(' ');
+                }
+                outgoing_queue.send_str(user.connection, &format!("You say: {}\n", message));
+                return;
             }
-        }
-    }
-}
 
-fn add_commands(commands: NonSend<Vec<Box<dyn GameCommand>>>) {
-    commands.push(Box::new(account::read_username::ReadUsername {}))
+            if cleaned_command[0] == "butts" {
+                outgoing_queue.send_str(user.connection, "if(asstrack.score == 42069)\n");
+                return;
+            }
+
+            outgoing_queue.send_str(user.connection, "Invalid command!\n");
+            return;
+        }
+
+        ev_outgoing_account_events.send(AccountEvent {
+            entity: command.entity,
+            input: cleaned_command,
+        });
+    }
 }
 
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, add_commands)
+        app.add_event::<AccountEvent>()
             .add_systems(First, process_incoming_commands);
     }
 }

@@ -1,5 +1,5 @@
 [package]
-name = "rinora_mud"
+name = "database"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.11.2" }
-account = { path = "../account" }
-commands = { path = "../commands" }
-database = { path = "../database" }
-server = { path = "../server" }
 shared = { path = "../shared" }
+
+[dependencies.mongodb]
+version = "2.7.0-beta"
+features = ["tokio-sync"]

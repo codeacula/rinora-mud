@@ -1,13 +1,18 @@
-use bevy::{prelude::Component, utils::Uuid};
+use bevy::{prelude::*, utils::Uuid};
 
+#[derive(PartialEq)]
 pub enum UserStatus {
     NeedUsername,
     NeedPassword,
     LoggedIn,
+    InGame,
 }
 
-#[derive(Component)]
-pub struct Login;
+#[derive(Event)]
+pub struct AccountEvent {
+    pub entity: Entity,
+    pub input: Vec<String>,
+}
 
 #[derive(Component)]
 pub struct User {

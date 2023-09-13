@@ -9,13 +9,7 @@ use std::{
 };
 
 use bevy::{prelude::*, utils::Uuid};
-use shared::{
-    network::{
-        DisconnectionEvent, GmcpReceivedEvent, InputReceivedEvent, NetworkInfo, NewConnectionEvent,
-        OutgoingEvent, OutgoingQueue,
-    },
-    user::{Login, User, UserStatus},
-};
+use shared::prelude::*;
 
 // All good MUDs have a banner!
 const GREETING: &str = "
@@ -316,14 +310,11 @@ fn transfer_from_server_to_game(
         match new_event.event_type {
             NetworkEventType::NewConnection => {
                 let entity = commands
-                    .spawn((
-                        User {
-                            connection: new_event.id,
-                            status: UserStatus::NeedUsername,
-                            username: String::new(),
-                        },
-                        Login,
-                    ))
+                    .spawn((User {
+                        connection: new_event.id,
+                        status: UserStatus::NeedUsername,
+                        username: String::new(),
+                    },))
                     .id();
                 network_info
                     .connection_to_entity
