@@ -1,6 +1,3 @@
-mod account;
-mod game_command;
-
 use bevy::prelude::*;
 use shared::prelude::*;
 
@@ -39,6 +36,11 @@ pub fn process_incoming_commands(
 
             if cleaned_command[0] == "butts" {
                 outgoing_queue.send_str(user.connection, "if(asstrack.score == 42069)\n");
+                return;
+            }
+
+            if cleaned_command[0] == "test" {
+                outgoing_queue.send_str(user.connection, "\u{1b}[1;31mtest\u{1b}[0ming\n");
                 return;
             }
 
