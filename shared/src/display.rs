@@ -22,15 +22,34 @@ impl TextSlice {
 }
 
 impl TextBlock {
+    /// Takes a &str with {{3:2}} color formats and converts them to a TextBlock
+    /// with the appropriate number of TextSlices
     pub fn from_str(string: &str) -> Self {
         let parser = TextBlockParser::new();
 
         parser.parse(&String::from(string))
     }
+
+    /// Takes a &String with {{3:2}} color formats and converts them to a TextBlock
+    /// with the appropriate number of TextSlices
     pub fn from_string(string: &String) -> Self {
         let parser = TextBlockParser::new();
 
         parser.parse(string)
+    }
+
+    /// Converts the TextSlices in a TextBlock into a string with {{3:2}} color
+    pub fn to_string(&self) -> String {
+        let mut result = String::from("");
+
+        for slice in self.text_slices.iter() {
+            result.push_str(&format!(
+                "{{{{{}:{}}}}}{}",
+                slice.foreground, slice.background, slice.text
+            ));
+        }
+
+        return result;
     }
 }
 
@@ -224,5 +243,15 @@ mod tests {
         assert_eq!(text_block.text_slices[2].foreground, 15);
         assert_eq!(text_block.text_slices[2].background, 8);
         assert_eq!(text_block.text_slices[2].text, "danger!");
+    }
+
+    #[test]
+    fn format_works() {
+        let mut test_block = TextBlock::from_str("");
+        test_block.text_slices[0].foreground = 32;
+        test_block.text_slices[0].background = 4;
+        test_block.text_slices[0].text = String::from("Butts");
+
+        assert_eq!("{{32:4}}Butts", test_block.to_string());
     }
 }
