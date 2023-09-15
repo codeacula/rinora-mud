@@ -15,6 +15,7 @@ fn clean_incoming_command(command: Vec<u8>) -> Vec<String> {
 
 pub fn process_incoming_commands(
     query: Query<(Entity, &User)>,
+    possible_commands: Res<PossibleCommands>,
     mut ev_incoming_commands: EventReader<InputReceivedEvent>,
     mut ev_outgoing_account_events: EventWriter<AccountEvent>,
     mut ev_outgoing_text_events: EventWriter<TextEvent>,
@@ -47,6 +48,16 @@ pub fn process_incoming_commands(
                 ev_outgoing_text_events.send(TextEvent::new(
                     entity,
                     &String::from("{{11:0}}if{{15:0}}({{208:0}}asstrack.score {{15:0}}== {{141:0}}42069{{15:0}})"),
+                ));
+                return;
+            }
+
+            if possible_commands.0.contains(&cleaned_command[0]) {
+                ev_outgoing_text_events.send(TextEvent::new(
+                    entity,
+                    &String::from(
+                        "{{15:0}}You've provided a valid command that isn't implemented yet.",
+                    ),
                 ));
                 return;
             }

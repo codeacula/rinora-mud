@@ -15,6 +15,7 @@ Cargo.lock
 
 # Private folder for stuff like data and keeping things you don't want committed
 .private
+private.env
 
 # Added by cargo
 

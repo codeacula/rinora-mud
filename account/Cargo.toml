@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.11.2" }
+database = { path = "../database" }
 shared = { path = "../shared" }

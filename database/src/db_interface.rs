@@ -1,18 +1,38 @@
 use bevy::prelude::*;
-use mongodb::{bson::doc, error::Error, sync::Client, sync::Database};
+use mongodb::{
+    bson::doc,
+    error::Error,
+    options::{ClientOptions, ServerApi, ServerApiVersion},
+    sync::Client,
+    sync::Database,
+};
+
+use crate::users::UserRepo;
 
 #[derive(Resource)]
 pub struct DbInterface {
     pub client: Client,
     pub database: Database,
+    pub users: UserRepo,
 }
 
 impl DbInterface {
-    pub fn new(host_string: String, database_name: String) -> Self {
-        let client = Client::with_uri_str(host_string).unwrap();
-        let database = client.database(&database_name);
+    pub fn new(host_string: &String, database_name: &String) -> Self {
+        let mut client_options = ClientOptions::parse(host_string).unwrap();
 
-        DbInterface { client, database }
+        let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
+        client_options.server_api = Some(server_api);
+
+        let client = Client::with_options(client_options).unwrap();
+        let database = client.database(database_name);
+
+        let users = UserRepo::new(&database);
+
+        DbInterface {
+            client,
+            database,
+            users,
+        }
     }
 
     pub fn ping(&self) -> Result<(), Error> {

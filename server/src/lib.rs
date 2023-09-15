@@ -329,6 +329,7 @@ fn transfer_from_server_to_game(
                         connection: new_event.id,
                         status: UserStatus::NeedUsername,
                         username: String::new(),
+                        dbid: None,
                     },))
                     .id();
                 network_info
@@ -344,10 +345,15 @@ fn transfer_from_server_to_game(
                     .connection_to_entity
                     .get(&new_event.id)
                     .unwrap();
-                ev_input_received_connection.send(InputReceivedEvent {
-                    entity,
-                    input: String::from_utf8(new_event.data.unwrap()).unwrap(),
-                });
+
+                let input = String::from_utf8(new_event.data.unwrap()).unwrap();
+
+                // We don't want to bother processing empty requests
+                if input.trim().is_empty() {
+                    continue;
+                }
+
+                ev_input_received_connection.send(InputReceivedEvent { entity, input });
             }
             NetworkEventType::ConnectionDropped => {
                 let entity = network_info

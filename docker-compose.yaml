@@ -8,9 +8,9 @@ services:
   db:
     image: mongo:6.0.6-jammy
     restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: $MONGODB_USER
-      MONGO_INITDB_ROOT_PASSWORD: $MONGODB_PASS
+    env_file:
+      - .env
+      - private.env
     volumes:
       - type: bind
         source: ./.private/mongodb

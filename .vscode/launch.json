@@ -16,7 +16,11 @@
         }
       },
       "args": [],
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "CARGO_MANIFEST_DIR": "${workspaceFolder}"
+      },
+      "envFile": "private.env"
     },
     {
       "type": "lldb",

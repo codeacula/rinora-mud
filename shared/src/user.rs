@@ -17,6 +17,7 @@ pub struct AccountEvent {
 #[derive(Component)]
 pub struct User {
     pub connection: Uuid,
+    pub dbid: Option<String>,
     pub status: UserStatus,
     pub username: String,
 }
