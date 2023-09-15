@@ -14,13 +14,13 @@ fn clean_incoming_command(command: Vec<u8>) -> Vec<String> {
 }
 
 pub fn process_incoming_commands(
-    query: Query<&User>,
+    query: Query<(Entity, &User)>,
     mut ev_incoming_commands: EventReader<InputReceivedEvent>,
     mut ev_outgoing_account_events: EventWriter<AccountEvent>,
-    mut outgoing_queue: ResMut<OutgoingQueue>,
+    mut ev_outgoing_text_events: EventWriter<TextEvent>,
 ) {
     for command in ev_incoming_commands.iter() {
-        let user = query.get(command.entity).unwrap();
+        let (entity, user) = query.get(command.entity).unwrap();
         let cleaned_command = clean_incoming_command(command.input.as_bytes().to_vec());
 
         if user.status == UserStatus::InGame {
@@ -30,21 +30,28 @@ pub fn process_incoming_commands(
                     message.push_str(word);
                     message.push(' ');
                 }
-                outgoing_queue.send_str(user.connection, &format!("You say: {}\n", message));
+                ev_outgoing_text_events
+                    .send(TextEvent::new(entity, &format!("You say: {}\n", message)));
                 return;
             }
 
             if cleaned_command[0] == "butts" {
-                outgoing_queue.send_str(user.connection, "if(asstrack.score == 42069)\n");
+                ev_outgoing_text_events.send(TextEvent::new(
+                    entity,
+                    &String::from("if(asstrack.score == 42069)\n"),
+                ));
                 return;
             }
 
             if cleaned_command[0] == "test" {
-                outgoing_queue.send_str(user.connection, "\u{1b}[1;31mtest\u{1b}[0ming\n");
+                ev_outgoing_text_events.send(TextEvent::new(
+                    entity,
+                    &String::from("{{11:0}}if{{15:0}}({{208:0}}asstrack.score {{15:0}}== {{141:0}}42069{{15:0}})"),
+                ));
                 return;
             }
 
-            outgoing_queue.send_str(user.connection, "Invalid command!\n");
+            ev_outgoing_text_events.send(TextEvent::new(entity, &String::from("Invalid command!")));
             return;
         }
 

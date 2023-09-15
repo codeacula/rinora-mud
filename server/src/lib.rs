@@ -9,7 +9,10 @@ use std::{
 };
 
 use bevy::{prelude::*, utils::Uuid};
+use outgoingtext::process_text_events_for_users;
 use shared::prelude::*;
+
+mod outgoingtext;
 
 // All good MUDs have a banner!
 const GREETING: &str = "
@@ -24,75 +27,17 @@ const GREETING: &str = "
 ";
 pub struct NetworkServerPlugin;
 
-/*
-
-
-impl TextBlock {
-    pub fn get_text(&self) -> String {
-        let mut outgoing_text: Vec<String> = Vec::new();
-
-        for slice in &self.text_slices {
-            outgoing_text.push(build_color_code(&slice));
-            outgoing_text.push(slice.text.clone());
-        }
-
-        outgoing_text.concat()
-    }
-}
-
-
-
-pub fn build_color_code(slice: &TextSlice) -> String {
-    //"\u{1b}[1;31mtest\u{1b}[0ming\n"
-    let mut code_bits: Vec<String> = Vec::new();
-
-    if slice.foreground_bright {
-        code_bits.push(String::from("1"));
-    }
-
-    if slice.foreground_color.is_some() {
-        code_bits.push(format!(
-            "3{}",
-            get_color_code(slice.foreground_color.as_ref().unwrap())
-        ))
-    }
-
-    if slice.background_bright {
-        code_bits.push(String::from("1"));
-    }
-
-    if slice.background_color.is_some() {
-        code_bits.push(format!(
-            "4{}",
-            get_color_code(&slice.background_color.as_ref().unwrap())
-        ))
-    }
-
-    format!("\u{1b}[{}m", code_bits.join(";"))
-}
-
-
-/// Converts a color to the escape code we use
-pub fn get_color_code(color: &Color) -> String {
-    return match color {
-        Color::Black => String::from("0"),
-        Color::Red => String::from("1"),
-        Color::Green => String::from("2"),
-        Color::Yellow => String::from("3"),
-        Color::Blue => String::from("4"),
-        Color::Magenta => String::from("5"),
-        Color::Cyan => String::from("6"),
-        Color::White => String::from("7"),
-    };
-}
-*/
-
 pub struct NetworkConnection {
     id: Uuid,
     conn: TcpStream,
 }
 
 pub struct NewConnectionListener(pub Receiver<NetworkEvent>);
+
+#[derive(Resource)]
+pub struct NetworkInfo {
+    pub connection_to_entity: HashMap<Uuid, Entity>,
+}
 
 /// A network
 pub struct NetworkEvent {
@@ -107,6 +52,34 @@ pub enum NetworkEventType {
     InputReceived,
     ConnectionDropped,
     GmcpReceived,
+}
+
+#[derive(Event)]
+pub struct OutgoingEvent {
+    pub id: Uuid,
+    pub text: Option<Vec<u8>>,
+    pub gmcp: Option<Vec<u8>>,
+}
+
+#[derive(Resource)]
+pub struct OutgoingQueue(pub Vec<OutgoingEvent>);
+
+impl OutgoingQueue {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn send_text(&mut self, id: Uuid, text: String) {
+        self.0.push(OutgoingEvent {
+            id,
+            text: Some(text.as_bytes().to_vec()),
+            gmcp: None,
+        });
+    }
+
+    pub fn send_str(&mut self, id: Uuid, text: &str) {
+        self.send_text(id, text.to_string())
+    }
 }
 
 pub struct OutgoingData(Sender<OutgoingEvent>);
@@ -412,6 +385,7 @@ impl Plugin for NetworkServerPlugin {
         .add_systems(
             Update,
             (process_outgoing_data, transfer_from_server_to_game),
-        );
+        )
+        .add_systems(Last, process_text_events_for_users);
     }
 }

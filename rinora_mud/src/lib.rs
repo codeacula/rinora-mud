@@ -6,6 +6,7 @@ use bevy::{
 use commands::CommandsPlugin;
 use database::DatabasePlugin;
 use server::NetworkServerPlugin;
+use shared::SharedPlugin;
 
 pub fn start_game() {
     let mut app = App::new();
@@ -16,6 +17,7 @@ pub fn start_game() {
     })
     .add_plugins((
         MinimalPlugins,
+        SharedPlugin,
         DatabasePlugin,
         AccountPlugin,
         NetworkServerPlugin,
