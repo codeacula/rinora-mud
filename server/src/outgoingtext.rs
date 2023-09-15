@@ -13,7 +13,7 @@ fn build_color_code(slice: &TextSlice) -> String {
 }
 
 pub fn process_text_events_for_users(
-    query: Query<&User>,
+    query: Query<&UserSessionData>,
     mut incoming_text_events: EventReader<TextEvent>,
     mut outgoing_queue: ResMut<OutgoingQueue>,
 ) {

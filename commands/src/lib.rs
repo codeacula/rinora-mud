@@ -14,17 +14,17 @@ fn clean_incoming_command(command: Vec<u8>) -> Vec<String> {
 }
 
 pub fn process_incoming_commands(
-    query: Query<(Entity, &User)>,
+    query: Query<(Entity, &UserSessionData)>,
     possible_commands: Res<PossibleCommands>,
     mut ev_incoming_commands: EventReader<InputReceivedEvent>,
     mut ev_outgoing_account_events: EventWriter<AccountEvent>,
     mut ev_outgoing_text_events: EventWriter<TextEvent>,
 ) {
     for command in ev_incoming_commands.iter() {
-        let (entity, user) = query.get(command.entity).unwrap();
+        let (entity, user_sesh) = query.get(command.entity).unwrap();
         let cleaned_command = clean_incoming_command(command.input.as_bytes().to_vec());
 
-        if user.status == UserStatus::InGame {
+        if user_sesh.status == UserStatus::InGame {
             if cleaned_command[0] == "say" {
                 let mut message = String::new();
                 for word in cleaned_command.iter().skip(1) {
@@ -69,6 +69,7 @@ pub fn process_incoming_commands(
         ev_outgoing_account_events.send(AccountEvent {
             entity: command.entity,
             input: cleaned_command,
+            raw_command: command.input.clone(),
         });
     }
 }

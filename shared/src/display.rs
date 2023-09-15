@@ -69,6 +69,13 @@ impl TextEvent {
             text: TextBlock::from_string(text),
         }
     }
+
+    pub fn from_str(entity: Entity, text: &str) -> Self {
+        TextEvent {
+            entity,
+            text: TextBlock::from_str(text),
+        }
+    }
 }
 
 #[derive(Clone, Copy)]

@@ -325,11 +325,11 @@ fn transfer_from_server_to_game(
         match new_event.event_type {
             NetworkEventType::NewConnection => {
                 let entity = commands
-                    .spawn((User {
+                    .spawn((UserSessionData {
                         connection: new_event.id,
+                        pwd: None,
                         status: UserStatus::NeedUsername,
                         username: String::new(),
-                        dbid: None,
                     },))
                     .id();
                 network_info
