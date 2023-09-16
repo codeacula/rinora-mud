@@ -25,11 +25,14 @@ const GREETING: &str = "
 
 
 ";
+
+/// Main Bevy plugin to handle networking
 pub struct NetworkServerPlugin;
 
+/// Holds everything we need to identify a network connection
 pub struct NetworkConnection {
-    id: Uuid,
-    conn: TcpStream,
+    id: Uuid,        // We use a UUID so we don't have to worry about integer rollover
+    conn: TcpStream, // The TCP stream we use to communicate
 }
 
 pub struct NewConnectionListener(pub Receiver<NetworkEvent>);
@@ -39,7 +42,6 @@ pub struct NetworkInfo {
     pub connection_to_entity: HashMap<Uuid, Entity>,
 }
 
-/// A network
 pub struct NetworkEvent {
     pub id: Uuid,
     pub data: Option<Vec<u8>>,
@@ -79,6 +81,12 @@ impl OutgoingQueue {
 
     pub fn send_str(&mut self, id: Uuid, text: &str) {
         self.send_text(id, text.to_string())
+    }
+}
+
+impl Default for OutgoingQueue {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -168,7 +176,7 @@ fn start_listening(world: &mut World) {
                     data: None,
                     event_type: NetworkEventType::NewConnection,
                 }) {
-                    warn!("Failed to send network event to junction: {}", err);
+                    error!("Failed to send network event to junction: {}", err);
                     break;
                 };
                 all_connections.push(new_conn);
@@ -209,9 +217,10 @@ fn start_listening(world: &mut World) {
                 // Connection closed
                 to_remove.push(outgoing_event_connection.id);
 
-                if let Err(_) = outgoing_event_connection
+                if outgoing_event_connection
                     .conn
                     .shutdown(std::net::Shutdown::Both)
+                    .is_err()
                 {
                     warn!("Failed to shutdown connection");
                     break;
@@ -223,10 +232,8 @@ fn start_listening(world: &mut World) {
                     data: None,
                     event_type: NetworkEventType::ConnectionDropped,
                 }) {
-                    let mut error_message: String =
-                        String::from("Failed to send connection dropped event: ");
-                    error_message.push_str(&err.to_string());
-                    warn!("{}", error_message);
+                    error!("Failed to send connection dropped event: {:?}", err);
+                    break;
                 };
 
                 continue;
@@ -238,7 +245,11 @@ fn start_listening(world: &mut World) {
                 match network_connection.conn.peek(&mut buf) {
                     Ok(0) => {
                         // Connection closed
-                        if let Err(_) = network_connection.conn.shutdown(std::net::Shutdown::Both) {
+                        if network_connection
+                            .conn
+                            .shutdown(std::net::Shutdown::Both)
+                            .is_err()
+                        {
                             to_remove.push(network_connection.id);
                             warn!("Failed to shutdown connection, still discarding.");
                             continue;
@@ -316,12 +327,7 @@ fn transfer_from_server_to_game(
     mut network_info: ResMut<NetworkInfo>,
     mut commands: Commands,
 ) {
-    loop {
-        let new_event = match connection_event_rx.0.try_recv() {
-            Ok(event) => event,
-            Err(_) => break,
-        };
-
+    while let Ok(new_event) = connection_event_rx.0.try_recv() {
         match new_event.event_type {
             NetworkEventType::NewConnection => {
                 let entity = commands

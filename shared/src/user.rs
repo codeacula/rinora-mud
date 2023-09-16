@@ -29,6 +29,7 @@ impl AccountEvent {
 
 #[derive(Component)]
 pub struct User {
+    pub autologin: String,
     pub dbid: String,
     pub username: String,
 }

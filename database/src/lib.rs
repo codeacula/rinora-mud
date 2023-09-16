@@ -3,21 +3,18 @@ use std::env;
 
 use crate::db_interface::DbInterface;
 
+mod characters;
 mod db_interface;
 mod users;
 
 pub struct DatabasePlugin;
 
 fn get_env(key: &str, default: &str) -> String {
-    match env::var(key) {
-        Ok(value) => value,
-        _ => default.to_string(),
-    }
+    env::var(key).unwrap_or(String::from(default))
 }
 
 fn get_database() -> String {
-    let database_name = get_env("MONGODB_DATABASE", "rinoramud");
-    database_name
+    get_env("MONGODB_DATABASE", "rinoramud")
 }
 
 impl Plugin for DatabasePlugin {
@@ -36,6 +33,7 @@ impl Plugin for DatabasePlugin {
 }
 
 pub mod prelude {
+    pub use crate::characters::*;
     pub use crate::db_interface::*;
     pub use crate::users::*;
 }

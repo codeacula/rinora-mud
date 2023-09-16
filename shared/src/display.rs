@@ -1,3 +1,5 @@
+use std::{fmt, str::FromStr};
+
 use bevy::prelude::*;
 
 /// Represents a slice of text in a text block. Can be colored.
@@ -18,20 +20,18 @@ impl TextSlice {
     }
 }
 
+impl Default for TextSlice {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Represents a full block of text, from the beginning of the line to the \n
 pub struct TextBlock {
     pub text_slices: Vec<TextSlice>,
 }
 
 impl TextBlock {
-    /// Takes a &str with {{3:2}} color formats and converts them to a TextBlock
-    /// with the appropriate number of TextSlices.
-    pub fn from_str(string: &str) -> Self {
-        let parser = TextBlockParser::new();
-
-        parser.parse(&String::from(string))
-    }
-
     /// Takes a &String with {{3:2}} color formats and converts them to a TextBlock
     /// with the appropriate number of TextSlices.
     pub fn from_string(string: &String) -> Self {
@@ -39,9 +39,11 @@ impl TextBlock {
 
         parser.parse(string)
     }
+}
 
+impl fmt::Display for TextBlock {
     /// Converts the TextSlices in a TextBlock into a string with {{3:2}} color.
-    pub fn to_string(&self) -> String {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = String::from("");
 
         for slice in self.text_slices.iter() {
@@ -52,7 +54,22 @@ impl TextBlock {
             ));
         }
 
-        return result;
+        write!(f, "{}", result)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseTextBlockError;
+
+impl FromStr for TextBlock {
+    type Err = ParseTextBlockError;
+
+    /// Takes a &str with {{3:2}} color formats and converts them to a TextBlock
+    /// with the appropriate number of TextSlices.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parser = TextBlockParser::new();
+
+        Ok(parser.parse(&String::from(s)))
     }
 }
 
@@ -73,7 +90,7 @@ impl TextEvent {
     pub fn from_str(entity: Entity, text: &str) -> Self {
         TextEvent {
             entity,
-            text: TextBlock::from_str(text),
+            text: TextBlock::from_str(text).unwrap(),
         }
     }
 }
@@ -250,7 +267,9 @@ impl TextBlockParser {
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::TextBlock;
+    use std::str::FromStr;
+
+    use super::TextBlock;
 
     use super::TextSlice;
 
@@ -266,7 +285,7 @@ mod tests {
     #[test]
     fn it_processes_a_str() {
         let test_string = "{{15:8}}Warning, you're in {{2:0}}hot {{15:8}}danger!";
-        let text_block = TextBlock::from_str(test_string);
+        let text_block = TextBlock::from_str(test_string).unwrap();
 
         assert_eq!(text_block.text_slices.len(), 3);
 
@@ -311,7 +330,7 @@ mod tests {
 
     #[test]
     fn format_works() {
-        let mut test_block = TextBlock::from_str("");
+        let mut test_block: TextBlock = "".parse().unwrap();
         test_block.text_slices[0].foreground = 32;
         test_block.text_slices[0].background = 4;
         test_block.text_slices[0].text = String::from("Butts");

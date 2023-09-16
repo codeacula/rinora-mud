@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use database::prelude::*;
 use shared::prelude::*;
 
+mod characters;
+
 pub struct AccountPlugin;
 
 /// Add keywords we can quickly check in the Commands module
@@ -25,7 +27,7 @@ fn handle_new_connections(
 /// When a user disconnects
 fn handle_disconnect(
     mut ev_disconnection_event: EventReader<DisconnectionEvent>,
-    query: Query<&User>,
+    query: Query<&UserSessionData>,
     mut commands: Commands,
 ) {
     for ev in ev_disconnection_event.iter() {
@@ -98,6 +100,7 @@ fn handle_account_event(
                 };
 
                 commands.entity(entity).insert(User {
+                    autologin: String::from(""),
                     dbid: uuid,
                     username: user_sesh.username.clone(),
                 });
@@ -162,7 +165,7 @@ fn handle_account_event(
             UserStatus::NeedPassword => {
                 let provided_password = account_event.raw_command.clone();
 
-                let user = match db_repo
+                let user_option = match db_repo
                     .users
                     .find_with_credentials(&user_sesh.username, &provided_password)
                 {
@@ -177,7 +180,7 @@ fn handle_account_event(
                     }
                 };
 
-                if user.is_none() {
+                if user_option.is_none() {
                     ev_outgoing_text_events.send(TextEvent::from_str(
                         entity,
                         "Looks like there's a problem with the password. Let's try again. What's your username?",
@@ -187,18 +190,43 @@ fn handle_account_event(
                     continue;
                 }
 
-                commands.entity(entity).insert(user.unwrap());
-                user_sesh.status = UserStatus::InGame;
-                ev_outgoing_text_events.send(TextEvent::from_str(entity, "You are now logged in!"));
-            }
-            UserStatus::LoggedIn => {
-                info!("Logged in");
+                let user = user_option.unwrap();
+                user_sesh.status = UserStatus::LoggedIn;
 
-                //
+                let mut greeting = String::from("Thank you! Welcome back!\n\nYour options:\n\n");
+
+                greeting.push_str("  [{{15}}1{{7}}]: Create Character\n");
+                greeting.push_str("  [{{15}}2{{7}}]: Delete Character\n");
+                greeting.push_str("  [{{15}}3{{7}}]: Toggle Autologin\n\n");
+
+                let characters = match db_repo.characters.get_all_by_user(user.dbid.clone()) {
+                    Ok(characters) => characters,
+                    Err(e) => {
+                        error!("Unable to fetch user's characters at login: {:?}", e);
+                        ev_outgoing_text_events.send(TextEvent::from_str(
+                            entity,
+                            "There was an issue fetching your characters. Please disconnect and try again.",
+                        ));
+                        continue;
+                    }
+                };
+
+                if characters.is_empty() {
+                    greeting.push_str("You currently have no characters.\n")
+                } else {
+                    greeting.push_str("Your characters are:\n");
+
+                    for character in characters {
+                        greeting.push_str(&format!("  {}\n", character.name));
+                    }
+                }
+
+                greeting.push_str("\nSend a number command or which character you want to play.");
+
+                commands.entity(entity).insert(user);
+                ev_outgoing_text_events.send(TextEvent::new(entity, &greeting));
             }
-            UserStatus::InGame => {
-                error!("Shouldn't have made it here!");
-            }
+            _ => continue,
         }
     }
 }
@@ -211,6 +239,7 @@ impl Plugin for AccountPlugin {
                 handle_disconnect,
                 handle_new_connections,
                 handle_account_event,
+                characters::manage_character_list,
             ),
         );
     }
