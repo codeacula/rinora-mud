@@ -20,7 +20,7 @@ impl CharacterRepo {
         CharacterRepo { characters }
     }
 
-    pub fn get_all_by_user(&self, user_uuid: String) -> Result<Vec<Character>, String> {
+    pub fn get_all_by_user(&self, user_uuid: &str) -> Result<Vec<Character>, String> {
         let query = self.characters.find(doc! { "user_id": user_uuid }, None);
 
         if let Err(query_err) = query {

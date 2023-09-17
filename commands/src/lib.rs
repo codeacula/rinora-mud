@@ -37,27 +37,17 @@ pub fn process_incoming_commands(
             }
 
             if cleaned_command[0] == "butts" {
-                ev_outgoing_text_events.send(TextEvent::new(
+                ev_outgoing_text_events.send(TextEvent::from_str(
                     entity,
-                    &String::from("if(asstrack.score == 42069)\n"),
-                ));
-                return;
-            }
-
-            if cleaned_command[0] == "test" {
-                ev_outgoing_text_events.send(TextEvent::new(
-                    entity,
-                    &String::from("{{11:0}}if{{15:0}}({{208:0}}asstrack.score {{15:0}}== {{141:0}}42069{{15:0}})"),
+                    "{{11:0}}if{{15:0}}({{208:0}}asstrack.score {{15:0}}== {{141:0}}42069{{15:0}})",
                 ));
                 return;
             }
 
             if possible_commands.0.contains(&cleaned_command[0]) {
-                ev_outgoing_text_events.send(TextEvent::new(
+                ev_outgoing_text_events.send(TextEvent::from_str(
                     entity,
-                    &String::from(
-                        "{{15:0}}You've provided a valid command that isn't implemented yet.",
-                    ),
+                    "{{15:0}}You've provided a valid command that isn't implemented yet.",
                 ));
                 return;
             }
@@ -76,7 +66,6 @@ pub fn process_incoming_commands(
 
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AccountEvent>()
-            .add_systems(First, process_incoming_commands);
+        app.add_systems(First, process_incoming_commands);
     }
 }

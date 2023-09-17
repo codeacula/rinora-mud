@@ -18,10 +18,10 @@ pub fn start_game() {
     .add_plugins((
         MinimalPlugins,
         SharedPlugin,
+        CommandsPlugin,
         DatabasePlugin,
         AccountPlugin,
         NetworkServerPlugin,
-        CommandsPlugin,
     ))
     .run()
 }

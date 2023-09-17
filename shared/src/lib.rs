@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use command::PossibleCommands;
-use prelude::TextEvent;
+use prelude::*;
 
+pub mod account;
 pub mod character;
 pub mod command;
 pub mod creature;
@@ -13,15 +14,25 @@ pub struct SharedPlugin;
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
-        // Events
-        app.add_event::<TextEvent>();
+        // Account
+        app.add_event::<AccountEvent>()
+            .add_event::<UserProvidedUsername>()
+            .add_event::<UserCreatedPassword>()
+            .add_event::<UserConfirmedPassword>()
+            .add_event::<UserProvidedPassword>()
+            .add_event::<LoginOptionSelected>()
+            .add_event::<UserLoggedIn>();
 
         // Commands
         app.insert_resource(PossibleCommands(Vec::new()));
+
+        // Events
+        app.add_event::<TextEvent>();
     }
 }
 
 pub mod prelude {
+    pub use crate::account::*;
     pub use crate::character::*;
     pub use crate::command::*;
     pub use crate::creature::*;
