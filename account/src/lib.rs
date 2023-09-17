@@ -2,8 +2,6 @@ use bevy::prelude::*;
 use database::prelude::*;
 use shared::prelude::*;
 
-mod characters;
-
 pub struct AccountPlugin;
 
 /// Add keywords we can quickly check in the Commands module
@@ -239,7 +237,6 @@ impl Plugin for AccountPlugin {
                 handle_disconnect,
                 handle_new_connections,
                 handle_account_event,
-                characters::manage_character_list,
             ),
         );
     }
