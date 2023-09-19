@@ -1,6 +1,26 @@
 use std::{fmt, str::FromStr};
 
-use bevy::prelude::*;
+use bevy::{ecs::system::Command, prelude::*};
+
+pub struct SendText {
+    pub entity: Entity,
+    pub text: String,
+}
+
+impl SendText {
+    pub fn new(entity: Entity, text: &str) -> Self {
+        SendText {
+            entity,
+            text: text.to_string(),
+        }
+    }
+}
+
+impl Command for SendText {
+    fn apply(self, world: &mut World) {
+        world.send_event(TextEvent::new(self.entity, &self.text))
+    }
+}
 
 /// Represents a slice of text in a text block. Can be colored.
 #[derive(Clone)]

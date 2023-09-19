@@ -1,13 +1,17 @@
 use bevy::{prelude::*, utils::Uuid};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Default)]
 pub enum UserStatus {
+    CreateCharacter,
     CreatePassword,
     ConfirmPassword,
+    DeleteCharacter,
+    InGame,
+    LoggedIn,
+    #[default]
     NeedUsername,
     NeedPassword,
-    LoggedIn,
-    InGame,
+    ToggleAutologin,
 }
 
 #[derive(Component)]

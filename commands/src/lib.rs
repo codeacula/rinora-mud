@@ -59,7 +59,7 @@ pub fn process_incoming_commands(
         ev_outgoing_account_events.send(AccountEvent {
             entity: command.entity,
             input: cleaned_command,
-            raw_command: command.input.clone(),
+            raw_command: command.input.clone().trim().to_string(),
         });
     }
 }
