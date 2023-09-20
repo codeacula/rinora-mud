@@ -18,6 +18,16 @@ pub struct DbUser {
     pub autologin: String,
 }
 
+impl DbUser {
+    pub fn to_game_user(&self) -> User {
+        User {
+            autologin: self.autologin.clone(),
+            username: self.username.clone(),
+            id: self.id.unwrap().to_string(),
+        }
+    }
+}
+
 pub struct UserRepo {
     pub users: Collection<DbUser>,
 }
@@ -94,14 +104,11 @@ impl UserRepo {
 
         match found_user {
             None => Ok(None),
-            Some(user) => Ok(Some(User {
-                autologin: user.autologin,
-                username: user.username,
-                id: user.id.unwrap().to_string(),
-            })),
+            Some(user) => Ok(Some(user.to_game_user())),
         }
     }
 
+    /// Fetch a user by its UUID
     pub fn get_by_uuid(&self, uuid: &str) -> Result<Option<User>, String> {
         let parse_uuid_result = ObjectId::parse_str(uuid);
 
@@ -125,11 +132,7 @@ impl UserRepo {
 
         match found_user {
             None => Ok(None),
-            Some(user) => Ok(Some(User {
-                autologin: user.autologin,
-                username: user.username,
-                id: user.id.unwrap().to_string(),
-            })),
+            Some(user) => Ok(Some(user.to_game_user())),
         }
     }
 }

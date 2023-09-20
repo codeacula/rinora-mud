@@ -147,6 +147,18 @@ impl TextBlockParser {
         }
     }
 
+    pub fn get_int_from_buffer(&self) -> Result<i32, String> {
+        return match self.buffer.parse::<i32>() {
+            Ok(res) => Ok(res),
+            Err(e) => {
+                return Err(format!(
+                    "Unable to parse into a number. Text: {} Err: {:?}",
+                    self.buffer, e
+                ))
+            }
+        };
+    }
+
     fn push(&mut self, c: char) {
         self.current_slice.text.push_str(&self.buffer);
         self.current_slice.text.push(c);
@@ -170,8 +182,7 @@ impl TextBlockParser {
             self.buffer.push(c);
             Ok(())
         } else if c == END_COLOR {
-            self.current_slice.background = self.buffer.parse().unwrap();
-            self.buffer.clear();
+            self.current_slice.background = self.get_int_from_buffer()?;
             self.status = ParseStatus::FinishColorBlock;
             Ok(())
         } else {
@@ -187,14 +198,14 @@ impl TextBlockParser {
 
         // : is the control character to signify we're moving to background colors
         } else if c == ':' {
-            self.current_slice.foreground = self.buffer.parse().unwrap();
+            self.current_slice.foreground = self.get_int_from_buffer()?;
             self.buffer.clear();
             self.status = ParseStatus::InBackground;
             Ok(())
 
         // This makes only a foreground color valid
         } else if c == END_COLOR {
-            self.current_slice.foreground = self.buffer.parse().unwrap();
+            self.current_slice.foreground = self.get_int_from_buffer()?;
             self.buffer.clear();
             self.status = ParseStatus::FinishColorBlock;
             Ok(())
@@ -230,6 +241,7 @@ impl TextBlockParser {
     fn start_parsing(&mut self, c: char) -> Result<(), String> {
         if c == START_COLOR_CONTROL {
             self.buffer.clear();
+            self.buffer.push('{');
             self.status = ParseStatus::StartColorBlock;
             Ok(())
         } else {
@@ -272,7 +284,7 @@ impl TextBlockParser {
 
             if result.is_err() {
                 let msg = format!(
-                    "Unable to parse string: {} Error: {:?}",
+                    "Unable to parse string: '{}' - Error: {:?}",
                     incoming_string,
                     result.err()
                 );
@@ -356,5 +368,15 @@ mod tests {
         test_block.text_slices[0].text = String::from("Butts");
 
         assert_eq!("{{32:4}}Butts", test_block.to_string());
+    }
+
+    #[test]
+    fn can_parse_not_quite_color_blocks() {
+        let strn = "{5:0}What would you like your character's name to be?";
+        let test_block: TextBlock = strn.parse().unwrap();
+
+        assert_eq!(test_block.text_slices[0].background, 0);
+        assert_eq!(test_block.text_slices[0].foreground, 7);
+        assert_eq!(test_block.text_slices[0].text, String::from(strn));
     }
 }

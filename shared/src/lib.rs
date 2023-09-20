@@ -7,6 +7,7 @@ pub mod character;
 pub mod command;
 pub mod creature;
 pub mod display;
+pub mod helpers;
 pub mod network;
 pub mod user;
 
@@ -31,6 +32,8 @@ pub mod prelude {
     pub use crate::command::*;
     pub use crate::creature::*;
     pub use crate::display::*;
+    pub use crate::helpers::string::*;
+    pub use crate::helpers::*;
     pub use crate::network::*;
     pub use crate::user::*;
 }

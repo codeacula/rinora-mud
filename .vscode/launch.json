@@ -18,7 +18,8 @@
       "args": [],
       "cwd": "${workspaceFolder}",
       "env": {
-        "CARGO_MANIFEST_DIR": "${workspaceFolder}"
+        "CARGO_MANIFEST_DIR": "${workspaceFolder}",
+        "RUST_BACKTRACE": "1"
       },
       "envFile": "private.env"
     },

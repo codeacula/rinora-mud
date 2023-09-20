@@ -4,6 +4,7 @@ use bevy::{prelude::*, utils::Uuid};
 pub enum UserStatus {
     CreateCharacter,
     CreatePassword,
+    ConfirmDelete,
     ConfirmPassword,
     DeleteCharacter,
     InGame,
