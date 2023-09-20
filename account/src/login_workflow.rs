@@ -4,31 +4,25 @@ use shared::prelude::*;
 
 pub fn handle_user_login(
     mut query: Query<Entity>,
-    mut user_login_events: EventReader<UserLoggedIn>,
+    mut events: EventReader<UserLoggedIn>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in user_login_events.iter() {
-        let entity = query.get_mut(account_event.entity).unwrap();
+    for event in events.iter() {
+        let entity = query.get_mut(event.entity).unwrap();
 
-        let found_user = match db_repo.users.get_by_uuid(&account_event.uuid) {
+        let found_user = match db_repo.users.get_by_uuid(&event.uuid) {
             Ok(user) => user,
             Err(e) => {
                 error!("Unable to fetch user after login: {:?}", e);
-                commands.add(SendText::new(
-                    entity,
-                    "There was an issue fetching your account. Please disconnect and try again.",
-                ));
+                commands.add(SendText::send_generic_error(entity));
                 continue;
             }
         };
 
         let Some(user) = found_user else {
             error!("Unable to fetch user after login: No account returned!");
-            commands.add(SendText::new(
-                entity,
-                "There was an issue fetching your account. Please disconnect and try again.",
-            ));
+            commands.add(SendText::send_generic_error(entity));
             continue;
         };
 
@@ -147,11 +141,6 @@ pub fn user_provided_password(
         let (entity, mut user_sesh) = query.get_mut(event.command.entity).unwrap();
 
         let provided_password = event.command.full_command.clone();
-
-        info!(
-            "Username: {}, Password: {}",
-            &user_sesh.username, &provided_password
-        );
 
         let user_option = match db_repo
             .users

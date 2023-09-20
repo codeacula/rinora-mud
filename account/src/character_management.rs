@@ -10,15 +10,15 @@ pub fn create_character(
 ) {
     for event in events.iter() {
         let (entity, user) = query.get_mut(event.command.entity).unwrap();
-        let character_name = event.command.keyword.clone();
 
-        if event.command.parts.len() > 1 || is_alphabetic(&character_name) {
+        if event.command.parts.len() > 1 || !is_alphabetic(&event.command.keyword) {
             commands.add(SendText::new(
                 entity,
                 "Character names can only contain the letters A-Z, and only one word. Please try again.",
             ));
             continue;
         }
+        let character_name = event.command.keyword.clone();
 
         let exists_res = db_repo.characters.does_character_exist(&character_name);
 
@@ -54,14 +54,37 @@ pub fn create_character(
     }
 }
 
+pub fn process_character_deletion_requests(
+    query: Query<(Entity, &Character)>,
+    mut events: EventReader<DeleteCharacterEvent>,
+    db_repo: Res<DbInterface>,
+    mut commands: Commands,
+) {
+    let mut entities_to_delete: Vec<String> = Vec::new();
+    for event in events.iter() {
+        if let Err(e) = db_repo.characters.delete_character(&event.name) {
+            error!("There was an error deleting a user from the DB: {:?}", e);
+            continue;
+        }
+
+        entities_to_delete.push(event.name.clone());
+    }
+
+    for (entity, character) in query.iter() {
+        if entities_to_delete.contains(&character.name) {
+            commands.entity(entity).remove::<Character>();
+        }
+    }
+}
+
 pub fn start_delete_character(
-    mut query: Query<(Entity, &User)>,
+    mut query: Query<(Entity, &mut UserSessionData, &User)>,
     mut events: EventReader<UserProvidedCharacterToDelete>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
-        let (entity, user) = query.get_mut(event.command.entity).unwrap();
+        let (entity, mut user_sesh, user) = query.get_mut(event.command.entity).unwrap();
 
         let character_name = event.command.keyword.clone();
 
@@ -72,7 +95,7 @@ pub fn start_delete_character(
             continue;
         }
 
-        let mut show_login_menu = false;
+        let mut show_login_menu = true;
         let found_character = query_res.unwrap();
 
         if found_character.is_none() {
@@ -80,7 +103,7 @@ pub fn start_delete_character(
                 entity,
                 "Couldn't find a character by that name.",
             ));
-            show_login_menu = true;
+            show_login_menu = false;
         }
 
         if let Some(character) = found_character {
@@ -89,7 +112,7 @@ pub fn start_delete_character(
                     entity,
                     "Couldn't find a character by that name.",
                 ));
-                show_login_menu = true;
+                show_login_menu = false;
             }
         }
 
@@ -117,9 +140,68 @@ pub fn start_delete_character(
                 &character_name,
             ),
         ));
+
         commands.add(TransitionUserToState {
             entity,
             state: UserStatus::ConfirmDelete,
+        });
+        user_sesh.char_to_delete = Some(character_name);
+    }
+}
+
+pub fn confirm_delete_character(
+    mut query: Query<(Entity, &mut UserSessionData, &User)>,
+    mut events: EventReader<UserConfirmedDeleteCharacter>,
+    db_repo: Res<DbInterface>,
+    mut commands: Commands,
+) {
+    for event in events.iter() {
+        let (entity, mut user_sesh, user) = query.get_mut(event.command.entity).unwrap();
+
+        if let None = &user_sesh.char_to_delete {
+            error!("Shouldn't have gotten to this state without a character provided");
+            commands.add(SendText::send_generic_error(entity));
+            continue;
+        }
+
+        let character_to_delete = user_sesh.char_to_delete.clone().unwrap();
+        user_sesh.char_to_delete = None;
+        let character_name = event.command.keyword.clone();
+
+        if character_to_delete.to_lowercase() != character_name.to_lowercase() {
+            commands.add(SendText::new(
+                entity,
+                "The character names don't match. Aborting!",
+            ));
+
+            commands.add(TransitionUserToState {
+                entity,
+                state: UserStatus::LoggedIn,
+            });
+
+            let characters = match db_repo.characters.get_all_by_user(&user.id) {
+                Ok(characters) => characters,
+                Err(e) => {
+                    error!(
+                        "Unable to fetch user's characters at delete confirm: {:?}",
+                        e
+                    );
+                    commands.add(SendText::send_generic_error(entity));
+                    continue;
+                }
+            };
+
+            commands.add(SendText::new(entity, &crate::get_login_screen(&characters)));
+            continue;
+        }
+
+        commands.add(DeleteCharacter {
+            name: character_to_delete,
+        });
+        commands.add(SendText::new(entity, "Alright! They'll be deleted!"));
+        commands.add(TransitionUserToState {
+            entity,
+            state: UserStatus::LoggedIn,
         });
     }
 }

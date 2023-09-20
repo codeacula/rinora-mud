@@ -15,6 +15,13 @@ impl SendText {
         }
     }
 
+    pub fn send_command_not_found(entity: Entity) -> Self {
+        SendText {
+            entity,
+            text: "I don't understand what you mean.".to_string(),
+        }
+    }
+
     pub fn send_generic_error(entity: Entity) -> Self {
         SendText { entity, text: "{{9:0}}There was an error processing your command. Please email codeacula@codeacula.com".to_string() }
     }

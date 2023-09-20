@@ -53,6 +53,20 @@ impl CharacterRepo {
         }
     }
 
+    pub fn delete_character(&self, character_name: &str) -> Result<bool, String> {
+        let res = self
+            .characters
+            .delete_one(doc! { "name": to_title_case(character_name) }, None);
+
+        if let Err(query_err) = res {
+            return Err(format!("Error trying to delete character: {:?}", query_err));
+        }
+
+        let delete_result = res.unwrap();
+
+        Ok(delete_result.deleted_count == 1)
+    }
+
     pub fn does_character_exist(&self, character_name: &str) -> Result<bool, String> {
         let query_res = self
             .characters

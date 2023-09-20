@@ -24,7 +24,11 @@ impl Plugin for SharedPlugin {
             .add_event::<UserProvidedCharacterToDelete>()
             .add_event::<UserCreatedPassword>()
             .add_event::<UserConfirmedPassword>()
-            .add_event::<UserProvidedCharacterName>();
+            .add_event::<UserProvidedCharacterName>()
+            .add_event::<UserConfirmedDeleteCharacter>();
+
+        // Characters
+        app.add_event::<DeleteCharacterEvent>();
 
         // Commands
         app.insert_resource(PossibleCommands(Vec::new()));

@@ -42,6 +42,8 @@ pub fn route_commands_to_systems(
     mut password_confirmed_events: EventWriter<UserConfirmedPassword>,
     mut user_selected_login_option_event: EventWriter<UserSelectedLoginOption>,
     mut user_provided_character_name_event: EventWriter<UserProvidedCharacterName>,
+    mut start_delete_character_event: EventWriter<UserProvidedCharacterToDelete>,
+    mut confirm_delete_character_event: EventWriter<UserConfirmedDeleteCharacter>,
 ) {
     for account_event in account_events.iter() {
         let user_sesh = match query.get_mut(account_event.entity) {
@@ -73,7 +75,16 @@ pub fn route_commands_to_systems(
             UserStatus::CreateCharacter => {
                 user_provided_character_name_event.send(UserProvidedCharacterName { command })
             }
-            _ => {
+            UserStatus::DeleteCharacter => {
+                start_delete_character_event.send(UserProvidedCharacterToDelete { command })
+            }
+            UserStatus::ConfirmDelete => {
+                confirm_delete_character_event.send(UserConfirmedDeleteCharacter { command })
+            }
+            UserStatus::ToggleAutologin => todo!("Still need to do this"),
+            UserStatus::InGame => {
+                // Should be impossible to get here
+                error!("User somehow fell into InGame during account command");
                 continue;
             }
         }
@@ -94,10 +105,15 @@ impl Plugin for AccountPlugin {
                     login_workflow::user_create_password,
                     login_workflow::user_confirmed_password,
                     login_workflow::user_provided_password,
+                    character_management::confirm_delete_character,
                     character_management::process_loggedin_command,
                     character_management::create_character,
                     character_management::start_delete_character,
                 ),
+            )
+            .add_systems(
+                Last,
+                character_management::process_character_deletion_requests,
             );
     }
 }

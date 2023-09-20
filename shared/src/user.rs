@@ -26,6 +26,7 @@ pub struct User {
 
 #[derive(Component)]
 pub struct UserSessionData {
+    pub char_to_delete: Option<String>,
     pub connection: Uuid,
     pub pwd: Option<String>,
     pub status: UserStatus,
@@ -68,5 +69,10 @@ pub struct UserProvidedCharacterName {
 
 #[derive(Event)]
 pub struct UserProvidedCharacterToDelete {
+    pub command: SentCommand,
+}
+
+#[derive(Event)]
+pub struct UserConfirmedDeleteCharacter {
     pub command: SentCommand,
 }
