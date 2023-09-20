@@ -3,38 +3,19 @@ use database::prelude::*;
 use shared::prelude::*;
 
 pub fn create_character(
-    mut query: Query<(Entity, &mut UserSessionData, Option<&User>)>,
-    mut account_events: EventReader<AccountEvent>,
+    mut query: Query<(Entity, &User)>,
+    mut events: EventReader<UserProvidedCharacterName>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in account_events.iter() {
-        let (entity, user_sesh, user_option) = match query.get_mut(account_event.entity) {
-            Ok((entity, user_sesh, user)) => (entity, user_sesh, user),
-            Err(_) => {
-                // We're in here
-                continue;
-            }
-        };
+    for event in events.iter() {
+        let (entity, user) = query.get_mut(event.command.entity).unwrap();
+        let character_name = event.command.keyword.clone();
 
-        if user_sesh.status != UserStatus::CreateCharacter {
-            return;
-        }
-
-        let user = match user_option {
-            None => {
-                error!("No user object found when one was expected to be.");
-                continue;
-            }
-            Some(user) => user,
-        };
-
-        let character_name = account_event.input[0].clone();
-
-        if account_event.input.len() > 1 || !character_name.chars().all(char::is_alphabetic) {
+        if event.command.parts.len() > 1 || is_alphabetic(&character_name) {
             commands.add(SendText::new(
                 entity,
-                "Character names can only contain the letters A-Z. Please try again.",
+                "Character names can only contain the letters A-Z, and only one word. Please try again.",
             ));
             continue;
         }
@@ -43,62 +24,46 @@ pub fn create_character(
 
         if let Err(err) = exists_res {
             error!("Error checking if character exists: {:?}", err);
-            commands.add(SendText::new(
-                entity,
-                "There was an error creating your character.",
-            ));
+            commands.add(SendText::send_generic_error(entity));
             continue;
         }
 
         if exists_res.unwrap() {
             commands.add(SendText::new(
                 entity,
-                "That character already exists. Please try again.",
+                "That character already exists. Please try a different name.",
             ));
             continue;
         }
 
         if let Err(err) = db_repo.characters.create_character(&character_name, user) {
             error!("Error creating character for user: {:?}", err);
-            commands.add(SendText::new(
-                entity,
-                "There was an error creating your character.",
-            ));
+            commands.add(SendText::send_generic_error(entity));
             continue;
         }
 
-        commands.add(SendText::new(entity, "Character created!"));
+        commands.add(SendText::new(
+            entity,
+            "Character created! You can now select them from the login screen",
+        ));
+
+        commands.add(TransitionUserToState {
+            entity,
+            state: UserStatus::LoggedIn,
+        });
     }
 }
 
 pub fn start_delete_character(
-    mut query: Query<(Entity, &mut UserSessionData, Option<&User>)>,
-    mut account_events: EventReader<AccountEvent>,
+    mut query: Query<(Entity, &User)>,
+    mut events: EventReader<UserProvidedCharacterToDelete>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in account_events.iter() {
-        let (entity, user_sesh, user_option) = match query.get_mut(account_event.entity) {
-            Ok((entity, user_sesh, user)) => (entity, user_sesh, user),
-            Err(_) => {
-                // We're in here
-                continue;
-            }
-        };
+    for event in events.iter() {
+        let (entity, user) = query.get_mut(event.command.entity).unwrap();
 
-        if user_sesh.status != UserStatus::DeleteCharacter {
-            continue;
-        }
-
-        let user = match user_option {
-            None => {
-                error!("No user object found when one was expected to be.");
-                continue;
-            }
-            Some(user) => user,
-        };
-
-        let character_name = account_event.input[0].clone();
+        let character_name = event.command.keyword.clone();
 
         let query_res = db_repo.characters.get_character_by_name(&character_name);
 
@@ -110,7 +75,7 @@ pub fn start_delete_character(
         let mut show_login_menu = false;
         let found_character = query_res.unwrap();
 
-        if let None = found_character {
+        if found_character.is_none() {
             commands.add(SendText::new(
                 entity,
                 "Couldn't find a character by that name.",
@@ -160,31 +125,13 @@ pub fn start_delete_character(
 }
 
 pub fn process_loggedin_command(
-    mut query: Query<(Entity, &mut UserSessionData, Option<&User>)>,
-    mut account_events: EventReader<AccountEvent>,
+    mut query: Query<(Entity, &User)>,
+    mut events: EventReader<UserSelectedLoginOption>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in account_events.iter() {
-        let (entity, user_sesh, user_option) = match query.get_mut(account_event.entity) {
-            Ok((entity, user_sesh, user)) => (entity, user_sesh, user),
-            Err(_) => {
-                // We're in here
-                continue;
-            }
-        };
-
-        if user_sesh.status != UserStatus::LoggedIn {
-            return;
-        }
-
-        let user = match user_option {
-            None => {
-                error!("No user object found when one was expected to be.");
-                continue;
-            }
-            Some(user) => user,
-        };
+    for event in events.iter() {
+        let (entity, user) = query.get_mut(event.command.entity).unwrap();
 
         let characters = match db_repo.characters.get_all_by_user(&user.id) {
             Ok(characters) => characters,
@@ -195,7 +142,7 @@ pub fn process_loggedin_command(
         };
 
         // Wants to create a character
-        if account_event.raw_command == "1" {
+        if event.command.keyword == "1" {
             commands.add(SendText::new(
                 entity,
                 "{{11}}What would you like your character's name to be?",
@@ -207,7 +154,7 @@ pub fn process_loggedin_command(
             continue;
         }
         // Wants to delete a character
-        else if account_event.raw_command == "2" {
+        else if event.command.keyword == "2" {
             commands.add(SendText::new(
                 entity,
                 "Provide the name of the character you'd like to delete.",
@@ -219,17 +166,17 @@ pub fn process_loggedin_command(
             continue;
         }
         // Wants to toggle auto login
-        else if account_event.raw_command == "3" {
+        else if event.command.keyword == "3" {
             commands.add(SendText::new(entity, "You sent 3"));
             continue;
-        } else if account_event.raw_command == "exit" {
+        } else if event.command.keyword == "exit" {
             commands.add(SendText::new(entity, "You sent exit"));
             continue;
         }
 
         // Wants to select a character
         for character in characters {
-            if account_event.input[0].to_lowercase() == character.name.to_lowercase() {
+            if event.command.keyword.to_lowercase() == character.name.to_lowercase() {
                 commands.add(SendText::new(
                     entity,
                     &format!("You selected your character: {}", character.name),

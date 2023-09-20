@@ -65,7 +65,7 @@ impl CharacterRepo {
             ));
         }
 
-        Ok(!query_res.unwrap().is_none())
+        Ok(query_res.unwrap().is_some())
     }
 
     pub fn get_character_by_name(&self, character_name: &str) -> Result<Option<Character>, String> {

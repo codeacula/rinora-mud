@@ -3,14 +3,35 @@ use shared::prelude::*;
 
 pub struct CommandsPlugin;
 
-fn clean_incoming_command(command: Vec<u8>) -> Vec<String> {
+/// Given a word, determines if its a special case for a keyword. Otherwise, just return the word. This will allow us to
+/// have commands like 'butts convert to "say butts"
+fn parse_keyword(command: &str) -> String {
+    if command.starts_with('\'') {
+        return "say".to_string();
+    } else if command.starts_with(';') {
+        return "emote".to_string();
+    }
+
+    command.to_string()
+}
+
+/// Takes an entity and the command they sent and converts it into a SentCommand
+fn create_sent_command(entity: Entity, command: Vec<u8>) -> SentCommand {
     let command_string = String::from_utf8(command).unwrap();
     let cleaned_string = command_string.replace(|c: char| !c.is_ascii(), "");
 
-    cleaned_string
+    let parts: Vec<String> = cleaned_string
         .split_whitespace()
         .map(|s| s.to_string())
-        .collect()
+        .collect();
+
+    SentCommand {
+        full_command: cleaned_string,
+        entity,
+        keyword: parse_keyword(&parts[0]),
+        parts,
+        raw_command: command_string,
+    }
 }
 
 pub fn process_incoming_commands(
@@ -18,48 +39,47 @@ pub fn process_incoming_commands(
     possible_commands: Res<PossibleCommands>,
     mut ev_incoming_commands: EventReader<InputReceivedEvent>,
     mut ev_outgoing_account_events: EventWriter<AccountEvent>,
-    mut ev_outgoing_text_events: EventWriter<TextEvent>,
+    mut commands: Commands,
 ) {
     for command in ev_incoming_commands.iter() {
         let (entity, user_sesh) = query.get(command.entity).unwrap();
-        let cleaned_command = clean_incoming_command(command.input.as_bytes().to_vec());
+        let sent_command = create_sent_command(entity, command.input.as_bytes().to_vec());
 
         if user_sesh.status == UserStatus::InGame {
-            if cleaned_command[0] == "say" {
+            if sent_command.keyword == "say" {
                 let mut message = String::new();
-                for word in cleaned_command.iter().skip(1) {
+                for word in sent_command.parts.iter().skip(1) {
                     message.push_str(word);
                     message.push(' ');
                 }
-                ev_outgoing_text_events
-                    .send(TextEvent::new(entity, &format!("You say: {}\n", message)));
+
+                commands.add(SendText::new(entity, &format!("You say: {}\n", message)));
                 return;
             }
 
-            if cleaned_command[0] == "butts" {
-                ev_outgoing_text_events.send(TextEvent::from_str(
+            if sent_command.keyword == "butts" {
+                commands.add(SendText::new(
                     entity,
                     "{{11:0}}if{{15:0}}({{208:0}}asstrack.score {{15:0}}== {{141:0}}42069{{15:0}})",
                 ));
                 return;
             }
 
-            if possible_commands.0.contains(&cleaned_command[0]) {
-                ev_outgoing_text_events.send(TextEvent::from_str(
+            if possible_commands.0.contains(&sent_command.keyword) {
+                commands.add(SendText::new(
                     entity,
                     "{{15:0}}You've provided a valid command that isn't implemented yet.",
                 ));
                 return;
             }
 
-            ev_outgoing_text_events.send(TextEvent::new(entity, &String::from("Invalid command!")));
+            commands.add(SendText::new(entity, "Invalid command!"));
             return;
         }
 
         ev_outgoing_account_events.send(AccountEvent {
             entity: command.entity,
-            input: cleaned_command,
-            raw_command: command.input.clone().trim().to_string(),
+            command: sent_command,
         });
     }
 }

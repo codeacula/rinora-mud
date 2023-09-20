@@ -1,3 +1,11 @@
+pub fn is_alphanumeric(inc_str: &str) -> bool {
+    inc_str.chars().all(char::is_alphanumeric)
+}
+
+pub fn is_alphabetic(inc_str: &str) -> bool {
+    inc_str.chars().all(char::is_alphabetic)
+}
+
 pub fn to_title_case(inc_str: &str) -> String {
     let mut copy = inc_str.clone().to_string().to_lowercase();
     if let Some(r) = copy.get_mut(0..1) {

@@ -14,6 +14,10 @@ impl SendText {
             text: text.to_string(),
         }
     }
+
+    pub fn send_generic_error(entity: Entity) -> Self {
+        SendText { entity, text: "{{9:0}}There was an error processing your command. Please email codeacula@codeacula.com".to_string() }
+    }
 }
 
 impl Command for SendText {
@@ -148,15 +152,13 @@ impl TextBlockParser {
     }
 
     pub fn get_int_from_buffer(&self) -> Result<i32, String> {
-        return match self.buffer.parse::<i32>() {
+        match self.buffer.parse::<i32>() {
             Ok(res) => Ok(res),
-            Err(e) => {
-                return Err(format!(
-                    "Unable to parse into a number. Text: {} Err: {:?}",
-                    self.buffer, e
-                ))
-            }
-        };
+            Err(e) => Err(format!(
+                "Unable to parse into a number. Text: {} Err: {:?}",
+                self.buffer, e
+            )),
+        }
     }
 
     fn push(&mut self, c: char) {
