@@ -1,6 +1,6 @@
 use bevy::{ecs::system::Command, prelude::*};
 
-use crate::prelude::{UserSessionData, UserStatus};
+use crate::prelude::{SentCommand, UserSessionData, UserStatus};
 
 pub struct TransitionUserToState {
     pub entity: Entity,
@@ -26,8 +26,7 @@ impl Command for TransitionUserToState {
 #[derive(Event)]
 pub struct AccountEvent {
     pub entity: Entity,
-    pub input: Vec<String>,
-    pub raw_command: String,
+    pub command: SentCommand,
 }
 
 #[derive(Event)]

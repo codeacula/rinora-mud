@@ -4,31 +4,25 @@ use shared::prelude::*;
 
 pub fn handle_user_login(
     mut query: Query<Entity>,
-    mut user_login_events: EventReader<UserLoggedIn>,
+    mut events: EventReader<UserLoggedIn>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in user_login_events.iter() {
-        let entity = query.get_mut(account_event.entity).unwrap();
+    for event in events.iter() {
+        let entity = query.get_mut(event.entity).unwrap();
 
-        let found_user = match db_repo.users.get_by_uuid(&account_event.uuid) {
+        let found_user = match db_repo.users.get_by_uuid(&event.uuid) {
             Ok(user) => user,
             Err(e) => {
                 error!("Unable to fetch user after login: {:?}", e);
-                commands.add(SendText::new(
-                    entity,
-                    "There was an issue fetching your account. Please disconnect and try again.",
-                ));
+                commands.add(SendText::send_generic_error(entity));
                 continue;
             }
         };
 
         let Some(user) = found_user else {
             error!("Unable to fetch user after login: No account returned!");
-            commands.add(SendText::new(
-                entity,
-                "There was an issue fetching your account. Please disconnect and try again.",
-            ));
+            commands.add(SendText::send_generic_error(entity));
             continue;
         };
 
@@ -51,30 +45,22 @@ pub fn handle_user_login(
 
 pub fn user_confirmed_password(
     mut query: Query<(Entity, &UserSessionData)>,
-    mut account_events: EventReader<AccountEvent>,
+    mut events: EventReader<UserConfirmedPassword>,
     mut user_logged_in_writer: EventWriter<UserLoggedIn>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in account_events.iter() {
-        let (entity, user_sesh) = query.get_mut(account_event.entity).unwrap();
-
-        if user_sesh.status != UserStatus::ConfirmPassword {
-            continue;
-        }
+    for event in events.iter() {
+        let (entity, user_sesh) = query.get_mut(event.command.entity).unwrap();
 
         if user_sesh.pwd.is_none() {
             error!("User got into ConfirmPassword state without having a password set in session!");
-            commands.add(SendText::new(
-                entity,
-                "There was an error comparing your passwords. Email codeacula@codeacula.com for help.",
-            ));
+            commands.add(SendText::send_generic_error(entity));
             continue;
         }
 
         let original_password = user_sesh.pwd.as_ref().unwrap();
-        let confirmation_password = &account_event.raw_command;
-
+        let confirmation_password = &event.command.full_command;
         if original_password != confirmation_password {
             commands.add(SendText::new(
                 entity,
@@ -95,10 +81,7 @@ pub fn user_confirmed_password(
             Ok(uuid) => uuid,
             Err(e) => {
                 error!("Unable to create user: {:?}", e);
-                commands.add(SendText::new(
-                    entity,
-                    "There was an error creating your account. Email codeacula@codeacula.com for help.",
-                ));
+                commands.add(SendText::send_generic_error(entity));
                 continue;
             }
         };
@@ -125,17 +108,13 @@ pub fn user_confirmed_password(
 
 pub fn user_create_password(
     mut query: Query<(Entity, &mut UserSessionData)>,
-    mut account_events: EventReader<AccountEvent>,
+    mut events: EventReader<UserCreatedPassword>,
     mut commands: Commands,
 ) {
-    for account_event in account_events.iter() {
-        let (entity, mut user_sesh) = query.get_mut(account_event.entity).unwrap();
+    for event in events.iter() {
+        let (entity, mut user_sesh) = query.get_mut(event.command.entity).unwrap();
 
-        if user_sesh.status != UserStatus::CreatePassword {
-            continue;
-        }
-
-        let password = account_event.raw_command.clone();
+        let password = event.command.full_command.clone();
 
         user_sesh.pwd = Some(password);
 
@@ -153,19 +132,15 @@ pub fn user_create_password(
 
 pub fn user_provided_password(
     mut query: Query<(Entity, &mut UserSessionData)>,
-    mut account_events: EventReader<AccountEvent>,
+    mut events: EventReader<UserProvidedPassword>,
     mut user_logged_in_writer: EventWriter<UserLoggedIn>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in account_events.iter() {
-        let (entity, mut user_sesh) = query.get_mut(account_event.entity).unwrap();
+    for event in events.iter() {
+        let (entity, mut user_sesh) = query.get_mut(event.command.entity).unwrap();
 
-        if user_sesh.status != UserStatus::NeedPassword {
-            continue;
-        }
-
-        let provided_password = account_event.raw_command.clone();
+        let provided_password = event.command.full_command.clone();
 
         let user_option = match db_repo
             .users
@@ -174,11 +149,7 @@ pub fn user_provided_password(
             Ok(user) => user,
             Err(e) => {
                 error!("Error while logging in user: {:?}", e);
-
-                commands.add(SendText::new(
-                    entity,
-                    "There was an error checking for your account.",
-                ));
+                commands.add(SendText::send_generic_error(entity));
                 continue;
             }
         };
@@ -214,40 +185,33 @@ pub fn user_provided_password(
 
 pub fn user_provided_username(
     mut query: Query<(Entity, &mut UserSessionData)>,
-    mut account_events: EventReader<AccountEvent>,
+    mut events: EventReader<UserProvidedUsername>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
-    for account_event in account_events.iter() {
-        let (entity, mut user_sesh) = query.get_mut(account_event.entity).unwrap();
+    for event in events.iter() {
+        let (entity, mut user_sesh) = query.get_mut(event.command.entity).unwrap();
 
-        if user_sesh.status != UserStatus::NeedUsername {
-            continue;
-        }
+        let username = &event.command.keyword;
 
-        let username = account_event.input[0].clone();
-
-        if !username.chars().all(char::is_alphanumeric) {
+        if !is_alphabetic(username) {
             commands.add(SendText::new(
                 entity,
-                "Only alphanumeric characters are allowed.",
+                "Only alphabetic (a-z) characters are allowed.",
             ));
             continue;
         }
 
-        let user_exists = match db_repo.users.does_user_exist(&username) {
+        let user_exists = match db_repo.users.does_user_exist(username) {
             Ok(exists) => exists,
             Err(e) => {
                 error!("Error while checking if user exists: {:?}", e);
-                commands.add(SendText::new(
-                    entity,
-                    "There was an error checking for your account.",
-                ));
+                commands.add(SendText::send_generic_error(entity));
                 continue;
             }
         };
 
-        user_sesh.username = username;
+        user_sesh.username = username.clone();
 
         if user_exists {
             commands.add(SendText::new(

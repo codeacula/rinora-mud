@@ -19,6 +19,7 @@ impl DbCharacter {
         Character {
             id: self.id.unwrap().to_string(),
             name: self.name.clone(),
+            scheduled_for_deletion: false,
             user_id: self.user_id.clone(),
         }
     }
@@ -53,6 +54,20 @@ impl CharacterRepo {
         }
     }
 
+    pub fn delete_character(&self, character_name: &str) -> Result<bool, String> {
+        let res = self
+            .characters
+            .delete_one(doc! { "name": to_title_case(character_name) }, None);
+
+        if let Err(query_err) = res {
+            return Err(format!("Error trying to delete character: {:?}", query_err));
+        }
+
+        let delete_result = res.unwrap();
+
+        Ok(delete_result.deleted_count == 1)
+    }
+
     pub fn does_character_exist(&self, character_name: &str) -> Result<bool, String> {
         let query_res = self
             .characters
@@ -65,7 +80,7 @@ impl CharacterRepo {
             ));
         }
 
-        Ok(!query_res.unwrap().is_none())
+        Ok(query_res.unwrap().is_some())
     }
 
     pub fn get_character_by_name(&self, character_name: &str) -> Result<Option<Character>, String> {
