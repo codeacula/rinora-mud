@@ -51,6 +51,20 @@ pub fn create_character(
             entity,
             state: UserStatus::LoggedIn,
         });
+
+        let characters = match db_repo.characters.get_all_by_user(&user.id) {
+            Ok(characters) => characters,
+            Err(e) => {
+                error!(
+                    "Unable to fetch user's characters after creating a character: {:?}",
+                    e
+                );
+                commands.add(SendText::send_generic_error(entity));
+                continue;
+            }
+        };
+
+        commands.add(SendText::new(entity, &crate::get_login_screen(&characters)));
     }
 }
 
@@ -121,22 +135,23 @@ pub fn start_delete_character(
                 Ok(characters) => characters,
                 Err(e) => {
                     error!("Unable to fetch user's characters at login: {:?}", e);
-                    commands.add(SendText::new(
-                    entity,
-                    "There was an issue fetching your characters. Please disconnect and try again.",
-                ));
+                    commands.add(SendText::send_generic_error(entity));
                     continue;
                 }
             };
 
             commands.add(SendText::new(entity, &crate::get_login_screen(&characters)));
+            commands.add(TransitionUserToState {
+                entity,
+                state: UserStatus::LoggedIn,
+            });
             continue;
         }
 
         commands.add(SendText::new(
             entity,
             &format!(
-                "{{{{8:0}}}}Are you sure you want to delete {}? Send their name again to confirm.",
+                "{{{{9:0}}}}Are you sure you want to delete {}? Send their name again to confirm.",
                 &character_name,
             ),
         ));
@@ -168,7 +183,7 @@ pub fn confirm_delete_character(
         user_sesh.char_to_delete = None;
         let character_name = event.command.keyword.clone();
 
-        let characters = match db_repo.characters.get_all_by_user(&user.id) {
+        let mut characters = match db_repo.characters.get_all_by_user(&user.id) {
             Ok(characters) => characters,
             Err(e) => {
                 error!(
@@ -195,6 +210,7 @@ pub fn confirm_delete_character(
             continue;
         }
 
+        characters.retain(|character| character.name != character_to_delete);
         commands.add(DeleteCharacter {
             name: character_to_delete,
         });
@@ -257,17 +273,22 @@ pub fn process_loggedin_command(
             continue;
         }
 
+        let mut character_was_selected = false;
+
         // Wants to select a character
         for character in characters {
             if event.command.keyword.to_lowercase() == character.name.to_lowercase() {
+                character_was_selected = true;
                 commands.add(SendText::new(
                     entity,
                     &format!("You selected your character: {}", character.name),
                 ));
-                continue;
+                break;
             }
         }
 
-        commands.add(SendText::new(entity, "Invalid option. Try again!"));
+        if !character_was_selected {
+            commands.add(SendText::new(entity, "Invalid option. Try again!"));
+        }
     }
 }

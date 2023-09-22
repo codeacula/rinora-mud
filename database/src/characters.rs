@@ -19,6 +19,7 @@ impl DbCharacter {
         Character {
             id: self.id.unwrap().to_string(),
             name: self.name.clone(),
+            scheduled_for_deletion: false,
             user_id: self.user_id.clone(),
         }
     }
