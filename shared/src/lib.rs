@@ -9,6 +9,7 @@ pub mod creature;
 pub mod display;
 pub mod helpers;
 pub mod network;
+pub mod room;
 pub mod user;
 
 pub struct SharedPlugin;
@@ -47,5 +48,6 @@ pub mod prelude {
     pub use crate::helpers::string::*;
     pub use crate::helpers::*;
     pub use crate::network::*;
+    pub use crate::room::*;
     pub use crate::user::*;
 }

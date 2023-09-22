@@ -7,14 +7,16 @@ use mongodb::{
     sync::Database,
 };
 
-use crate::prelude::*;
+use crate::prelude::{apply_migrations::apply_migrations, *};
 
 #[derive(Resource)]
 pub struct DbInterface {
     pub characters: CharacterRepo,
-    client: Client,
-    database: Database,
+    pub client: Client,
+    pub database: Database,
+    pub rooms: RoomRepo,
     pub users: UserRepo,
+    pub system: SystemRepo,
 }
 
 impl DbInterface {
@@ -28,18 +30,27 @@ impl DbInterface {
         let database = client.database(database_name);
 
         let characters = CharacterRepo::new(&database);
+        let rooms = RoomRepo::new(&database);
+        let system = SystemRepo::new(&database);
         let users = UserRepo::new(&database);
 
         DbInterface {
             characters,
             client,
             database,
+            rooms,
+            system,
             users,
         }
     }
 
     pub fn disconnect(self) {
         self.client.shutdown();
+    }
+
+    pub fn migrate(&self) -> Result<(), String> {
+        let system_info = self.system.get_system_config().unwrap();
+        apply_migrations(system_info, self)
     }
 
     pub fn ping(&self) -> Result<(), Error> {

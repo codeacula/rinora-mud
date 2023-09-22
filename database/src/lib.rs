@@ -1,10 +1,15 @@
 use bevy::prelude::*;
+use importers::rooms::add_rooms_to_world;
 use std::env;
 
 use crate::db_interface::DbInterface;
 
 mod characters;
 mod db_interface;
+mod importers;
+mod migrations;
+mod rooms;
+mod system;
 mod users;
 
 pub struct DatabasePlugin;
@@ -28,12 +33,20 @@ impl Plugin for DatabasePlugin {
 
         repo.ping().unwrap();
 
-        app.insert_resource(repo);
+        info!("Running migrations {}", &host_string);
+        repo.migrate().unwrap();
+
+        app.insert_resource(repo)
+            .add_systems(Startup, add_rooms_to_world);
     }
 }
 
 pub mod prelude {
     pub use crate::characters::*;
     pub use crate::db_interface::*;
+    pub use crate::importers::*;
+    pub use crate::migrations::*;
+    pub use crate::rooms::*;
+    pub use crate::system::*;
     pub use crate::users::*;
 }
