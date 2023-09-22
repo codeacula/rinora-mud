@@ -158,7 +158,7 @@ pub fn confirm_delete_character(
     for event in events.iter() {
         let (entity, mut user_sesh, user) = query.get_mut(event.command.entity).unwrap();
 
-        if let None = &user_sesh.char_to_delete {
+        if user_sesh.char_to_delete.is_none() {
             error!("Shouldn't have gotten to this state without a character provided");
             commands.add(SendText::send_generic_error(entity));
             continue;
