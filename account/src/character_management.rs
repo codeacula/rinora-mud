@@ -95,7 +95,7 @@ pub fn start_delete_character(
             continue;
         }
 
-        let mut show_login_menu = true;
+        let mut show_login_menu = false;
         let found_character = query_res.unwrap();
 
         if found_character.is_none() {
@@ -103,7 +103,7 @@ pub fn start_delete_character(
                 entity,
                 "Couldn't find a character by that name.",
             ));
-            show_login_menu = false;
+            show_login_menu = true;
         }
 
         if let Some(character) = found_character {
@@ -112,7 +112,7 @@ pub fn start_delete_character(
                     entity,
                     "Couldn't find a character by that name.",
                 ));
-                show_login_menu = false;
+                show_login_menu = true;
             }
         }
 
@@ -168,6 +168,18 @@ pub fn confirm_delete_character(
         user_sesh.char_to_delete = None;
         let character_name = event.command.keyword.clone();
 
+        let characters = match db_repo.characters.get_all_by_user(&user.id) {
+            Ok(characters) => characters,
+            Err(e) => {
+                error!(
+                    "Unable to fetch user's characters at delete confirm: {:?}",
+                    e
+                );
+                commands.add(SendText::send_generic_error(entity));
+                continue;
+            }
+        };
+
         if character_to_delete.to_lowercase() != character_name.to_lowercase() {
             commands.add(SendText::new(
                 entity,
@@ -179,18 +191,6 @@ pub fn confirm_delete_character(
                 state: UserStatus::LoggedIn,
             });
 
-            let characters = match db_repo.characters.get_all_by_user(&user.id) {
-                Ok(characters) => characters,
-                Err(e) => {
-                    error!(
-                        "Unable to fetch user's characters at delete confirm: {:?}",
-                        e
-                    );
-                    commands.add(SendText::send_generic_error(entity));
-                    continue;
-                }
-            };
-
             commands.add(SendText::new(entity, &crate::get_login_screen(&characters)));
             continue;
         }
@@ -199,6 +199,7 @@ pub fn confirm_delete_character(
             name: character_to_delete,
         });
         commands.add(SendText::new(entity, "Alright! They'll be deleted!"));
+        commands.add(SendText::new(entity, &crate::get_login_screen(&characters)));
         commands.add(TransitionUserToState {
             entity,
             state: UserStatus::LoggedIn,
