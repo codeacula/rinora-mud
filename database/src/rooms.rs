@@ -6,11 +6,9 @@ use mongodb::{
 use serde::{Deserialize, Serialize};
 use shared::prelude::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct DbExit {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
-
+    pub id: String,
     pub direction: String,
     pub to_room: ObjectId,
 }
@@ -18,14 +16,14 @@ pub struct DbExit {
 impl DbExit {
     pub fn to_game_exit(&self) -> Exit {
         Exit {
-            id: self.id.unwrap().to_string(),
+            id: self.id.clone(),
             direction: self.direction.clone(),
             to_room: self.to_room.to_string(),
         }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DbRoom {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
@@ -33,7 +31,21 @@ pub struct DbRoom {
     pub name: String,
     pub description: String,
 
+    pub can_delete: bool,
+
     pub exits: Vec<DbExit>,
+}
+
+impl Default for DbRoom {
+    fn default() -> Self {
+        DbRoom {
+            id: None,
+            name: Default::default(),
+            description: Default::default(),
+            can_delete: false,
+            exits: Vec::new(),
+        }
+    }
 }
 
 impl DbRoom {
