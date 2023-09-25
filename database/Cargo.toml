@@ -7,10 +7,7 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.11.2" }
-serde = { version = "1.0.188" }
+diesel = { version = "2.1.1", features = ["postgres"] }
+diesel_migrations = { version = "2.0.0" }
 sha2 = { version = "0.10.7" }
 shared = { path = "../shared" }
-
-[dependencies.mongodb]
-version = "2.7.0-beta"
-features = ["tokio-sync"]

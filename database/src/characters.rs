@@ -1,15 +1,9 @@
-use mongodb::{
-    bson::{doc, oid::ObjectId},
-    sync::Collection,
-    sync::Database,
-};
-use serde::{Deserialize, Serialize};
+use diesel::PgConnection;
 use shared::prelude::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct DbCharacter {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
+    pub id: i64,
     pub user_id: String,
     pub name: String,
 }
@@ -25,12 +19,12 @@ impl DbCharacter {
     }
 }
 
-pub struct CharacterRepo {
-    pub characters: Collection<DbCharacter>,
+pub struct CharacterRepo<'a> {
+    pub connection: &'a PgConnection,
 }
 
 impl CharacterRepo {
-    pub fn new(database: &Database) -> Self {
+    pub fn new(connection: &PgConnection) -> Self {
         let characters = database.collection::<DbCharacter>("characters");
 
         CharacterRepo { characters }

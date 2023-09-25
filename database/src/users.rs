@@ -1,20 +1,16 @@
-use mongodb::{
-    bson::{doc, oid::ObjectId},
-    sync::Collection,
-    sync::Database,
-};
-use serde::{Deserialize, Serialize};
+use diesel::prelude::*;
 use sha2::{Digest, Sha512};
 use shared::prelude::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+use crate::PgConnectionWrapper;
+
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = crate::schema::users)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct DbUser {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
+    pub id: i64,
     pub username: String,
     pub password_hash: String,
-
-    #[serde(default)]
     pub autologin: String,
 }
 
@@ -29,14 +25,14 @@ impl DbUser {
 }
 
 pub struct UserRepo {
-    pub users: Collection<DbUser>,
+    wrapper: PgConnectionWrapper,
 }
 
 impl UserRepo {
-    pub fn new(database: &Database) -> Self {
-        let users = database.collection::<DbUser>("users");
-
-        UserRepo { users }
+    pub fn new(wrapper: PgConnectionWrapper) -> Self {
+        UserRepo {
+            wrapper: connection,
+        }
     }
 
     /// Given a username and password, creates a new user in the database, returning

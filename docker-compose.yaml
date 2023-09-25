@@ -1,14 +1,15 @@
 version: '3'
 services:
   db:
-    image: mongo
+    image: postgres
     restart: always
     environment:
-        MONGO_INITDB_ROOT_USERNAME: dev
-        MONGO_INITDB_ROOT_PASSWORD: dev
+        POSTGRES_USER: dev
+        POSTGRES_PASSWORD: dev
+        POSTGRES_DB: rinoramud
     volumes:
       - type: bind
-        source: ./.private/mongodb
-        target: /data/db
+        source: ./.private/pgsql
+        target: /var/lib/postgresql/data
     ports:
-      - 27017:27017c
+      - 5432:5432
