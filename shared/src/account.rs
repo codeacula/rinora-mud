@@ -32,5 +32,5 @@ pub struct AccountEvent {
 #[derive(Event)]
 pub struct UserLoggedIn {
     pub entity: Entity,
-    pub uuid: String,
+    pub id: i32,
 }

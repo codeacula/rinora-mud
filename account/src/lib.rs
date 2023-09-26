@@ -25,7 +25,7 @@ pub fn get_login_screen(characters: &Vec<Character>) -> String {
         greeting.push_str("Your characters are:\n");
 
         for character in characters {
-            greeting.push_str(&format!("  {}\n", character.name));
+            greeting.push_str(&format!("  {}\n", character.shortname));
         }
     }
 

@@ -19,8 +19,9 @@ pub enum UserStatus {
 
 #[derive(Component)]
 pub struct User {
-    pub autologin: String,
-    pub id: String,
+    pub id: i32,
+    pub administrator: bool,
+    pub autologin: Option<i32>,
     pub username: String,
 }
 

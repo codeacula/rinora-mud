@@ -1,17 +1,17 @@
 use bevy::prelude::*;
 use diesel::{Connection, PgConnection};
+use diesel_migrations::MigrationHarness;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations};
-use importers::rooms::add_rooms_to_world;
 use std::env;
 
 use crate::db_interface::DbInterface;
 
-pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 mod characters;
 mod db_interface;
-mod importers;
-mod rooms;
+mod locations;
+mod schema;
 mod system;
 mod users;
 
@@ -34,25 +34,20 @@ impl Plugin for DatabasePlugin {
         let host_string = get_env("DB_CONN_STRING", "postgresql://dev:dev@localhost/rinoramud");
 
         info!("Attempting to connect to database. {}", &host_string);
-        let pg_conn = PgConnection::establish(&host_string).unwrap();
+        let mut pg_conn = PgConnection::establish(&host_string).unwrap();
 
         info!("Running migrations {}", &host_string);
-        pg_conn.run_pending_migrations(MIGRATIONS);
+        pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
         let repo = DbInterface::new(pg_conn);
-
-        repo.migrate().unwrap();
-
-        app.insert_resource(repo)
-            .add_systems(Startup, add_rooms_to_world);
+        app.insert_non_send_resource(repo);
     }
 }
 
 pub mod prelude {
     pub use crate::characters::*;
     pub use crate::db_interface::*;
-    pub use crate::importers::*;
-    pub use crate::rooms::*;
+    pub use crate::locations::*;
     pub use crate::system::*;
     pub use crate::users::*;
 }

@@ -5,13 +5,13 @@ use shared::prelude::*;
 pub fn handle_user_login(
     mut query: Query<Entity>,
     mut events: EventReader<UserLoggedIn>,
-    db_repo: Res<DbInterface>,
+    db_repo: NonSend<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
         let entity = query.get_mut(event.entity).unwrap();
 
-        let found_user = match db_repo.users.get_by_uuid(&event.uuid) {
+        let found_user = match db_repo.users.get_by_id(event.id) {
             Ok(user) => user,
             Err(e) => {
                 error!("Unable to fetch user after login: {:?}", e);
@@ -26,7 +26,7 @@ pub fn handle_user_login(
             continue;
         };
 
-        let characters = match db_repo.characters.get_all_by_user(&user.id) {
+        let characters = match db_repo.characters.get_all_by_user(&db_repo.client, user.id) {
             Ok(characters) => characters,
             Err(e) => {
                 error!("Unable to fetch user's characters at login: {:?}", e);
@@ -47,7 +47,7 @@ pub fn user_confirmed_password(
     mut query: Query<(Entity, &UserSessionData)>,
     mut events: EventReader<UserConfirmedPassword>,
     mut user_logged_in_writer: EventWriter<UserLoggedIn>,
-    db_repo: Res<DbInterface>,
+    mut db_repo: NonSend<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -74,10 +74,11 @@ pub fn user_confirmed_password(
             return;
         }
 
-        let uuid = match db_repo
-            .users
-            .create_user(&user_sesh.username, confirmation_password)
-        {
+        let new_user = match db_repo.users.create_user(
+            &mut db_repo.client,
+            &user_sesh.username,
+            confirmation_password,
+        ) {
             Ok(uuid) => uuid,
             Err(e) => {
                 error!("Unable to create user: {:?}", e);
@@ -87,9 +88,10 @@ pub fn user_confirmed_password(
         };
 
         commands.entity(entity).insert(User {
-            autologin: String::from(""),
-            id: uuid.clone(),
+            autologin: new_user.autologin,
+            id: new_user.id,
             username: user_sesh.username.clone(),
+            administrator: new_user.administrator,
         });
 
         commands.add(SendText::new(
@@ -102,7 +104,10 @@ pub fn user_confirmed_password(
             state: UserStatus::LoggedIn,
         });
 
-        user_logged_in_writer.send(UserLoggedIn { entity, uuid });
+        user_logged_in_writer.send(UserLoggedIn {
+            entity,
+            id: new_user.id,
+        });
     }
 }
 
@@ -134,7 +139,7 @@ pub fn user_provided_password(
     mut query: Query<(Entity, &mut UserSessionData)>,
     mut events: EventReader<UserProvidedPassword>,
     mut user_logged_in_writer: EventWriter<UserLoggedIn>,
-    db_repo: Res<DbInterface>,
+    db_repo: NonSend<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -178,7 +183,7 @@ pub fn user_provided_password(
 
         user_logged_in_writer.send(UserLoggedIn {
             entity,
-            uuid: user.id,
+            id: user.id,
         });
     }
 }
@@ -186,7 +191,7 @@ pub fn user_provided_password(
 pub fn user_provided_username(
     mut query: Query<(Entity, &mut UserSessionData)>,
     mut events: EventReader<UserProvidedUsername>,
-    db_repo: Res<DbInterface>,
+    mut db_repo: NonSend<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -202,7 +207,9 @@ pub fn user_provided_username(
             continue;
         }
 
-        let user_exists = match db_repo.users.does_user_exist(username) {
+        let mutable_client = &mut db_repo.client;
+
+        let user_exists = match db_repo.users.does_user_exist(mutable_client, username) {
             Ok(exists) => exists,
             Err(e) => {
                 error!("Error while checking if user exists: {:?}", e);
