@@ -39,8 +39,8 @@ impl Plugin for DatabasePlugin {
         info!("Running migrations {}", &host_string);
         pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
-        let repo = DbInterface::new(pg_conn);
-        app.insert_non_send_resource(repo);
+        let repo = DbInterface::new(host_string);
+        app.insert_resource(repo);
     }
 }
 

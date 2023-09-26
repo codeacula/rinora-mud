@@ -1,8 +1,11 @@
-use diesel::prelude::*;
+use diesel::{
+    prelude::*,
+    r2d2::{ConnectionManager, Pool, PooledConnection},
+};
 use sha2::{Digest, Sha512};
 use shared::prelude::*;
 
-use crate::schema::*;
+use crate::{prelude::DbInterface, schema::*};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = crate::schema::users)]
@@ -39,14 +42,25 @@ pub fn clean_username(provided_username: &str) -> String {
     cleaned_name
 }
 
-pub struct UserRepo;
+pub struct UserRepo {
+    pool: Pool<ConnectionManager<PgConnection>>,
+}
 
 impl UserRepo {
+    pub fn new(provided_pool: Pool<ConnectionManager<PgConnection>>) -> Self {
+        UserRepo {
+            pool: provided_pool,
+        }
+    }
+
+    fn conn(&self) -> &mut PooledConnection<ConnectionManager<diesel::PgConnection>> {
+        &mut self.pool.get().unwrap()
+    }
+
     /// Given a username and password, creates a new user in the database, returning
     /// the new user on success, or an Error
     pub fn create_user(
         &self,
-        conn: &mut PgConnection,
         provided_username: &str,
         provided_password: &str,
     ) -> Result<User, String> {
@@ -61,7 +75,7 @@ impl UserRepo {
         let inserted_user = diesel::insert_into(users::table)
             .values(&new_user)
             .returning(DbUser::as_returning())
-            .get_result(conn)
+            .get_result(self.conn())
             .expect("Error during character creation");
 
         Ok(inserted_user.to_game_user())
