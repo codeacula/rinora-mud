@@ -21,14 +21,6 @@ fn get_env(key: &str, default: &str) -> String {
     env::var(key).unwrap_or(String::from(default))
 }
 
-fn get_database() -> String {
-    get_env("DB_DATABASE", "rinoramud")
-}
-
-pub struct PgConnectionWrapper {
-    conn: PgConnection,
-}
-
 impl Plugin for DatabasePlugin {
     fn build(&self, app: &mut App) {
         let host_string = get_env("DB_CONN_STRING", "postgresql://dev:dev@localhost/rinoramud");

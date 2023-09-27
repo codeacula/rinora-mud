@@ -18,7 +18,11 @@ pub struct DbRoom {
 impl Default for DbRoom {
     fn default() -> Self {
         DbRoom {
-            ..Default::default()
+            can_delete: true,
+            description: String::from(""),
+            exits: Vec::new(),
+            id: 0,
+            name: String::from(""),
         }
     }
 }

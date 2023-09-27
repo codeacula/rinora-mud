@@ -37,9 +37,7 @@ impl DbUser {
 }
 
 pub fn clean_username(provided_username: &str) -> String {
-    let cleaned_name = provided_username.to_lowercase();
-
-    cleaned_name
+    provided_username.to_lowercase()
 }
 
 pub struct UserRepo {
@@ -67,7 +65,7 @@ impl UserRepo {
         provided_password: &str,
     ) -> Result<User, String> {
         let password_hash = Sha512::digest(provided_password);
-        let new_username = clean_username(&provided_username);
+        let new_username = clean_username(provided_username);
 
         let new_user = NewUser {
             username: new_username,
@@ -84,16 +82,12 @@ impl UserRepo {
     }
 
     /// Given a username, returns whether or not the user exists
-    pub fn does_user_exist(
-        &self,
-        provided_username: &str,
-    ) -> Result<bool, String> {
+    pub fn does_user_exist(&self, provided_username: &str) -> Result<bool, String> {
         use crate::schema::users::dsl::*;
 
         let result: Option<i32> = users
             .select(id)
             .filter(username.eq(provided_username))
-            .filter(password_hash.eq(provided_username))
             .get_result::<i32>(&mut self.conn())
             .optional()
             .expect("Error while checking if a user exists");
@@ -121,7 +115,7 @@ impl UserRepo {
 
         match result {
             None => Ok(None),
-            Some(found_user) => Ok(Some(found_user.to_game_user()))
+            Some(found_user) => Ok(Some(found_user.to_game_user())),
         }
     }
 
@@ -138,7 +132,7 @@ impl UserRepo {
 
         match result {
             None => Ok(None),
-            Some(found_user) => Ok(Some(found_user.to_game_user()))
+            Some(found_user) => Ok(Some(found_user.to_game_user())),
         }
     }
 }

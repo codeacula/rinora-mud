@@ -1,10 +1,10 @@
-use diesel::{prelude::*, r2d2::{Pool, ConnectionManager, PooledConnection}};
-use diesel::sql_types::Text;
-use diesel::dsl::Eq;
-
+use diesel::{
+    prelude::*,
+    r2d2::{ConnectionManager, Pool, PooledConnection},
+};
 use shared::prelude::*;
 
-use crate::schema::{characters};
+use crate::schema::characters;
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = crate::schema::characters)]
@@ -22,6 +22,7 @@ pub struct DbCharacter {
 pub struct NewDbCharacter {
     pub user_id: i32,
     pub shortname: String,
+    pub description: String,
 }
 
 impl DbCharacter {
@@ -36,9 +37,7 @@ impl DbCharacter {
 }
 
 fn clean_character_name(inc_name: &str) -> String {
-    let name = to_title_case(inc_name);
-
-    name
+    to_title_case(inc_name)
 }
 
 pub struct CharacterRepo {
@@ -46,7 +45,6 @@ pub struct CharacterRepo {
 }
 
 impl CharacterRepo {
-
     pub fn new(provided_pool: Pool<ConnectionManager<PgConnection>>) -> Self {
         CharacterRepo {
             pool: provided_pool,
@@ -58,16 +56,13 @@ impl CharacterRepo {
         self.pool.get().unwrap()
     }
 
-    pub fn create_character(
-        &self,
-        charactername: &str,
-        user: &User,
-    ) -> Result<Character, String> {
+    pub fn create_character(&self, charactername: &str, user: &User) -> Result<Character, String> {
         let name = clean_character_name(charactername);
 
         let new_character = NewDbCharacter {
             shortname: name,
-            user_id: user.id
+            user_id: user.id,
+            description: "A vaguely distinguishable humanoid.".to_string(),
         };
 
         let inserted_character = diesel::insert_into(characters::table)
@@ -79,26 +74,20 @@ impl CharacterRepo {
         Ok(inserted_character.to_game_character())
     }
 
-    pub fn delete_character(
-        &self,
-        character_name: &str,
-    ) -> Result<bool, String> {
+    pub fn delete_character(&self, character_name: &str) -> Result<bool, String> {
         use self::characters::dsl::*;
 
         let name = clean_character_name(character_name);
-        
+
         let res = diesel::delete(characters)
             .filter(shortname.eq(name))
             .execute(&mut self.conn())
             .expect("Error deleting character by name");
-        
+
         Ok(res != 0)
     }
 
-    pub fn does_character_exist(
-        &self,
-        character_name: &str,
-    ) -> Result<bool, String> {
+    pub fn does_character_exist(&self, character_name: &str) -> Result<bool, String> {
         use crate::schema::characters::dsl::*;
 
         let name = clean_character_name(character_name);
@@ -113,10 +102,7 @@ impl CharacterRepo {
         Ok(result.is_some())
     }
 
-    pub fn get_character_by_name(
-        &self,
-        character_name: &str,
-    ) -> Result<Option<Character>, String> {
+    pub fn get_character_by_name(&self, character_name: &str) -> Result<Option<Character>, String> {
         use crate::schema::characters::dsl::*;
 
         let result: Option<DbCharacter> = characters
@@ -128,20 +114,18 @@ impl CharacterRepo {
 
         match result {
             None => Ok(None),
-            Some(found_character) => Ok(Some(found_character.to_game_character()))
+            Some(found_character) => Ok(Some(found_character.to_game_character())),
         }
     }
 
-    pub fn get_all_by_user(
-        &self,
-        provided_user_id: i32,
-    ) -> Result<Vec<Character>, String> {
+    pub fn get_all_by_user(&self, provided_user_id: i32) -> Result<Vec<Character>, String> {
         use crate::schema::characters::dsl::*;
-        
-        let result: Vec<DbCharacter> = characters.select(DbCharacter::as_select())
-        .filter(user_id.eq(provided_user_id))
-        .get_results::<DbCharacter>(&mut self.conn())
-        .expect("Unable to fetch all characters by user");
+
+        let result: Vec<DbCharacter> = characters
+            .select(DbCharacter::as_select())
+            .filter(user_id.eq(provided_user_id))
+            .get_results::<DbCharacter>(&mut self.conn())
+            .expect("Unable to fetch all characters by user");
 
         let mut chars: Vec<Character> = Vec::new();
 
