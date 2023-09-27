@@ -1,5 +1,10 @@
-use diesel::prelude::*;
+use diesel::{prelude::*, r2d2::{Pool, ConnectionManager, PooledConnection}};
+use diesel::sql_types::Text;
+use diesel::dsl::Eq;
+
 use shared::prelude::*;
+
+use crate::schema::{characters};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = crate::schema::characters)]
@@ -10,6 +15,13 @@ pub struct DbCharacter {
     pub shortname: String,
     pub description: String,
     pub current_room_id: i32,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = crate::schema::characters)]
+pub struct NewDbCharacter {
+    pub user_id: i32,
+    pub shortname: String,
 }
 
 impl DbCharacter {
@@ -23,127 +35,120 @@ impl DbCharacter {
     }
 }
 
-pub struct CharacterRepo;
+fn clean_character_name(inc_name: &str) -> String {
+    let name = to_title_case(inc_name);
+
+    name
+}
+
+pub struct CharacterRepo {
+    pool: Pool<ConnectionManager<PgConnection>>,
+}
 
 impl CharacterRepo {
+
+    pub fn new(provided_pool: Pool<ConnectionManager<PgConnection>>) -> Self {
+        CharacterRepo {
+            pool: provided_pool,
+        }
+    }
+
+    /// Convenience method to get a connection
+    fn conn(&self) -> PooledConnection<ConnectionManager<diesel::PgConnection>> {
+        self.pool.get().unwrap()
+    }
+
     pub fn create_character(
         &self,
-        conn: &PgConnection,
         charactername: &str,
         user: &User,
-    ) -> Result<String, String> {
-        todo!("Rewrite this!");
+    ) -> Result<Character, String> {
+        let name = clean_character_name(charactername);
 
-        /*
-        let name = to_title_case(charactername);
-
-        let new_character = DbCharacter {
-            name,
-            id: None,
-            user_id: user.id.clone(),
+        let new_character = NewDbCharacter {
+            shortname: name,
+            user_id: user.id
         };
 
-        match self.characters.insert_one(new_character, None) {
-            Ok(res) => {
-                let new_id = res.inserted_id.clone().as_object_id().unwrap();
-                Ok(new_id.to_string())
-            }
-            Err(e) => Err(format!("Unable to create user: {:?}", e)),
-        }
-        */
+        let inserted_character = diesel::insert_into(characters::table)
+            .values(&new_character)
+            .returning(DbCharacter::as_returning())
+            .get_result::<DbCharacter>(&mut self.conn())
+            .expect("Error during character creation");
+
+        Ok(inserted_character.to_game_character())
     }
 
     pub fn delete_character(
         &self,
-        conn: &PgConnection,
         character_name: &str,
     ) -> Result<bool, String> {
-        todo!("Rewrite this!");
-        /*
-        let res = self
-            .characters
-            .delete_one(doc! { "name": to_title_case(character_name) }, None);
+        use self::characters::dsl::*;
 
-        if let Err(query_err) = res {
-            return Err(format!("Error trying to delete character: {:?}", query_err));
-        }
-
-        let delete_result = res.unwrap();
-
-        Ok(delete_result.deleted_count == 1)
-        */
+        let name = clean_character_name(character_name);
+        
+        let res = diesel::delete(characters)
+            .filter(shortname.eq(name))
+            .execute(&mut self.conn())
+            .expect("Error deleting character by name");
+        
+        Ok(res != 0)
     }
 
     pub fn does_character_exist(
         &self,
-        conn: &PgConnection,
         character_name: &str,
     ) -> Result<bool, String> {
-        todo!("Rewrite this!");
-        /*
-        let query_res = self
-            .characters
-            .find_one(doc! { "name": to_title_case(character_name) }, None);
+        use crate::schema::characters::dsl::*;
 
-        if let Err(query_err) = query_res {
-            return Err(format!(
-                "Error checking if character exists: {:?}",
-                query_err
-            ));
-        }
+        let name = clean_character_name(character_name);
 
-        Ok(query_res.unwrap().is_some())
-        */
+        let result: Option<i32> = characters
+            .select(id)
+            .filter(shortname.eq(name))
+            .get_result::<i32>(&mut self.conn())
+            .optional()
+            .expect("Error while checking if a character exists");
+
+        Ok(result.is_some())
     }
 
     pub fn get_character_by_name(
         &self,
-        conn: &PgConnection,
         character_name: &str,
     ) -> Result<Option<Character>, String> {
-        todo!("Rewrite this!");
+        use crate::schema::characters::dsl::*;
 
-        // let query = self
-        //     .characters
-        //     .find_one(doc! { "name": to_title_case(character_name) }, None);
+        let result: Option<DbCharacter> = characters
+            .select(DbCharacter::as_select())
+            .filter(shortname.eq(clean_character_name(character_name)))
+            .get_result::<DbCharacter>(&mut self.conn())
+            .optional()
+            .expect("Unabled to find character by username.");
 
-        // if let Err(query_err) = query {
-        //     return Err(format!("Error trying to get character: {:?}", query_err));
-        // }
-
-        // let found_character = query.unwrap();
-
-        // match found_character {
-        //     None => Ok(None),
-        //     Some(character) => Ok(Some(character.to_game_character())),
-        // }
+        match result {
+            None => Ok(None),
+            Some(found_character) => Ok(Some(found_character.to_game_character()))
+        }
     }
 
     pub fn get_all_by_user(
         &self,
-        conn: &PgConnection,
-        user_id: i32,
+        provided_user_id: i32,
     ) -> Result<Vec<Character>, String> {
-        todo!("Rewrite this!");
+        use crate::schema::characters::dsl::*;
+        
+        let result: Vec<DbCharacter> = characters.select(DbCharacter::as_select())
+        .filter(user_id.eq(provided_user_id))
+        .get_results::<DbCharacter>(&mut self.conn())
+        .expect("Unable to fetch all characters by user");
 
-        // let query = self.characters.find(doc! { "user_id": user_uuid }, None);
+        let mut chars: Vec<Character> = Vec::new();
 
-        // if let Err(query_err) = query {
-        //     return Err(format!(
-        //         "Error getting all characters by user: {:?}",
-        //         query_err
-        //     ));
-        // }
+        for dbchar in result {
+            chars.push(dbchar.to_game_character());
+        }
 
-        // let res = query.unwrap();
-        // let mut all_chars: Vec<Character> = Vec::new();
-
-        // for db_char_res in res {
-        //     let db_char = db_char_res.unwrap();
-
-        //     all_chars.push(db_char.to_game_character());
-        // }
-
-        // Ok(all_chars)
+        Ok(chars)
     }
 }

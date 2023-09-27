@@ -5,7 +5,7 @@ The RinoraMUD
 ## Contributing
 
 - Need to install PGSQL CLI Tools (and optionally pgAdmin 4)
-- Add the `bin` and `lib` folder of the new PGSQL installation to your system PATHdiesel setup
+- Add the `bin` and `lib` folder of the new PGSQL installation to your system PATH
 
 ## Migrations
 

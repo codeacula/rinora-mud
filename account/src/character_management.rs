@@ -5,7 +5,7 @@ use shared::prelude::*;
 pub fn create_character(
     mut query: Query<(Entity, &User)>,
     mut events: EventReader<UserProvidedCharacterName>,
-    db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -22,7 +22,7 @@ pub fn create_character(
 
         let exists_res = db_repo
             .characters
-            .does_character_exist(&db_repo.client, &character_name);
+            .does_character_exist(&character_name);
 
         if let Err(err) = exists_res {
             error!("Error checking if character exists: {:?}", err);
@@ -41,7 +41,7 @@ pub fn create_character(
         if let Err(err) =
             db_repo
                 .characters
-                .create_character(&db_repo.client, &character_name, user)
+                .create_character(&character_name, user)
         {
             error!("Error creating character for user: {:?}", err);
             commands.add(SendText::send_generic_error(entity));
@@ -58,7 +58,7 @@ pub fn create_character(
             state: UserStatus::LoggedIn,
         });
 
-        let characters = match db_repo.characters.get_all_by_user(&db_repo.client, user.id) {
+        let characters = match db_repo.characters.get_all_by_user( user.id) {
             Ok(characters) => characters,
             Err(e) => {
                 error!(
@@ -77,14 +77,14 @@ pub fn create_character(
 pub fn process_character_deletion_requests(
     query: Query<(Entity, &Character)>,
     mut events: EventReader<DeleteCharacterEvent>,
-    db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     let mut entities_to_delete: Vec<String> = Vec::new();
     for event in events.iter() {
         if let Err(e) = db_repo
             .characters
-            .delete_character(&db_repo.client, &event.name)
+            .delete_character(&event.name)
         {
             error!("There was an error deleting a user from the DB: {:?}", e);
             continue;
@@ -103,7 +103,7 @@ pub fn process_character_deletion_requests(
 pub fn start_delete_character(
     mut query: Query<(Entity, &mut UserSessionData, &User)>,
     mut events: EventReader<UserProvidedCharacterToDelete>,
-    db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -113,7 +113,7 @@ pub fn start_delete_character(
 
         let query_res = db_repo
             .characters
-            .get_character_by_name(&db_repo.client, &character_name);
+            .get_character_by_name(&character_name);
 
         if let Err(err) = query_res {
             error!("Unable to get character by name: {:?}", err);
@@ -142,7 +142,7 @@ pub fn start_delete_character(
         }
 
         if show_login_menu {
-            let characters = match db_repo.characters.get_all_by_user(&db_repo.client, user.id) {
+            let characters = match db_repo.characters.get_all_by_user(user.id) {
                 Ok(characters) => characters,
                 Err(e) => {
                     error!("Unable to fetch user's characters at login: {:?}", e);
@@ -178,7 +178,7 @@ pub fn start_delete_character(
 pub fn confirm_delete_character(
     mut query: Query<(Entity, &mut UserSessionData, &User)>,
     mut events: EventReader<UserConfirmedDeleteCharacter>,
-    db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -194,7 +194,7 @@ pub fn confirm_delete_character(
         user_sesh.char_to_delete = None;
         let character_name = event.command.keyword.clone();
 
-        let mut characters = match db_repo.characters.get_all_by_user(&db_repo.client, user.id) {
+        let mut characters = match db_repo.characters.get_all_by_user(user.id) {
             Ok(characters) => characters,
             Err(e) => {
                 error!(
@@ -237,13 +237,13 @@ pub fn confirm_delete_character(
 pub fn process_loggedin_command(
     mut query: Query<(Entity, &User)>,
     mut events: EventReader<UserSelectedLoginOption>,
-    mut db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
         let (entity, user) = query.get_mut(event.command.entity).unwrap();
 
-        let characters = match db_repo.characters.get_all_by_user(&db_repo.client, user.id) {
+        let characters = match db_repo.characters.get_all_by_user(user.id) {
             Ok(characters) => characters,
             Err(e) => {
                 error!("Error fetching characters for login selection. {:?}", e);

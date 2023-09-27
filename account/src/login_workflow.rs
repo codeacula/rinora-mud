@@ -5,7 +5,7 @@ use shared::prelude::*;
 pub fn handle_user_login(
     mut query: Query<Entity>,
     mut events: EventReader<UserLoggedIn>,
-    db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -26,7 +26,7 @@ pub fn handle_user_login(
             continue;
         };
 
-        let characters = match db_repo.characters.get_all_by_user(&db_repo.client, user.id) {
+        let characters = match db_repo.characters.get_all_by_user(user.id) {
             Ok(characters) => characters,
             Err(e) => {
                 error!("Unable to fetch user's characters at login: {:?}", e);
@@ -47,7 +47,7 @@ pub fn user_confirmed_password(
     mut query: Query<(Entity, &UserSessionData)>,
     mut events: EventReader<UserConfirmedPassword>,
     mut user_logged_in_writer: EventWriter<UserLoggedIn>,
-    mut db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -75,7 +75,6 @@ pub fn user_confirmed_password(
         }
 
         let new_user = match db_repo.users.create_user(
-            &mut db_repo.client,
             &user_sesh.username,
             confirmation_password,
         ) {
@@ -139,7 +138,7 @@ pub fn user_provided_password(
     mut query: Query<(Entity, &mut UserSessionData)>,
     mut events: EventReader<UserProvidedPassword>,
     mut user_logged_in_writer: EventWriter<UserLoggedIn>,
-    db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -191,7 +190,7 @@ pub fn user_provided_password(
 pub fn user_provided_username(
     mut query: Query<(Entity, &mut UserSessionData)>,
     mut events: EventReader<UserProvidedUsername>,
-    mut db_repo: NonSend<DbInterface>,
+    db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -207,9 +206,7 @@ pub fn user_provided_username(
             continue;
         }
 
-        let mutable_client = &mut db_repo.client;
-
-        let user_exists = match db_repo.users.does_user_exist(mutable_client, username) {
+        let user_exists = match db_repo.users.does_user_exist(username) {
             Ok(exists) => exists,
             Err(e) => {
                 error!("Error while checking if user exists: {:?}", e);

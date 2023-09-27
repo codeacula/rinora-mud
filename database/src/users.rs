@@ -5,7 +5,7 @@ use diesel::{
 use sha2::{Digest, Sha512};
 use shared::prelude::*;
 
-use crate::{prelude::DbInterface, schema::*};
+use crate::schema::users;
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = crate::schema::users)]
@@ -47,14 +47,16 @@ pub struct UserRepo {
 }
 
 impl UserRepo {
+    // Opted to go ahead an accept a clone of a Pool because they're backed with Arc, so the clone is cheap
     pub fn new(provided_pool: Pool<ConnectionManager<PgConnection>>) -> Self {
         UserRepo {
             pool: provided_pool,
         }
     }
 
-    fn conn(&self) -> &mut PooledConnection<ConnectionManager<diesel::PgConnection>> {
-        &mut self.pool.get().unwrap()
+    /// Convenience method to get a connection
+    fn conn(&self) -> PooledConnection<ConnectionManager<diesel::PgConnection>> {
+        self.pool.get().unwrap()
     }
 
     /// Given a username and password, creates a new user in the database, returning
@@ -75,7 +77,7 @@ impl UserRepo {
         let inserted_user = diesel::insert_into(users::table)
             .values(&new_user)
             .returning(DbUser::as_returning())
-            .get_result(self.conn())
+            .get_result::<DbUser>(&mut self.conn())
             .expect("Error during character creation");
 
         Ok(inserted_user.to_game_user())
@@ -84,70 +86,59 @@ impl UserRepo {
     /// Given a username, returns whether or not the user exists
     pub fn does_user_exist(
         &self,
-        conn: &mut PgConnection,
         provided_username: &str,
     ) -> Result<bool, String> {
         use crate::schema::users::dsl::*;
-        let result = users
-            .select(DbUser::as_select())
-            .filter(username.eq(provided_username));
 
-        Ok(result.len() == 1)
+        let result: Option<i32> = users
+            .select(id)
+            .filter(username.eq(provided_username))
+            .filter(password_hash.eq(provided_username))
+            .get_result::<i32>(&mut self.conn())
+            .optional()
+            .expect("Error while checking if a user exists");
+
+        Ok(result.is_some())
     }
 
-    /// Gets a User by their Username, or None if none was found
+    /// Gets a User by their username and password, returning None if not found
     pub fn find_with_credentials(
         &self,
         provided_username: &str,
         provided_password: &str,
     ) -> Result<Option<User>, String> {
-        todo!("Todo");
-        /*
         use crate::schema::users::dsl::*;
 
-        let calculated_hash = Sha512::digest(provided_password);
+        let calculated_hash = format!("{:x}", Sha512::digest(provided_password));
 
-        let query = users
+        let result: Option<DbUser> = users
             .select(DbUser::as_select())
-            .filter(username.eq(clean_username(provided_username)));
+            .filter(username.eq(clean_username(provided_username)))
+            .filter(password_hash.eq(calculated_hash))
+            .get_result::<DbUser>(&mut self.conn())
+            .optional()
+            .expect("Unabled to find user with credentials.");
 
-        let step2 = query.filter(password_hash.eq(calculated_hash));
-
-        Ok(Some(User {
-            administrator: false,
-            autologin: None,
-            id: 0,
-            username: "[fff".to_string(),
-        }))
-        */
+        match result {
+            None => Ok(None),
+            Some(found_user) => Ok(Some(found_user.to_game_user()))
+        }
     }
 
-    /// Fetch a user by its UUID
-    pub fn get_by_id(&self, id: i32) -> Result<Option<User>, String> {
-        todo!("Todo");
-        // let parse_uuid_result = ObjectId::parse_str(uuid);
+    /// Fetch a user by its ID
+    pub fn get_by_id(&self, provided_id: i32) -> Result<Option<User>, String> {
+        use crate::schema::users::dsl::*;
 
-        // let parsed_uuid = match parse_uuid_result {
-        //     Ok(the_uuid) => the_uuid,
-        //     Err(e) => {
-        //         return Err(format!("Error trying to find user by uuid: {:?}", e));
-        //     }
-        // };
+        let result: Option<DbUser> = users
+            .select(DbUser::as_select())
+            .filter(id.eq(provided_id))
+            .get_result::<DbUser>(&mut self.conn())
+            .optional()
+            .expect("Unabled to find user by ID.");
 
-        // let query = self.users.find_one(doc! { "_id": parsed_uuid }, None);
-
-        // if let Err(query_err) = query {
-        //     return Err(format!(
-        //         "Error trying to find user by uuid: {:?}",
-        //         query_err
-        //     ));
-        // }
-
-        // let found_user = query.unwrap();
-
-        // match found_user {
-        //     None => Ok(None),
-        //     Some(user) => Ok(Some(user.to_game_user())),
-        // }
+        match result {
+            None => Ok(None),
+            Some(found_user) => Ok(Some(found_user.to_game_user()))
+        }
     }
 }
