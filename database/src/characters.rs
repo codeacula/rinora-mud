@@ -56,6 +56,7 @@ impl CharacterRepo {
         self.pool.get().unwrap()
     }
 
+    /// Given a character name and a user, creates a new character and returns it
     pub fn create_character(&self, charactername: &str, user: &User) -> Result<Character, String> {
         let name = clean_character_name(charactername);
 
@@ -74,6 +75,7 @@ impl CharacterRepo {
         Ok(inserted_character.to_game_character())
     }
 
+    /// Deletes a character by their character name
     pub fn delete_character(&self, character_name: &str) -> Result<bool, String> {
         use self::characters::dsl::*;
 
@@ -87,6 +89,7 @@ impl CharacterRepo {
         Ok(res != 0)
     }
 
+    /// Checks to see if a character by the provided username already exists
     pub fn does_character_exist(&self, character_name: &str) -> Result<bool, String> {
         use crate::schema::characters::dsl::*;
 
@@ -102,6 +105,7 @@ impl CharacterRepo {
         Ok(result.is_some())
     }
 
+    /// Returns a charater matching the provided character_name if it exists
     pub fn get_character_by_name(&self, character_name: &str) -> Result<Option<Character>, String> {
         use crate::schema::characters::dsl::*;
 
@@ -118,6 +122,7 @@ impl CharacterRepo {
         }
     }
 
+    /// Given a user ID, returns all characters
     pub fn get_all_by_user(&self, provided_user_id: i32) -> Result<Vec<Character>, String> {
         use crate::schema::characters::dsl::*;
 
@@ -127,12 +132,6 @@ impl CharacterRepo {
             .get_results::<DbCharacter>(&mut self.conn())
             .expect("Unable to fetch all characters by user");
 
-        let mut chars: Vec<Character> = Vec::new();
-
-        for dbchar in result {
-            chars.push(dbchar.to_game_character());
-        }
-
-        Ok(chars)
+        Ok(result.iter().map(|character| character.to_game_character()).collect())
     }
 }
