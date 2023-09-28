@@ -4,7 +4,6 @@ diesel::table! {
     areas (id) {
         id -> Int4,
         continent_id -> Int4,
-        shortname -> Varchar,
         displayname -> Varchar,
         description -> Varchar,
     }
@@ -24,7 +23,6 @@ diesel::table! {
     continents (id) {
         id -> Int4,
         plane_id -> Int4,
-        shortname -> Varchar,
         displayname -> Varchar,
         description -> Varchar,
     }
@@ -33,7 +31,6 @@ diesel::table! {
 diesel::table! {
     environments (id) {
         id -> Int4,
-        shortname -> Varchar,
         displayname -> Varchar,
         description -> Varchar,
     }
@@ -51,7 +48,6 @@ diesel::table! {
 diesel::table! {
     planes (id) {
         id -> Int4,
-        shortname -> Varchar,
         displayname -> Varchar,
         description -> Varchar,
     }
