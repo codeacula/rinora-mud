@@ -4,7 +4,7 @@ diesel::table! {
     areas (id) {
         id -> Int4,
         continent_id -> Int4,
-        displayname -> Varchar,
+        name -> Varchar,
         description -> Varchar,
     }
 }
@@ -13,7 +13,7 @@ diesel::table! {
     characters (id) {
         id -> Int4,
         user_id -> Int4,
-        shortname -> Varchar,
+        name -> Varchar,
         description -> Varchar,
         current_room_id -> Int4,
     }
@@ -23,7 +23,7 @@ diesel::table! {
     continents (id) {
         id -> Int4,
         plane_id -> Int4,
-        displayname -> Varchar,
+        name -> Varchar,
         description -> Varchar,
     }
 }
@@ -31,8 +31,7 @@ diesel::table! {
 diesel::table! {
     environments (id) {
         id -> Int4,
-        displayname -> Varchar,
-        description -> Varchar,
+        name -> Varchar,
     }
 }
 
@@ -41,6 +40,7 @@ diesel::table! {
         id -> Int4,
         from_room_id -> Int4,
         to_room_id -> Int4,
+        direction -> Varchar,
         hidden -> Bool,
     }
 }
@@ -48,7 +48,7 @@ diesel::table! {
 diesel::table! {
     planes (id) {
         id -> Int4,
-        displayname -> Varchar,
+        name -> Varchar,
         description -> Varchar,
     }
 }
@@ -57,10 +57,17 @@ diesel::table! {
     rooms (id) {
         id -> Int4,
         area_id -> Int4,
-        shortname -> Varchar,
-        displayname -> Varchar,
+        name -> Varchar,
         description -> Varchar,
-        environment_id -> Varchar,
+        environment_id -> Int4,
+    }
+}
+
+diesel::table! {
+    settings (id) {
+        id -> Int4,
+        support_email -> Varchar,
+        default_room -> Int4,
     }
 }
 
@@ -79,6 +86,8 @@ diesel::joinable!(characters -> rooms (current_room_id));
 diesel::joinable!(characters -> users (user_id));
 diesel::joinable!(continents -> planes (plane_id));
 diesel::joinable!(rooms -> areas (area_id));
+diesel::joinable!(rooms -> environments (environment_id));
+diesel::joinable!(settings -> rooms (default_room));
 
 diesel::allow_tables_to_appear_in_same_query!(
     areas,
@@ -88,5 +97,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     exits,
     planes,
     rooms,
+    settings,
     users,
 );

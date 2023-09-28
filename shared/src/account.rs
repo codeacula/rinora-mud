@@ -15,7 +15,7 @@ impl Command for TransitionUserToState {
         };
 
         let Some(mut user) = found_entity.get_mut::<UserSessionData>() else {
-            error!("Unable to transition user state: User now found");
+            error!("Unable to transition user state: User not found");
             return;
         };
 

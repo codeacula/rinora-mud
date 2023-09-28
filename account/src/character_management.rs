@@ -6,6 +6,7 @@ pub fn create_character(
     mut query: Query<(Entity, &User)>,
     mut events: EventReader<UserProvidedCharacterName>,
     db_repo: Res<DbInterface>,
+    settings: Res<Settings>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -41,7 +42,7 @@ pub fn create_character(
         if let Err(err) =
             db_repo
                 .characters
-                .create_character(&character_name, user)
+                .create_character(&character_name, settings.default_room, user)
         {
             error!("Error creating character for user: {:?}", err);
             commands.add(SendText::send_generic_error(entity));

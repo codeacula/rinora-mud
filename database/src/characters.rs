@@ -12,7 +12,7 @@ use crate::schema::characters;
 pub struct DbCharacter {
     pub id: i32,
     pub user_id: i32,
-    pub shortname: String,
+    pub name: String,
     pub description: String,
     pub current_room_id: i32,
 }
@@ -21,15 +21,16 @@ pub struct DbCharacter {
 #[diesel(table_name = crate::schema::characters)]
 pub struct NewDbCharacter {
     pub user_id: i32,
-    pub shortname: String,
+    pub name: String,
     pub description: String,
+    pub current_room_id: i32,
 }
 
 impl DbCharacter {
     pub fn to_game_character(&self) -> Character {
         Character {
             id: self.id,
-            shortname: self.shortname.clone(),
+            shortname: self.name.clone(),
             user_id: self.user_id,
             current_room_id: 0,
         }
@@ -57,13 +58,14 @@ impl CharacterRepo {
     }
 
     /// Given a character name and a user, creates a new character and returns it
-    pub fn create_character(&self, charactername: &str, user: &User) -> Result<Character, String> {
+    pub fn create_character(&self, charactername: &str, current_room: i32, user: &User) -> Result<Character, String> {
         let name = clean_character_name(charactername);
 
         let new_character = NewDbCharacter {
-            shortname: name,
+            name,
             user_id: user.id,
             description: "A vaguely distinguishable humanoid.".to_string(),
+            current_room_id: current_room,
         };
 
         let inserted_character = diesel::insert_into(characters::table)
@@ -79,10 +81,10 @@ impl CharacterRepo {
     pub fn delete_character(&self, character_name: &str) -> Result<bool, String> {
         use self::characters::dsl::*;
 
-        let name = clean_character_name(character_name);
+        let cleaned_name = clean_character_name(character_name);
 
         let res = diesel::delete(characters)
-            .filter(shortname.eq(name))
+            .filter(name.eq(cleaned_name))
             .execute(&mut self.conn())
             .expect("Error deleting character by name");
 
@@ -93,11 +95,11 @@ impl CharacterRepo {
     pub fn does_character_exist(&self, character_name: &str) -> Result<bool, String> {
         use crate::schema::characters::dsl::*;
 
-        let name = clean_character_name(character_name);
+        let cleaned_name = clean_character_name(character_name);
 
         let result: Option<i32> = characters
             .select(id)
-            .filter(shortname.eq(name))
+            .filter(name.eq(cleaned_name))
             .get_result::<i32>(&mut self.conn())
             .optional()
             .expect("Error while checking if a character exists");
@@ -111,7 +113,7 @@ impl CharacterRepo {
 
         let result: Option<DbCharacter> = characters
             .select(DbCharacter::as_select())
-            .filter(shortname.eq(clean_character_name(character_name)))
+            .filter(name.eq(clean_character_name(character_name)))
             .get_result::<DbCharacter>(&mut self.conn())
             .optional()
             .expect("Unabled to find character by username.");

@@ -12,7 +12,7 @@ mod characters;
 mod db_interface;
 mod locations;
 mod schema;
-mod system;
+mod settings;
 mod users;
 
 pub struct DatabasePlugin;
@@ -32,7 +32,11 @@ impl Plugin for DatabasePlugin {
         pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
         let repo = DbInterface::new(host_string);
-        app.insert_resource(repo);
+
+        let settings = repo.settings.get_settings().unwrap();
+
+        app.insert_resource(repo)
+            .insert_resource(settings);
     }
 }
 
@@ -40,6 +44,6 @@ pub mod prelude {
     pub use crate::characters::*;
     pub use crate::db_interface::*;
     pub use crate::locations::*;
-    pub use crate::system::*;
+    pub use crate::settings::*;
     pub use crate::users::*;
 }

@@ -1,4 +1,6 @@
 -- This file should undo anything in `up.sql`
+DROP TABLE IF EXISTS settings;
+
 DROP TABLE IF EXISTS characters;
 DROP TABLE IF EXISTS users;
 
