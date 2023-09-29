@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["account", "commands", "database", "rinora_mud", "server", "shared"]
+members = ["account", "database", "rinora_mud", "server", "shared"]
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

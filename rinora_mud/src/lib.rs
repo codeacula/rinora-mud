@@ -8,6 +8,8 @@ use database::DatabasePlugin;
 use server::NetworkServerPlugin;
 use shared::SharedPlugin;
 
+mod commands;
+
 pub fn start_game() {
     let mut app = App::new();
 

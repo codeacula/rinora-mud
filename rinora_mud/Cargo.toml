@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.11.2" }
 account = { path = "../account" }
-commands = { path = "../commands" }
 database = { path = "../database" }
 server = { path = "../server" }
 shared = { path = "../shared" }
