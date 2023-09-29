@@ -6,7 +6,7 @@ pub fn create_character(
     mut query: Query<(Entity, &User)>,
     mut events: EventReader<UserProvidedCharacterName>,
     db_repo: Res<DbInterface>,
-    settings: Res<Settings>,
+    settings: Res<GameSettings>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
@@ -21,9 +21,7 @@ pub fn create_character(
         }
         let character_name = event.command.keyword.clone();
 
-        let exists_res = db_repo
-            .characters
-            .does_character_exist(&character_name);
+        let exists_res = db_repo.characters.does_character_exist(&character_name);
 
         if let Err(err) = exists_res {
             error!("Error checking if character exists: {:?}", err);
@@ -59,7 +57,7 @@ pub fn create_character(
             state: UserStatus::LoggedIn,
         });
 
-        let characters = match db_repo.characters.get_all_by_user( user.id) {
+        let characters = match db_repo.characters.get_all_by_user(user.id) {
             Ok(characters) => characters,
             Err(e) => {
                 error!(
@@ -83,10 +81,7 @@ pub fn process_character_deletion_requests(
 ) {
     let mut entities_to_delete: Vec<String> = Vec::new();
     for event in events.iter() {
-        if let Err(e) = db_repo
-            .characters
-            .delete_character(&event.name)
-        {
+        if let Err(e) = db_repo.characters.delete_character(&event.name) {
             error!("There was an error deleting a user from the DB: {:?}", e);
             continue;
         }
@@ -112,9 +107,7 @@ pub fn start_delete_character(
 
         let character_name = event.command.keyword.clone();
 
-        let query_res = db_repo
-            .characters
-            .get_character_by_name(&character_name);
+        let query_res = db_repo.characters.get_character_by_name(&character_name);
 
         if let Err(err) = query_res {
             error!("Unable to get character by name: {:?}", err);
@@ -285,22 +278,17 @@ pub fn process_loggedin_command(
             continue;
         }
 
-        let mut character_was_selected = false;
-
         // Wants to select a character
         for character in characters {
             if event.command.keyword.to_lowercase() == character.shortname.to_lowercase() {
-                character_was_selected = true;
                 commands.add(SendText::new(
                     entity,
                     &format!("You selected your character: {}", character.shortname),
                 ));
-                break;
+                return;
             }
         }
 
-        if !character_was_selected {
-            commands.add(SendText::new(entity, "Invalid option. Try again!"));
-        }
+        commands.add(SendText::new(entity, "Invalid option. Try again!"));
     }
 }

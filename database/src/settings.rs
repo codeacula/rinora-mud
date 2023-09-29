@@ -1,6 +1,6 @@
 use diesel::{
-  prelude::*,
-  r2d2::{ConnectionManager, Pool, PooledConnection},
+    prelude::*,
+    r2d2::{ConnectionManager, Pool, PooledConnection},
 };
 use shared::prelude::*;
 
@@ -8,45 +8,46 @@ use shared::prelude::*;
 #[diesel(table_name = crate::schema::settings)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct DbSettings {
-  pub id: i32,
-  pub support_email: String,
-  pub default_room: i32,
+    pub id: i32,
+    pub support_email: String,
+    pub default_room: i32,
 }
 
 impl DbSettings {
-  pub fn to_settings(&self) -> Settings {
-    Settings {
-      default_room: self.default_room,
-      support_email: self.support_email.clone(),
+    pub fn to_settings(&self) -> GameSettings {
+        GameSettings {
+            default_room: self.default_room,
+            support_email: self.support_email.clone(),
+        }
     }
-  }
 }
 
 pub struct SettingsRepo {
-  pool: Pool<ConnectionManager<PgConnection>>,
+    pool: Pool<ConnectionManager<PgConnection>>,
 }
 
 impl SettingsRepo {
-  // Opted to go ahead an accept a clone of a Pool because they're backed with Arc, so the clone is cheap
-  pub fn new(provided_pool: Pool<ConnectionManager<PgConnection>>) -> Self {
-      SettingsRepo {
-          pool: provided_pool,
-      }
-  }
+    // Opted to go ahead an accept a clone of a Pool because they're backed with Arc, so the clone is cheap
+    pub fn new(provided_pool: Pool<ConnectionManager<PgConnection>>) -> Self {
+        SettingsRepo {
+            pool: provided_pool,
+        }
+    }
 
-  /// Convenience method to get a connection
-  fn conn(&self) -> PooledConnection<ConnectionManager<diesel::PgConnection>> {
-      self.pool.get().unwrap()
-  }
+    /// Convenience method to get a connection
+    fn conn(&self) -> PooledConnection<ConnectionManager<diesel::PgConnection>> {
+        self.pool.get().unwrap()
+    }
 
-  /// Gets the game settings from the DB
-  pub fn get_settings(
-      &self
-  ) -> Result<Settings, String> {
-      use crate::schema::settings::dsl::*;
-      
-      let found_settings = settings.select(DbSettings::as_select()).first(&mut self.conn()).expect("Unable to fetch settings");
+    /// Gets the game settings from the DB
+    pub fn get_settings(&self) -> Result<GameSettings, String> {
+        use crate::schema::settings::dsl::*;
 
-      Ok(found_settings.to_settings())
-  }
+        let found_settings = settings
+            .select(DbSettings::as_select())
+            .first(&mut self.conn())
+            .expect("Unable to fetch settings");
+
+        Ok(found_settings.to_settings())
+    }
 }

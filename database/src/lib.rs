@@ -34,9 +34,11 @@ impl Plugin for DatabasePlugin {
         let repo = DbInterface::new(host_string);
 
         let settings = repo.settings.get_settings().unwrap();
+        let game_world = repo.locations.get_game_world();
 
         app.insert_resource(repo)
-            .insert_resource(settings);
+            .insert_resource(settings)
+            .insert_resource(game_world);
     }
 }
 

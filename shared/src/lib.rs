@@ -11,6 +11,7 @@ pub mod helpers;
 pub mod network;
 pub mod settings;
 pub mod user;
+pub mod world;
 
 pub struct SharedPlugin;
 
@@ -50,4 +51,5 @@ pub mod prelude {
     pub use crate::network::*;
     pub use crate::settings::*;
     pub use crate::user::*;
+    pub use crate::world::*;
 }
