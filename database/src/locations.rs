@@ -159,7 +159,7 @@ impl LocationRepo {
 
     pub fn get_game_world(&self) -> GameWorld {
         let rooms = self.get_all_rooms().unwrap();
-        let mut rooms_by_id: HashMap<i32, usize> = HashMap::new();
+        let mut rooms_by_id: HashMap<i32, usize> = HashMap::with_capacity(rooms.len());
 
         let mut i: usize = 0;
         for room in rooms.iter() {

@@ -231,6 +231,7 @@ pub fn confirm_delete_character(
 pub fn process_loggedin_command(
     mut query: Query<(Entity, &User)>,
     mut events: EventReader<UserSelectedLoginOption>,
+    mut character_logged_in_ev: EventWriter<CharacterEnteredWorld>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
@@ -281,10 +282,9 @@ pub fn process_loggedin_command(
         // Wants to select a character
         for character in characters {
             if event.command.keyword.to_lowercase() == character.shortname.to_lowercase() {
-                commands.add(SendText::new(
-                    entity,
-                    &format!("You selected your character: {}", character.shortname),
-                ));
+                character_logged_in_ev.send(CharacterEnteredWorld {
+                    character_id: character.id,
+                });
                 return;
             }
         }

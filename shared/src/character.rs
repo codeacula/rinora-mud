@@ -33,3 +33,8 @@ impl Command for DeleteCharacter {
         world.send_event(DeleteCharacterEvent { name: self.name });
     }
 }
+
+#[derive(Event)]
+pub struct CharacterEnteredWorld {
+    pub character_id: i32,
+}
