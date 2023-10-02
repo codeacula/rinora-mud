@@ -124,6 +124,17 @@ impl TextEvent {
             text: TextBlock::from_str(text).unwrap(),
         }
     }
+    
+    pub fn send_command_not_found(entity: Entity) -> Self {
+        TextEvent {
+            entity,
+            text: TextBlock::from_str("I don't understand what you mean.").unwrap(),
+        }
+    }
+
+    pub fn send_generic_error(entity: Entity) -> Self {
+        TextEvent { entity, text: TextBlock::from_str("{{9:0}}There was an error processing your command. Please email codeacula@codeacula.com").unwrap() }
+    }
 }
 
 #[derive(Clone, Copy)]

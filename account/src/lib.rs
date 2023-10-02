@@ -112,7 +112,7 @@ impl Plugin for AccountPlugin {
                     login_workflow::user_confirmed_password,
                     login_workflow::user_provided_password,
                     character_management::confirm_delete_character,
-                    character_management::process_loggedin_command,
+                    // character_management::process_loggedin_command,
                     character_management::create_character,
                     character_management::start_delete_character,
                 ),

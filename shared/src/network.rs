@@ -11,7 +11,7 @@ pub struct DisconnectionEvent {
     pub entity: Entity,
 }
 
-#[derive(Event)]
+#[derive(Event, Clone)]
 pub struct InputReceivedEvent {
     pub entity: Entity,
     pub input: String,

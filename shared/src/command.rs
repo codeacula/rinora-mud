@@ -5,7 +5,7 @@ pub struct PossibleCommands(pub Vec<String>);
 
 /// UserCommand contains the information from the text command that was sent in. This gets converted into the actual
 /// command that will run
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct UserCommand {
     /// The command the user sent, cleaned up
     pub full_command: String,
