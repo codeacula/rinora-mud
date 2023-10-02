@@ -1,15 +1,21 @@
 use bevy::prelude::*;
+use commands::UsernameProvided;
 use shared::prelude::*;
 
 mod character_management;
+mod commands;
 mod connection_handlers;
 mod login_workflow;
 
 pub struct AccountPlugin;
 
 /// Add keywords we can quickly check in the Commands module
-fn add_expected_commands(mut expected_commands: ResMut<PossibleCommands>) {
+fn add_expected_commands(
+    mut expected_commands: ResMut<PossibleCommands>,
+    mut command_list: ResMut<GameCommands>,
+) {
     expected_commands.0.push("acct".to_string());
+    command_list.0.push(Box::new(UsernameProvided {}))
 }
 
 pub fn get_login_screen(characters: &Vec<Character>) -> String {

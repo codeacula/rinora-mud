@@ -3,9 +3,11 @@ use bevy::prelude::*;
 #[derive(Resource)]
 pub struct PossibleCommands(pub Vec<String>);
 
+/// UserCommand contains the information from the text command that was sent in. This gets converted into the actual
+/// command that will run
 #[derive(Clone)]
-pub struct SentCommand {
-    // The command the user sent, cleaned up
+pub struct UserCommand {
+    /// The command the user sent, cleaned up
     pub full_command: String,
 
     /// The Entity responsible for sending the command
@@ -21,3 +23,23 @@ pub struct SentCommand {
     /// The command exactly as provided, including the new newline
     pub raw_command: String,
 }
+
+pub trait GameCommand: Sync + Send {
+    /// Given a command, determines if it can run
+    fn can_execute(&self, command: &UserCommand, world: &mut World) -> bool;
+
+    /// Execute the command against the World
+    fn run(&mut self, command: &UserCommand, world: &mut World) -> Result<(), String>;
+}
+
+pub struct GameCommandEvent(Box<dyn GameCommand>);
+
+impl<T: GameCommand + 'static> From<T> for GameCommandEvent {
+    fn from(value: T) -> Self {
+        let command: Box<dyn GameCommand> = Box::new(value);
+        GameCommandEvent(command)
+    }
+}
+
+#[derive(Resource)]
+pub struct GameCommands(pub Vec<Box<dyn GameCommand>>);

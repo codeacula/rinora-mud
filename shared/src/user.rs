@@ -1,6 +1,6 @@
 use bevy::{ecs::system::Command, prelude::*, utils::Uuid};
 
-use crate::prelude::SentCommand;
+use crate::prelude::UserCommand;
 
 pub struct TransitionUserToState {
     pub entity: Entity,
@@ -26,7 +26,7 @@ impl Command for TransitionUserToState {
 #[derive(Event)]
 pub struct AccountEvent {
     pub entity: Entity,
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
@@ -67,46 +67,44 @@ pub struct UserSessionData {
     pub username: String,
 }
 
-pub struct UsernameProvided {}
-
 // Events
 
 #[derive(Event)]
 pub struct UserProvidedUsername {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
 pub struct UserProvidedPassword {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
 pub struct UserCreatedPassword {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
 pub struct UserConfirmedPassword {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
 pub struct UserSelectedLoginOption {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
 pub struct UserProvidedCharacterName {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
 pub struct UserProvidedCharacterToDelete {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }
 
 #[derive(Event)]
 pub struct UserConfirmedDeleteCharacter {
-    pub command: SentCommand,
+    pub command: UserCommand,
 }

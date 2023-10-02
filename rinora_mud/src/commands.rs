@@ -16,7 +16,7 @@ fn parse_keyword(command: &str) -> String {
 }
 
 /// Takes an entity and the command they sent and converts it into a SentCommand
-fn create_sent_command(entity: Entity, command: Vec<u8>) -> SentCommand {
+fn create_sent_command(entity: Entity, command: Vec<u8>) -> UserCommand {
     let command_string = String::from_utf8(command).unwrap();
     let cleaned_string = command_string.replace(|c: char| !c.is_ascii(), "");
 
@@ -25,7 +25,7 @@ fn create_sent_command(entity: Entity, command: Vec<u8>) -> SentCommand {
         .map(|s| s.to_string())
         .collect();
 
-    SentCommand {
+    UserCommand {
         full_command: cleaned_string,
         entity,
         keyword: parse_keyword(&parts[0]),
@@ -34,7 +34,7 @@ fn create_sent_command(entity: Entity, command: Vec<u8>) -> SentCommand {
     }
 }
 
-pub fn process_incoming_commands(
+pub fn process_incoming_commands_old(
     query: Query<(Entity, &UserSessionData)>,
     possible_commands: Res<PossibleCommands>,
     mut ev_incoming_commands: EventReader<InputReceivedEvent>,
@@ -84,8 +84,34 @@ pub fn process_incoming_commands(
     }
 }
 
+pub fn process_incoming_commands(world: &mut World) {
+    let user_input_events = world
+        .get_resource_mut::<Events<InputReceivedEvent>>()
+        .unwrap()
+        .drain()
+        .collect::<Vec<_>>();
+
+    let command_list = world.get_resource::<GameCommands>().unwrap();
+
+    for user_input in user_input_events {
+        let entity = world.get_entity(user_input.entity).unwrap();
+        let sent_command = create_sent_command(entity.id(), user_input.input.as_bytes().to_vec());
+
+        for game_command in command_list.0.iter() {
+            let can_execute = game_command.can_execute(&sent_command, world);
+            if can_execute {
+                game_command.run(&sent_command, world);
+                return;
+            }
+        }
+    }
+}
+
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(First, process_incoming_commands);
+        let command_list = GameCommands(Vec::new());
+        app.insert_resource(command_list)
+            .add_systems(First, process_incoming_commands)
+            .add_systems(First, process_incoming_commands_old);
     }
 }
