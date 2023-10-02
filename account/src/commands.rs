@@ -4,7 +4,7 @@ use shared::prelude::*;
 pub struct UsernameProvided {}
 
 impl GameCommand for UsernameProvided {
-    fn can_execute(&self, command: &UserCommand, world: &mut World) -> bool {
+    fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             return false;
         };
@@ -16,7 +16,7 @@ impl GameCommand for UsernameProvided {
         return false;
     }
 
-    fn run(&mut self, command: &UserCommand, world: &mut World) -> Result<(), String> {
+    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         let test_binding = world.get_mut::<UserSessionData>(command.entity);
 
         let Some(mut user_session) = test_binding else {

@@ -26,10 +26,10 @@ pub struct UserCommand {
 
 pub trait GameCommand: Sync + Send {
     /// Given a command, determines if it can run
-    fn can_execute(&self, command: &UserCommand, world: &mut World) -> bool;
+    fn can_execute(&self, command: &UserCommand, world: &World) -> bool;
 
     /// Execute the command against the World
-    fn run(&mut self, command: &UserCommand, world: &mut World) -> Result<(), String>;
+    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String>;
 }
 
 pub struct GameCommandEvent(Box<dyn GameCommand>);

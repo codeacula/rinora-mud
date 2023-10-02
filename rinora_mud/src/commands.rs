@@ -84,26 +84,35 @@ pub fn process_incoming_commands_old(
     }
 }
 
-pub fn process_incoming_commands(world: &mut World) {
-    let user_input_events = world
-        .get_resource_mut::<Events<InputReceivedEvent>>()
-        .unwrap()
-        .drain()
-        .collect::<Vec<_>>();
+fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
+    world
+    .resource_mut::<Events<InputReceivedEvent>>()
+    .drain()
+    .collect::<Vec<InputReceivedEvent>>() 
+}
 
-    let command_list = world.get_resource::<GameCommands>().unwrap();
+pub fn process_incoming_commands(world: &mut World) {
+    let user_input_events = get_user_input_events(world);
+    let command_list = world.resource::<GameCommands>();
+
+    let mut found_commands: Vec<(UserCommand, &Box<dyn GameCommand>)> = Vec::new();
 
     for user_input in user_input_events {
-        let entity = world.get_entity(user_input.entity).unwrap();
-        let sent_command = create_sent_command(entity.id(), user_input.input.as_bytes().to_vec());
+        let entity = world.entity(user_input.entity).clone().id();
+        let sent_command = create_sent_command(entity, user_input.input.as_bytes().to_vec());
 
         for game_command in command_list.0.iter() {
-            let can_execute = game_command.can_execute(&sent_command, world);
-            if can_execute {
-                game_command.run(&sent_command, world);
-                return;
+            if game_command.can_execute(&sent_command, world) {
+                found_commands.push((sent_command, game_command));
+                break;
             }
         }
+    }
+
+    let parts = found_commands.clone();
+
+    for (user_command, game_command) in parts {
+        game_command.run(&user_command, world);
     }
 }
 
