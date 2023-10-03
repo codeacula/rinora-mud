@@ -83,7 +83,7 @@ impl DbEnvironment {
     }
 }
 
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, Default)]
 #[diesel(table_name = crate::schema::rooms)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct DbRoom {
@@ -92,18 +92,6 @@ pub struct DbRoom {
     pub name: String,
     pub description: String,
     pub environment_id: i32,
-}
-
-impl Default for DbRoom {
-    fn default() -> Self {
-        DbRoom {
-            area_id: 0,
-            description: String::from(""),
-            environment_id: 0,
-            id: 0,
-            name: String::from(""),
-        }
-    }
 }
 
 impl DbRoom {
@@ -161,10 +149,8 @@ impl LocationRepo {
         let rooms = self.get_all_rooms().unwrap();
         let mut rooms_by_id: HashMap<i32, usize> = HashMap::with_capacity(rooms.len());
 
-        let mut i: usize = 0;
-        for room in rooms.iter() {
+        for (i, room) in rooms.iter().enumerate() {
             rooms_by_id.insert(room.id, i);
-            i += 1;
         }
 
         GameWorld {

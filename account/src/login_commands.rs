@@ -14,7 +14,7 @@ impl GameCommand for UserConfirmedPassword {
             return true;
         }
 
-        return false;
+        false
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
@@ -92,7 +92,7 @@ impl GameCommand for UsernameProvided {
             return true;
         }
 
-        return false;
+        false
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
@@ -153,7 +153,7 @@ impl GameCommand for PasswordCreated {
             return true;
         }
 
-        return false;
+        false
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
@@ -189,7 +189,7 @@ impl GameCommand for PasswordProvided {
             return true;
         }
 
-        return false;
+        false
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {

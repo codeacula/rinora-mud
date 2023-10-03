@@ -55,9 +55,8 @@ pub struct GameWorld {
 impl GameWorld {
     pub fn get_room_by_id(&self, room_id: i32) -> Option<&Room> {
         let room_pos = self.rooms_by_id.get(&room_id);
-        if room_pos.is_none() {
-            return None;
-        }
+        
+        room_pos?;
 
         Some(&self.rooms[*room_pos.unwrap()])
     }

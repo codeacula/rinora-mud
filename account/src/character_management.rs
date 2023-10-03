@@ -14,7 +14,7 @@ impl GameCommand for CreateCharacter {
             return false;
         }
 
-        return true;
+        true
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
