@@ -1,37 +1,6 @@
 use std::{fmt, str::FromStr};
 
-use bevy::{ecs::system::Command, prelude::*};
-
-pub struct SendText {
-    pub entity: Entity,
-    pub text: String,
-}
-
-impl SendText {
-    pub fn new(entity: Entity, text: &str) -> Self {
-        SendText {
-            entity,
-            text: text.to_string(),
-        }
-    }
-
-    pub fn send_command_not_found(entity: Entity) -> Self {
-        SendText {
-            entity,
-            text: "I don't understand what you mean.".to_string(),
-        }
-    }
-
-    pub fn send_generic_error(entity: Entity) -> Self {
-        SendText { entity, text: "{{9:0}}There was an error processing your command. Please email codeacula@codeacula.com".to_string() }
-    }
-}
-
-impl Command for SendText {
-    fn apply(self, world: &mut World) {
-        world.send_event(TextEvent::new(self.entity, &self.text))
-    }
-}
+use bevy::prelude::*;
 
 /// Represents a slice of text in a text block. Can be colored.
 #[derive(Clone)]

@@ -74,6 +74,7 @@ pub fn handle_new_connections(
 pub fn handle_user_login(
     mut query: Query<Entity>,
     mut events: EventReader<UserLoggedIn>,
+    mut text_events_tx: EventWriter<TextEvent>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
@@ -84,14 +85,14 @@ pub fn handle_user_login(
             Ok(user) => user,
             Err(e) => {
                 error!("Unable to fetch user after login: {:?}", e);
-                commands.add(SendText::send_generic_error(entity));
+                text_events_tx.send(TextEvent::send_generic_error(entity));
                 continue;
             }
         };
 
         let Some(user) = found_user else {
             error!("Unable to fetch user after login: No account returned!");
-            commands.add(SendText::send_generic_error(entity));
+            text_events_tx.send(TextEvent::send_generic_error(entity));
             continue;
         };
 
@@ -99,7 +100,7 @@ pub fn handle_user_login(
             Ok(characters) => characters,
             Err(e) => {
                 error!("Unable to fetch user's characters at login: {:?}", e);
-                commands.add(SendText::new(
+                text_events_tx.send(TextEvent::from_str(
                     entity,
                     "There was an issue fetching your characters. Please disconnect and try again.",
                 ));
@@ -107,7 +108,7 @@ pub fn handle_user_login(
             }
         };
 
-        commands.add(SendText::new(entity, &crate::get_login_screen(&characters)));
+        text_events_tx.send(TextEvent::new(entity, &crate::get_login_screen(&characters)));
         commands.entity(entity).insert(user);
     }
 }

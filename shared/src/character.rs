@@ -1,4 +1,4 @@
-use bevy::{ecs::system::Command, prelude::*};
+use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Character {
@@ -16,21 +16,6 @@ impl Default for Character {
             user_id: 0,
             current_room_id: 0,
         }
-    }
-}
-
-pub struct DeleteCharacter {
-    pub name: String,
-}
-
-#[derive(Event)]
-pub struct DeleteCharacterEvent {
-    pub name: String,
-}
-
-impl Command for DeleteCharacter {
-    fn apply(self, world: &mut World) {
-        world.send_event(DeleteCharacterEvent { name: self.name });
     }
 }
 

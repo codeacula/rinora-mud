@@ -17,10 +17,7 @@ pub struct SharedPlugin;
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         // Account
-        app.add_event::<AccountEvent>().add_event::<UserLoggedIn>();
-
-        // Characters
-        app.add_event::<DeleteCharacterEvent>();
+        app.add_event::<UserLoggedIn>();
 
         // Commands
         app.insert_resource(PossibleCommands(Vec::new()));

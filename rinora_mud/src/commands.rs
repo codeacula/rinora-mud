@@ -15,9 +15,9 @@ fn parse_keyword(command: &str) -> String {
     command.to_string()
 }
 
-/// Takes an entity and the command they sent and converts it into a SentCommand
-fn create_sent_command(entity: Entity, command: Vec<u8>) -> UserCommand {
-    let command_string = String::from_utf8(command).unwrap();
+/// Takes an InputReceivedEvent and converts it into a SentCommand
+fn create_sent_command(event: &InputReceivedEvent) -> UserCommand {
+    let command_string = event.input.clone();
     let cleaned_string = command_string.replace(|c: char| !c.is_ascii(), "");
 
     let parts: Vec<String> = cleaned_string
@@ -27,13 +27,14 @@ fn create_sent_command(entity: Entity, command: Vec<u8>) -> UserCommand {
 
     UserCommand {
         full_command: cleaned_string,
-        entity,
+        entity: event.entity,
         keyword: parse_keyword(&parts[0]),
         parts,
         raw_command: command_string,
     }
 }
 
+/// Makes a copy of the InputReceivedEvents and returns them
 fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
     world
         .resource_mut::<Events<InputReceivedEvent>>()
@@ -46,8 +47,7 @@ pub fn process_incoming_commands(world: &mut World) {
 
     world.resource_scope(|world, game_commands: Mut<GameCommands>| {
         for user_input in user_input_events {
-            let entity = world.entity(user_input.entity).clone().id();
-            let sent_command = create_sent_command(entity, user_input.input.as_bytes().to_vec());
+            let sent_command = create_sent_command(&user_input);
 
             for game_command in game_commands.0.iter() {
                 if game_command.can_execute(&sent_command, world) {

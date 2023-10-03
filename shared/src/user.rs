@@ -1,13 +1,5 @@
 use bevy::{prelude::*, utils::Uuid};
 
-use crate::prelude::UserCommand;
-
-#[derive(Event)]
-pub struct AccountEvent {
-    pub entity: Entity,
-    pub command: UserCommand,
-}
-
 #[derive(Event)]
 pub struct UserLoggedIn {
     pub entity: Entity,
