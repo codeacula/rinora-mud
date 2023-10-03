@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::system::SystemState, prelude::*};
 use database::prelude::*;
 use shared::prelude::*;
 
@@ -10,11 +10,7 @@ impl GameCommand for CreateCharacter {
             return false;
         };
 
-        if user_session.status != UserStatus::LoggedIn {
-            return false;
-        }
-
-        if command.full_command != "1" {
+        if user_session.status != UserStatus::CreateCharacter {
             return false;
         }
 
@@ -22,40 +18,40 @@ impl GameCommand for CreateCharacter {
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
-        let (entity, user, user_sesh) = world
-            .query::<(Entity, &User, &UserSessionData)>()
-            .get_mut(world, command.entity)
-            .unwrap()
-            .to_owned();
-
         if command.parts.len() > 1 || !is_alphabetic(&command.keyword) {
             world.send_event(TextEvent::from_str(
-                entity,
+                command.entity,
                 "Character names can only contain the letters A-Z, and only one word. Please try again.",
             ));
             return Ok(());
         }
+
+        let mut system_state: SystemState<(
+            Res<DbInterface>,
+            Res<GameSettings>,
+            Query<(Entity, &User, &mut UserSessionData)>,
+            EventWriter<TextEvent>,
+        )> = SystemState::new(world);
+        let (db_repo, settings, mut query, mut text_event_tx) = system_state.get_mut(world);
+
         let character_name = command.keyword.clone();
-
-        let db_repo = world.resource::<DbInterface>();
-
         let exists_res = db_repo.characters.does_character_exist(&character_name);
 
         if let Err(err) = exists_res {
             error!("Error checking if character exists: {:?}", err);
-            world.send_event(TextEvent::send_generic_error(entity));
+            text_event_tx.send(TextEvent::send_generic_error(command.entity));
             return Ok(());
         }
 
         if exists_res.unwrap() {
-            world.send_event(TextEvent::from_str(
-                entity,
+            text_event_tx.send(TextEvent::from_str(
+                command.entity,
                 "That character already exists. Please try a different name.",
             ));
             return Ok(());
         }
 
-        let settings = world.resource::<GameSettings>();
+        let (entity, user, mut user_sesh) = query.get_mut(command.entity).unwrap();
 
         if let Err(err) =
             db_repo
@@ -63,11 +59,11 @@ impl GameCommand for CreateCharacter {
                 .create_character(&character_name, settings.default_room, user)
         {
             error!("Error creating character for user: {:?}", err);
-            world.send_event(TextEvent::send_generic_error(entity));
+            text_event_tx.send(TextEvent::send_generic_error(command.entity));
             return Ok(());
         }
 
-        world.send_event(TextEvent::from_str(
+        text_event_tx.send(TextEvent::from_str(
             entity,
             "Character created! You can now select them from the login screen",
         ));
