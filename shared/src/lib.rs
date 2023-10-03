@@ -17,16 +17,7 @@ pub struct SharedPlugin;
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         // Account
-        app.add_event::<AccountEvent>()
-            .add_event::<UserLoggedIn>()
-            .add_event::<UserProvidedUsername>()
-            .add_event::<UserProvidedPassword>()
-            .add_event::<UserSelectedLoginOption>()
-            .add_event::<UserProvidedCharacterToDelete>()
-            .add_event::<UserCreatedPassword>()
-            .add_event::<UserConfirmedPassword>()
-            .add_event::<UserProvidedCharacterName>()
-            .add_event::<UserConfirmedDeleteCharacter>();
+        app.add_event::<AccountEvent>().add_event::<UserLoggedIn>();
 
         // Characters
         app.add_event::<DeleteCharacterEvent>();

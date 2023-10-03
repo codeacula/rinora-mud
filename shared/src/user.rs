@@ -1,27 +1,6 @@
-use bevy::{ecs::system::Command, prelude::*, utils::Uuid};
+use bevy::{prelude::*, utils::Uuid};
 
 use crate::prelude::UserCommand;
-
-pub struct TransitionUserToState {
-    pub entity: Entity,
-    pub state: UserStatus,
-}
-
-impl Command for TransitionUserToState {
-    fn apply(self, world: &mut World) {
-        let Some(mut found_entity) = world.get_entity_mut(self.entity) else {
-            error!("Unable to transition user state: Entity not found");
-            return;
-        };
-
-        let Some(mut user) = found_entity.get_mut::<UserSessionData>() else {
-            error!("Unable to transition user state: User not found");
-            return;
-        };
-
-        user.status = self.state;
-    }
-}
 
 #[derive(Event)]
 pub struct AccountEvent {
@@ -65,46 +44,4 @@ pub struct UserSessionData {
     pub pwd: Option<String>,
     pub status: UserStatus,
     pub username: String,
-}
-
-// Events
-
-#[derive(Event)]
-pub struct UserProvidedUsername {
-    pub command: UserCommand,
-}
-
-#[derive(Event)]
-pub struct UserProvidedPassword {
-    pub command: UserCommand,
-}
-
-#[derive(Event)]
-pub struct UserCreatedPassword {
-    pub command: UserCommand,
-}
-
-#[derive(Event)]
-pub struct UserConfirmedPassword {
-    pub command: UserCommand,
-}
-
-#[derive(Event)]
-pub struct UserSelectedLoginOption {
-    pub command: UserCommand,
-}
-
-#[derive(Event)]
-pub struct UserProvidedCharacterName {
-    pub command: UserCommand,
-}
-
-#[derive(Event)]
-pub struct UserProvidedCharacterToDelete {
-    pub command: UserCommand,
-}
-
-#[derive(Event)]
-pub struct UserConfirmedDeleteCharacter {
-    pub command: UserCommand,
 }

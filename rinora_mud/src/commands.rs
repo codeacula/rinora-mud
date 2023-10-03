@@ -36,9 +36,9 @@ fn create_sent_command(entity: Entity, command: Vec<u8>) -> UserCommand {
 
 fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
     world
-    .resource_mut::<Events<InputReceivedEvent>>()
-    .drain()
-    .collect::<Vec<InputReceivedEvent>>() 
+        .resource_mut::<Events<InputReceivedEvent>>()
+        .drain()
+        .collect::<Vec<InputReceivedEvent>>()
 }
 
 pub fn process_incoming_commands(world: &mut World) {
@@ -48,7 +48,7 @@ pub fn process_incoming_commands(world: &mut World) {
         for user_input in user_input_events {
             let entity = world.entity(user_input.entity).clone().id();
             let sent_command = create_sent_command(entity, user_input.input.as_bytes().to_vec());
-    
+
             for game_command in game_commands.0.iter() {
                 if game_command.can_execute(&sent_command, world) {
                     if let Err(e) = game_command.run(&sent_command, world) {
