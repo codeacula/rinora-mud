@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, ecs::system::SystemState};
 use database::prelude::*;
 use shared::prelude::*;
 
@@ -18,14 +18,19 @@ impl GameCommand for UserConfirmedPassword {
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
-        let (entity, user_sesh) = world
-            .query::<(Entity, &UserSessionData)>()
-            .get_mut(world, command.entity)
-            .unwrap();
+        let mut system_state: SystemState<(
+            Res<DbInterface>,
+            Query<&mut UserSessionData>,
+            EventWriter<TextEvent>,
+            EventWriter<UserLoggedIn>,
+            Commands
+        )> = SystemState::new(world);
+        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx, mut commands) = system_state.get_mut(world);
+        let mut user_sesh = query.get_mut(command.entity).unwrap();
 
         if user_sesh.pwd.is_none() {
             error!("User got into ConfirmPassword state without having a password set in session!");
-            world.send_event(TextEvent::send_generic_error(entity));
+            text_event_tx.send(TextEvent::send_generic_error(command.entity));
             return Ok(());
         }
 
@@ -33,16 +38,14 @@ impl GameCommand for UserConfirmedPassword {
         let confirmation_password = &command.full_command;
 
         if original_password != confirmation_password {
-            world.send_event(TextEvent::from_str(
-                entity,
+            text_event_tx.send(TextEvent::from_str(
+                command.entity,
                 "Your passwords don't match, let's try again. What password do you want?",
             ));
 
             user_sesh.status = UserStatus::CreatePassword;
             return Ok(());
         }
-
-        let db_repo = world.resource::<DbInterface>();
 
         let new_user = match db_repo
             .users
@@ -51,26 +54,26 @@ impl GameCommand for UserConfirmedPassword {
             Ok(uuid) => uuid,
             Err(e) => {
                 error!("Unable to create user: {:?}", e);
-                world.send_event(TextEvent::send_generic_error(entity));
+                text_event_tx.send(TextEvent::send_generic_error(command.entity));
                 return Ok(());
             }
         };
 
-        world.entity_mut(entity).insert(User {
+        commands.entity(command.entity).insert(User {
             autologin: new_user.autologin,
             id: new_user.id,
             username: user_sesh.username.clone(),
             administrator: new_user.administrator,
         });
 
-        world.send_event(TextEvent::from_str(
-            entity,
+        text_event_tx.send(TextEvent::from_str(
+            command.entity,
             "Passwords match, account created! You are now logged in.\n\n",
         ));
 
         user_sesh.status = UserStatus::LoggedIn;
-        world.send_event(UserLoggedIn {
-            entity,
+        user_logged_in_tx.send(UserLoggedIn {
+            entity: command.entity,
             id: new_user.id,
         });
         Ok(())
@@ -93,39 +96,43 @@ impl GameCommand for UsernameProvided {
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
+        let mut system_state: SystemState<(
+            Res<DbInterface>,
+            Query<&mut UserSessionData>,
+            EventWriter<TextEvent>,
+        )> = SystemState::new(world);
+        let (db_repo, mut query, mut text_event_tx) = system_state.get_mut(world);
+        
         let username = &command.keyword;
 
         if !is_alphabetic(username) {
-            world.send_event(TextEvent::new(
+            text_event_tx.send(TextEvent::new(
                 command.entity,
                 &"Only alphabetic (a-z) characters are allowed.".to_string(),
             ));
             return Ok(());
         }
 
-        let db_repo = world.resource::<DbInterface>();
-
         let user_exists = match db_repo.users.does_user_exist(username) {
             Ok(exists) => exists,
             Err(e) => {
-                world.send_event(TextEvent::send_generic_error(command.entity));
+                text_event_tx.send(TextEvent::send_generic_error(command.entity));
                 return Err(format!("Error while checking if user exists: {:?}", e));
             }
         };
 
-        let mut user_sesh = world.get_mut::<UserSessionData>(command.entity).unwrap();
-
+        let mut user_sesh = query.get_mut(command.entity).unwrap();
         user_sesh.username = username.to_string();
 
         if user_exists {
             user_sesh.status = UserStatus::NeedPassword;
-            world.send_event(TextEvent::from_str(
+            text_event_tx.send(TextEvent::from_str(
                 command.entity,
                 "User account found. Please provide your password.",
             ));
         } else {
             user_sesh.status = UserStatus::CreatePassword;
-            world.send_event(TextEvent::from_str(
+            text_event_tx.send(TextEvent::from_str(
                 command.entity,
                 "Welcome, new user! What should your password be?",
             ));
@@ -150,18 +157,20 @@ impl GameCommand for PasswordCreated {
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
-        let (entity, mut user_sesh) = world
-            .query::<(Entity, &UserSessionData)>()
-            .get_mut(world, command.entity)
-            .unwrap();
+        let mut system_state: SystemState<(
+            Query<&mut UserSessionData>,
+            EventWriter<TextEvent>,
+        )> = SystemState::new(world);
+        let (mut query, mut text_event_tx) = system_state.get_mut(world);
+        let mut user_sesh = query.get_mut(command.entity).unwrap();
 
         let password = command.full_command.clone();
 
         user_sesh.pwd = Some(password);
         user_sesh.status = UserStatus::ConfirmPassword;
 
-        world.send_event(TextEvent::from_str(
-            entity,
+        text_event_tx.send(TextEvent::from_str(
+            command.entity,
             "Excellent. Now, provide your password again for confirmation.",
         ));
         Ok(())
@@ -184,14 +193,16 @@ impl GameCommand for PasswordProvided {
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
-        let (entity, mut user_sesh) = world
-            .query::<(Entity, &UserSessionData)>()
-            .get_mut(world, command.entity)
-            .unwrap();
+        let mut system_state: SystemState<(
+            Res<DbInterface>,
+            Query<&mut UserSessionData>,
+            EventWriter<TextEvent>,
+            EventWriter<UserLoggedIn>,
+        )> = SystemState::new(world);
+        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx) = system_state.get_mut(world);
+        let mut user_sesh = query.get_mut(command.entity).unwrap();
 
         let provided_password = command.full_command.clone();
-
-        let db_repo = world.resource::<DbInterface>();
 
         let user_option = match db_repo
             .users
@@ -200,14 +211,14 @@ impl GameCommand for PasswordProvided {
             Ok(user) => user,
             Err(e) => {
                 error!("Error while logging in user: {:?}", e);
-                world.send_event(TextEvent::send_generic_error(entity));
+                text_event_tx.send(TextEvent::send_generic_error(command.entity));
                 return Ok(());
             }
         };
 
         if user_option.is_none() {
-            world.send_event(TextEvent::from_str(
-                entity,
+            text_event_tx.send(TextEvent::from_str(
+                command.entity,
                 "Looks like there's a problem with the password. Let's try again. What's your username?",
             ));
             user_sesh.username.clear();
@@ -215,13 +226,13 @@ impl GameCommand for PasswordProvided {
             return Ok(());
         }
 
-        world.send_event(TextEvent::from_str(entity, "Thank you! Welcome back!\n\n"));
+        text_event_tx.send(TextEvent::from_str(command.entity, "Thank you! Welcome back!\n\n"));
 
         let user = user_option.unwrap();
         user_sesh.status = UserStatus::LoggedIn;
 
-        world.send_event(UserLoggedIn {
-            entity,
+        user_logged_in_tx.send(UserLoggedIn {
+            entity: command.entity,
             id: user.id,
         });
         Ok(())
