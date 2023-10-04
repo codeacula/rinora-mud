@@ -102,7 +102,6 @@ impl GameCommand for SelectedCreateCharacter {
             return false;
         }
 
-        info!(command.full_command);
         command.full_command == "1"
     }
 
@@ -120,5 +119,40 @@ impl GameCommand for SelectedCreateCharacter {
         user_sesh.status = UserStatus::CreateCharacter;
 
         Ok(())
+    }
+}
+pub struct CharacterWasSelected {}
+
+impl GameCommand for CharacterWasSelected {
+    fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
+        let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
+            return false;
+        };
+
+        if user_session.status != UserStatus::LoggedIn {
+            return false;
+        }
+
+        let Some(user) = world.get::<User>(command.entity) else {
+            return false;
+        };
+
+        let db_repo = world.resource::<DbInterface>();
+
+        db_repo.characters.does_user_own_character(&command.keyword.clone(), user.id)
+    }
+
+    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
+        let mut system_state: SystemState<(
+            Res<DbInterface>,
+            Res<GameSettings>,
+            Query<(Entity, &User, &mut UserSessionData)>,
+            EventWriter<TextEvent>,
+        )> = SystemState::new(world);
+        let (db_repo, settings, mut query, mut text_event_tx) = system_state.get_mut(world);
+        let (entity, user, mut user_sesh) = query.get_mut(command.entity).unwrap();
+
+
+        todo!()
     }
 }

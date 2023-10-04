@@ -1,6 +1,6 @@
 use diesel::{
     prelude::*,
-    r2d2::{ConnectionManager, Pool, PooledConnection},
+    r2d2::{ConnectionManager, Pool, PooledConnection}
 };
 use shared::prelude::*;
 
@@ -105,6 +105,19 @@ impl CharacterRepo {
             .expect("Error while checking if a character exists");
 
         Ok(result.is_some())
+    }
+
+    pub fn does_user_own_character(&self, character_name: &str, provided_user_id: i32) -> bool {
+        use crate::schema::characters::dsl::*;
+
+        let result: i64 = characters
+            .filter(name.eq(clean_character_name(character_name)))
+            .filter(user_id.eq(provided_user_id))
+            .count()
+            .get_result::<i64>(&mut self.conn())
+            .expect("Unable to determine if a user owns a character");
+
+        result == 1
     }
 
     /// Returns a charater matching the provided character_name if it exists
