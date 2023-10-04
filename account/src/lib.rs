@@ -19,7 +19,8 @@ fn add_expected_commands(
     command_list.0.push(Box::new(PasswordCreated {}));
     command_list.0.push(Box::new(PasswordProvided {}));
     command_list.0.push(Box::new(UserConfirmedPassword {}));
-    command_list.0.push(Box::new(CreateCharacter {}));
+    command_list.0.push(Box::new(ProvideCharacterName {}));
+    command_list.0.push(Box::new(SelectedCreateCharacter {}));
 }
 
 pub fn get_login_screen(characters: &Vec<Character>) -> String {
@@ -108,7 +109,10 @@ pub fn handle_user_login(
             }
         };
 
-        text_events_tx.send(TextEvent::new(entity, &crate::get_login_screen(&characters)));
+        text_events_tx.send(TextEvent::new(
+            entity,
+            &crate::get_login_screen(&characters),
+        ));
         commands.entity(entity).insert(user);
     }
 }

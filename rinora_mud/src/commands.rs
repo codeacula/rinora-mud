@@ -18,7 +18,7 @@ fn parse_keyword(command: &str) -> String {
 /// Takes an InputReceivedEvent and converts it into a SentCommand
 fn create_sent_command(event: &InputReceivedEvent) -> UserCommand {
     let command_string = event.input.clone();
-    let cleaned_string = command_string.replace(|c: char| !c.is_ascii(), "");
+    let cleaned_string = command_string.trim().replace(|c: char| !c.is_ascii(), "");
 
     let parts: Vec<String> = cleaned_string
         .split_whitespace()
