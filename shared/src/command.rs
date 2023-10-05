@@ -41,5 +41,10 @@ impl<T: GameCommand + 'static> From<T> for GameCommandEvent {
     }
 }
 
+/// AccountCommands are only ran when the user isn't logged into a character
+#[derive(Resource)]
+pub struct AccountCommands(pub Vec<Box<dyn GameCommand>>);
+
+/// GameCommands are only ran when the user is logged into a character
 #[derive(Resource)]
 pub struct GameCommands(pub Vec<Box<dyn GameCommand>>);

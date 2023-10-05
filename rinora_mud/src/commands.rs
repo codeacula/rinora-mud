@@ -42,6 +42,26 @@ fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
         .collect::<Vec<InputReceivedEvent>>()
 }
 
+fn get_commans_to_run(world: &mut World) -> Vec<Box<dyn GameCommand>> {
+    let user_input_events = get_user_input_events(world);
+
+    world.resource_scope(|world, game_commands: Mut<GameCommands>| {
+        for user_input in user_input_events {
+            let sent_command = create_sent_command(&user_input);
+
+            for game_command in game_commands.0.iter() {
+                if game_command.can_execute(&sent_command, world) {
+                    if let Err(e) = game_command.run(&sent_command, world) {
+                        error!("There was an error attempting to run command: {}", e);
+                    }
+
+                    break;
+                }
+            }
+        }
+    });
+}
+
 pub fn process_incoming_commands(world: &mut World) {
     let user_input_events = get_user_input_events(world);
 
