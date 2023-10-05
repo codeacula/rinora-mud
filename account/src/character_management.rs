@@ -139,19 +139,20 @@ impl GameCommand for CharacterWasSelected {
 
         let db_repo = world.resource::<DbInterface>();
 
-        db_repo.characters.does_user_own_character(&command.keyword.clone(), user.id)
+        db_repo
+            .characters
+            .does_user_own_character(&command.keyword.clone(), user.id)
     }
 
-    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
-        let mut system_state: SystemState<(
+    fn run(&self, _command: &UserCommand, _world: &mut World) -> Result<(), String> {
+        /*let mut system_state: SystemState<(
             Res<DbInterface>,
             Res<GameSettings>,
             Query<(Entity, &User, &mut UserSessionData)>,
             EventWriter<TextEvent>,
         )> = SystemState::new(world);
         let (db_repo, settings, mut query, mut text_event_tx) = system_state.get_mut(world);
-        let (entity, user, mut user_sesh) = query.get_mut(command.entity).unwrap();
-
+        let (entity, user, mut user_sesh) = query.get_mut(command.entity).unwrap();*/
 
         todo!()
     }
