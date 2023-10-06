@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::system::SystemState, prelude::*};
 use shared::prelude::*;
 
 pub struct CommandsPlugin;
@@ -35,35 +35,50 @@ fn create_sent_command(event: &InputReceivedEvent) -> UserCommand {
 }
 
 /// Makes a copy of the InputReceivedEvents and returns them
-fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
+fn get_user_input_events(world: &mut World) -> Vec<UserCommand> {
     world
         .resource_mut::<Events<InputReceivedEvent>>()
         .drain()
-        .collect::<Vec<InputReceivedEvent>>()
-}
-
-fn get_commans_to_run(world: &mut World) -> Vec<Box<dyn GameCommand>> {
-    let user_input_events = get_user_input_events(world);
-
-    world.resource_scope(|world, game_commands: Mut<GameCommands>| {
-        for user_input in user_input_events {
-            let sent_command = create_sent_command(&user_input);
-
-            for game_command in game_commands.0.iter() {
-                if game_command.can_execute(&sent_command, world) {
-                    if let Err(e) = game_command.run(&sent_command, world) {
-                        error!("There was an error attempting to run command: {}", e);
-                    }
-
-                    break;
-                }
-            }
-        }
-    });
+        .map(|cmd| create_sent_command(&cmd))
+        .collect::<Vec<UserCommand>>()
 }
 
 pub fn process_incoming_commands(world: &mut World) {
     let user_input_events = get_user_input_events(world);
+    let mut system_state: SystemState<(
+        Res<AccountCommands>,
+        Res<GameCommands>,
+        Query<&UserSessionData>,
+    )> = SystemState::new(world);
+    let (account_commands, game_commands, query) = system_state.get(world);
+
+    for sent_command in user_input_events {
+        let user_sesh: &UserSessionData = query.get(sent_command.entity).unwrap();
+
+        if user_sesh.status == UserStatus::InGame {
+            for game_command in game_commands.0.iter() {
+                if game_command.can_execute(&sent_command, world) {
+                    if let Err(e) = game_command.run(&sent_command, world) {
+                        error!("There was an error attempting to run command: {}", e);
+                    }
+                    break;
+                }
+            }
+        } else {
+            for game_command in account_commands.0.iter() {
+                if game_command.can_execute(&sent_command, world) {
+                    if let Err(e) = game_command.run(&sent_command, world) {
+                        error!("There was an error attempting to run command: {}", e);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
+
+/*pub fn process_incoming_commands(world: &mut World) {
+    let user_input_events = get_user_input_events(world);
 
     world.resource_scope(|world, game_commands: Mut<GameCommands>| {
         for user_input in user_input_events {
@@ -80,7 +95,7 @@ pub fn process_incoming_commands(world: &mut World) {
             }
         }
     });
-}
+}*/
 
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
