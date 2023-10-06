@@ -42,44 +42,36 @@ fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
         .collect::<Vec<InputReceivedEvent>>()
 }
 
-fn get_commans_to_run(world: &mut World) -> Vec<Box<dyn GameCommand>> {
-    let user_input_events = get_user_input_events(world);
-
-    world.resource_scope(|world, game_commands: Mut<GameCommands>| {
-        for user_input in user_input_events {
-            let sent_command = create_sent_command(&user_input);
-
-            for game_command in game_commands.0.iter() {
-                if game_command.can_execute(&sent_command, world) {
-                    if let Err(e) = game_command.run(&sent_command, world) {
-                        error!("There was an error attempting to run command: {}", e);
-                    }
-
-                    break;
-                }
-            }
-        }
-    });
-}
-
 pub fn process_incoming_commands(world: &mut World) {
     let user_input_events = get_user_input_events(world);
 
-    world.resource_scope(|world, game_commands: Mut<GameCommands>| {
-        for user_input in user_input_events {
-            let sent_command = create_sent_command(&user_input);
+    let account_commands = world.remove_resource::<AccountCommands>().unwrap();
+    let game_commands = world.remove_resource::<GameCommands>().unwrap();
 
-            for game_command in game_commands.0.iter() {
-                if game_command.can_execute(&sent_command, world) {
-                    if let Err(e) = game_command.run(&sent_command, world) {
-                        error!("There was an error attempting to run command: {}", e);
-                    }
+    for user_input in user_input_events {
+        let sent_command = create_sent_command(&user_input);
 
-                    break;
+        // Unwrap is safe here because they can't get here without UserSessionData
+        let user_sesh = world.get::<UserSessionData>(sent_command.entity).unwrap();
+
+        let commands_to_check = match user_sesh.status {
+            UserStatus::InGame => game_commands.0.iter(),
+            _ => account_commands.0.iter()
+        };
+
+        for game_command in commands_to_check {
+            if game_command.can_execute(&sent_command, world) {
+                if let Err(e) = game_command.run(&sent_command, world) {
+                    error!("There was an error attempting to run command: {}", e);
                 }
+
+                break;
             }
         }
-    });
+    }
+
+    world.insert_resource(account_commands);
+    world.insert_resource(game_commands);
 }
 
 impl Plugin for CommandsPlugin {
