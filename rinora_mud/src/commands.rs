@@ -56,13 +56,14 @@ pub fn process_incoming_commands(world: &mut World) {
 
         let commands_to_check = match user_sesh.status {
             UserStatus::InGame => game_commands.0.iter(),
-            _ => account_commands.0.iter()
+            _ => account_commands.0.iter(),
         };
 
         for game_command in commands_to_check {
             if game_command.can_execute(&sent_command, world) {
                 if let Err(e) = game_command.run(&sent_command, world) {
                     error!("There was an error attempting to run command: {}", e);
+                    world.send_event(TextEvent::send_generic_error(sent_command.entity));
                 }
 
                 break;
@@ -76,8 +77,10 @@ pub fn process_incoming_commands(world: &mut World) {
 
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
+        let account_commands = AccountCommands(Vec::new());
         let command_list = GameCommands(Vec::new());
-        app.insert_resource(command_list)
+        app.insert_resource(account_commands)
+            .insert_resource(command_list)
             .add_systems(First, process_incoming_commands);
     }
 }
