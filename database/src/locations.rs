@@ -1,4 +1,4 @@
-use bevy::utils::HashMap;
+use bevy::prelude::*;
 use diesel::{
     prelude::*,
     r2d2::{ConnectionManager, Pool, PooledConnection},
@@ -20,6 +20,7 @@ impl DbPlane {
             description: self.description.clone(),
             id: self.id,
             name: self.name.clone(),
+            continents: Vec::new(),
         }
     }
 }
@@ -41,6 +42,7 @@ impl DbContinent {
             plane_id: self.plane_id,
             name: self.name.clone(),
             description: self.description.clone(),
+            areas: Vec::new(),
         }
     }
 }
@@ -62,6 +64,7 @@ impl DbArea {
             description: self.description.clone(),
             id: self.id,
             name: self.name.clone(),
+            rooms: Vec::new(),
         }
     }
 }
@@ -102,6 +105,7 @@ impl DbRoom {
             environment_id: self.environment_id,
             id: self.id,
             name: self.name.clone(),
+            exits: Vec::new(),
         }
     }
 }
@@ -125,6 +129,7 @@ impl DbExit {
             hidden: self.hidden,
             id: self.id,
             to_room_id: self.to_room_id,
+            to_room: Entity::PLACEHOLDER,
         }
     }
 }
@@ -143,25 +148,6 @@ impl LocationRepo {
     /// Convenience method to get a connection
     fn conn(&self) -> PooledConnection<ConnectionManager<diesel::PgConnection>> {
         self.pool.get().unwrap()
-    }
-
-    pub fn get_game_world(&self) -> GameWorld {
-        let rooms = self.get_all_rooms().unwrap();
-        let mut rooms_by_id: HashMap<i32, usize> = HashMap::with_capacity(rooms.len());
-
-        for (i, room) in rooms.iter().enumerate() {
-            rooms_by_id.insert(room.id, i);
-        }
-
-        GameWorld {
-            planes: self.get_all_planes().unwrap(),
-            continents: self.get_all_continents().unwrap(),
-            areas: self.get_all_areas().unwrap(),
-            environments: self.get_all_environments().unwrap(),
-            rooms,
-            rooms_by_id,
-            exits: self.get_all_exits().unwrap(),
-        }
     }
 
     pub fn get_all_areas(&self) -> Result<Vec<Area>, String> {

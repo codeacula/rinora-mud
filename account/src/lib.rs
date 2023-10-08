@@ -23,7 +23,7 @@ fn add_expected_commands(
     command_list.0.push(Box::new(SelectedCreateCharacter {}));
 }
 
-pub fn get_login_screen(characters: &Vec<Character>) -> String {
+pub fn get_login_screen(characters: &Vec<CharacterBundle>) -> String {
     let mut greeting = String::from("Your options:\n\n");
 
     greeting.push_str("  [{{15}}1{{7}}]: Create Character\n");
@@ -36,7 +36,7 @@ pub fn get_login_screen(characters: &Vec<Character>) -> String {
         greeting.push_str("Your characters are:\n");
 
         for character in characters {
-            greeting.push_str(&format!("  {}\n", character.shortname));
+            greeting.push_str(&format!("  {}\n", character.info.shortname));
         }
     }
 

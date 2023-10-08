@@ -12,7 +12,7 @@ fn parse_keyword(command: &str) -> String {
         return "emote".to_string();
     }
 
-    command.to_string()
+    command.trim().to_string()
 }
 
 /// Takes an InputReceivedEvent and converts it into a SentCommand
