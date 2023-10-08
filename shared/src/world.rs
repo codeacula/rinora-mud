@@ -26,7 +26,7 @@ pub struct Area {
     pub rooms: Vec<Entity>,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Environment {
     pub id: i32,
     pub name: String,

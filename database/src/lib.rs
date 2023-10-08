@@ -1,3 +1,4 @@
+use bevy::ecs::system::SystemState;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use diesel::{Connection, PgConnection};
@@ -23,145 +24,164 @@ fn get_env(key: &str, default: &str) -> String {
     env::var(key).unwrap_or(String::from(default))
 }
 
-fn add_planes_to_world(db_repo: Res<DbInterface>, mut commands: Commands) {
+fn add_planes_to_world(world: &mut World) {
+    let mut system_state: SystemState<Res<DbInterface>> = SystemState::new(world);
+    let db_repo: Res<DbInterface> = system_state.get_mut(world);
+
     let planes = db_repo
         .locations
         .get_all_planes()
         .expect("Unable to fetch planes");
 
-    commands.spawn_batch(planes.into_iter());
+    world.spawn_batch(planes.into_iter());
 }
 
-fn add_continents_to_world(
-    db_repo: Res<DbInterface>,
-    mut query: Query<&mut Plane>,
-    mut commands: Commands,
-) {
+fn add_continents_to_world(world: &mut World) {
+    let mut system_state: SystemState<Res<DbInterface>> = SystemState::new(world);
+    let db_repo = system_state.get_mut(world);
+
     let items_to_add = db_repo
         .locations
         .get_all_continents()
         .expect("Unable to fetch all continents");
 
-    let mut item_map: HashMap<i32, Vec<Entity>> = HashMap::new();
+    world.spawn_batch(items_to_add.into_iter());
+}
 
-    for item in items_to_add {
-        let id = item.id;
+fn add_continents_to_planes(world: &mut World) {
+    let mut system_state: SystemState<(Query<(Entity, &Continent)>, Query<&mut Plane>)> =
+        SystemState::new(world);
+    let (children, mut parents) = system_state.get_mut(world);
 
-        if !item_map.contains_key(&id) {
-            item_map.insert(id, Vec::new());
+    // Index all the rooms by id
+    let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
+
+    for (entity, child) in children.iter() {
+        if !child_map.contains_key(&child.plane_id) {
+            child_map.insert(child.plane_id, Vec::new());
         }
 
-        let entity = commands.spawn(item);
-        item_map.get_mut(&id).unwrap().push(entity.id());
+        child_map.get_mut(&child.plane_id).unwrap().push(entity);
     }
 
-    for mut parent in query.iter_mut() {
-        if item_map.contains_key(&parent.id) {
-            parent.continents = item_map.remove(&parent.id).unwrap();
-        }
+    for mut parent in parents.iter_mut() {
+        parent.continents = child_map.get(&parent.id).unwrap().clone();
     }
 }
 
-fn add_areas_to_world(
-    db_repo: Res<DbInterface>,
-    mut query: Query<&mut Continent>,
-    mut commands: Commands,
-) {
+fn add_areas_to_world(world: &mut World) {
+    let mut system_state: SystemState<Res<DbInterface>> = SystemState::new(world);
+    let db_repo = system_state.get_mut(world);
+
     let items_to_add = db_repo
         .locations
         .get_all_areas()
         .expect("Unable to fetch all areas");
 
-    let mut item_map: HashMap<i32, Vec<Entity>> = HashMap::new();
+    world.spawn_batch(items_to_add.into_iter());
+}
 
-    for item in items_to_add {
-        let id = item.id;
+fn add_areas_to_continents(world: &mut World) {
+    let mut system_state: SystemState<(Query<(Entity, &Area)>, Query<&mut Continent>)> =
+        SystemState::new(world);
+    let (children, mut parents) = system_state.get_mut(world);
 
-        if !item_map.contains_key(&id) {
-            item_map.insert(id, Vec::new());
+    // Index all the rooms by id
+    let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
+
+    for (entity, child) in children.iter() {
+        if !child_map.contains_key(&child.continent_id) {
+            child_map.insert(child.continent_id, Vec::new());
         }
 
-        let entity = commands.spawn(item);
-        item_map.get_mut(&id).unwrap().push(entity.id());
+        child_map.get_mut(&child.continent_id).unwrap().push(entity);
     }
 
-    for mut parent in query.iter_mut() {
-        if item_map.contains_key(&parent.id) {
-            parent.areas = item_map.remove(&parent.id).unwrap();
-        }
+    for mut parent in parents.iter_mut() {
+        parent.areas = child_map.get(&parent.id).unwrap().clone();
     }
 }
 
-fn add_environments_to_world(db_repo: Res<DbInterface>, mut commands: Commands) {
-    let planes = db_repo
-        .locations
-        .get_all_environments()
-        .expect("Unable to fetch environments");
-
-    commands.spawn_batch(planes.into_iter());
-}
-
-fn add_rooms_to_world(
-    db_repo: Res<DbInterface>,
-    mut query: Query<&mut Area>,
-    mut commands: Commands,
-) {
+fn add_rooms_to_world(world: &mut World) {
+    let mut system_state: SystemState<Res<DbInterface>> = SystemState::new(world);
+    let db_repo = system_state.get_mut(world);
     let items_to_add = db_repo
         .locations
         .get_all_rooms()
         .expect("Unable to fetch all rooms");
 
-    let mut item_map: HashMap<i32, Vec<Entity>> = HashMap::new();
+    world.spawn_batch(items_to_add.into_iter());
+}
 
-    for item in items_to_add {
-        let id = item.id;
+fn add_environments_to_rooms(world: &mut World) {
+    let mut system_state: SystemState<(Res<DbInterface>, Query<(Entity, &mut Room)>)> =
+        SystemState::new(world);
+    let (db_repo, query) = system_state.get_mut(world);
 
-        if !item_map.contains_key(&id) {
-            item_map.insert(id, Vec::new());
-        }
+    let environments = db_repo
+        .locations
+        .get_all_environments()
+        .expect("Failed to fetch all the environments when tagging rooms");
 
-        let entity = commands.spawn(item);
-        item_map.get_mut(&id).unwrap().push(entity.id());
+    let mut environment_map: HashMap<i32, Environment> = HashMap::new();
+
+    for env in environments {
+        environment_map.insert(env.id, env);
     }
 
-    for mut parent in query.iter_mut() {
-        if item_map.contains_key(&parent.id) {
-            parent.rooms = item_map.remove(&parent.id).unwrap();
+    let mut inserts: Vec<(Entity, Environment)> = Vec::new();
+
+    for (entity, room) in query.iter() {
+        if environment_map.contains_key(&room.environment_id) {
+            let env = environment_map.get(&room.environment_id).unwrap();
+            inserts.push((entity, env.clone()));
+        }
+    }
+
+    for (entity, env) in inserts {
+        world.entity_mut(entity).insert(env);
+    }
+}
+
+fn add_rooms_to_areas(world: &mut World) {
+    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<&mut Area>)> =
+        SystemState::new(world);
+    let (children, mut parents) = system_state.get_mut(world);
+
+    // Index all the rooms by id
+    let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
+
+    for (entity, child) in children.iter() {
+        if !child_map.contains_key(&child.area_id) {
+            child_map.insert(child.area_id, Vec::new());
+        }
+
+        child_map.get_mut(&child.area_id).unwrap().push(entity);
+    }
+
+    for mut parent in parents.iter_mut() {
+        if child_map.contains_key(&parent.id) {
+            parent.rooms = child_map.get(&parent.id).unwrap().clone();
         }
     }
 }
 
-fn add_exits_to_world(
-    db_repo: Res<DbInterface>,
-    mut query: Query<&mut Room>,
-    mut commands: Commands,
-) {
+fn add_exits_to_world(world: &mut World) {
+    let mut system_state: SystemState<Res<DbInterface>> = SystemState::new(world);
+    let db_repo = system_state.get_mut(world);
     let items_to_add = db_repo
         .locations
         .get_all_exits()
         .expect("Unable to fetch all rooms");
 
-    let mut item_map: HashMap<i32, Vec<Entity>> = HashMap::new();
-
-    for item in items_to_add {
-        let id = item.id;
-
-        if !item_map.contains_key(&id) {
-            item_map.insert(id, Vec::new());
-        }
-
-        let entity = commands.spawn(item);
-        item_map.get_mut(&id).unwrap().push(entity.id());
-    }
-
-    for mut parent in query.iter_mut() {
-        if item_map.contains_key(&parent.id) {
-            parent.exits = item_map.remove(&parent.id).unwrap();
-        }
-    }
+    world.spawn_batch(items_to_add.into_iter());
 }
 
-fn add_rooms_to_exits(rooms: Query<(Entity, &Room)>, mut exits: Query<&mut Exit>) {
+fn add_rooms_to_exits(world: &mut World) {
+    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<&mut Exit>)> =
+        SystemState::new(world);
+    let (rooms, mut exits) = system_state.get_mut(world);
+
     // Index all the rooms by id
     let mut room_map: HashMap<i32, Entity> = HashMap::new();
 
@@ -177,24 +197,6 @@ fn add_rooms_to_exits(rooms: Query<(Entity, &Room)>, mut exits: Query<&mut Exit>
     }
 }
 
-#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
-struct Planes;
-
-#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
-struct Continents;
-
-#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
-struct Areas;
-
-#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
-struct Environments;
-
-#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
-struct Rooms;
-
-#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
-struct Exits;
-
 impl Plugin for DatabasePlugin {
     fn build(&self, app: &mut App) {
         let host_string = get_env("DB_CONN_STRING", "postgresql://dev:dev@localhost/rinoramud");
@@ -209,20 +211,22 @@ impl Plugin for DatabasePlugin {
 
         let settings = repo.settings.get_settings().unwrap();
 
-        app.insert_resource(repo)
-            .insert_resource(settings)
-            .add_systems(
-                Startup,
-                (
-                    add_planes_to_world.in_set(Planes),
-                    add_continents_to_world.in_set(Continents).after(Planes),
-                    add_areas_to_world.in_set(Areas).after(Continents),
-                    add_environments_to_world.in_set(Environments).after(Areas),
-                    add_rooms_to_world.in_set(Rooms).after(Environments),
-                    add_exits_to_world.in_set(Exits).after(Rooms),
-                    add_rooms_to_exits.after(Exits),
-                ),
-            );
+        app.insert_resource(repo).insert_resource(settings);
+
+        add_planes_to_world(&mut app.world);
+
+        add_continents_to_world(&mut app.world);
+        add_continents_to_planes(&mut app.world);
+
+        add_areas_to_world(&mut app.world);
+        add_areas_to_continents(&mut app.world);
+
+        add_rooms_to_world(&mut app.world);
+        add_environments_to_rooms(&mut app.world);
+        add_rooms_to_areas(&mut app.world);
+
+        add_exits_to_world(&mut app.world);
+        add_rooms_to_exits(&mut app.world);
     }
 }
 
