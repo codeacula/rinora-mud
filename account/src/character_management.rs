@@ -147,29 +147,52 @@ impl GameCommand for CharacterWasSelected {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         let mut system_state: SystemState<(
             Res<DbInterface>,
-            Res<GameSettings>,
-            Query<(Entity, &User, &mut UserSessionData)>,
+            Res<RoomMap>,
+            Query<&mut UserSessionData>,
+            EventWriter<EntityEnteredWorld>,
+            EventWriter<EntityEnteredRoom>,
             EventWriter<TextEvent>,
+            Commands,
         )> = SystemState::new(world);
-        let (db_repo, settings, mut query, mut text_event_tx) = system_state.get_mut(world);
-        let (entity, user, mut user_sesh) = query.get_mut(command.entity).unwrap();
+        let (
+            db_repo,
+            room_map,
+            mut query,
+            mut ent_entered_world_tx,
+            mut ent_entered_room_tx,
+            mut text_event_tx,
+            mut commands,
+        ) = system_state.get_mut(world);
+        let mut user_sesh = query.get_mut(command.entity).unwrap();
 
-        let character_result = db_repo.characters.get_character_by_name(&command.keyword)?;
-
-        if character_result.is_none() {
+        // Make sure character exists
+        let Some(character) = db_repo.characters.get_character_by_name(&command.keyword)? else {
             warn!("Unable to locate character even after validating they exist & are owned.");
             text_event_tx.send(TextEvent::send_generic_error(command.entity));
             return Ok(());
-        }
+        };
 
-        let character = character_result.unwrap();
-        world.spawn(character);
+        // Make sure room is mapped
+        let Some(room_entity) = room_map.0.get(&character.location.0) else {
+            warn!("Unable to find character's room in the room map.");
+            text_event_tx.send(TextEvent::send_generic_error(command.entity));
+            return Ok(());
+        };
 
-        // Find what room they should be in
-        // Put them in that room
-        // Send room description to character
-        // Send "CharacterEntered" event or whatever
+        // They're set to be placed in game
+        user_sesh.status = UserStatus::InGame;
+        let entity = commands.spawn(character).id();
 
-        todo!()
+        ent_entered_world_tx.send(EntityEnteredWorld {
+            entity,
+            room: *room_entity,
+        });
+
+        ent_entered_room_tx.send(EntityEnteredRoom {
+            entity,
+            room: *room_entity,
+        });
+
+        Ok(())
     }
 }

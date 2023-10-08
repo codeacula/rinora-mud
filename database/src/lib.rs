@@ -33,7 +33,15 @@ fn add_planes_to_world(world: &mut World) {
         .get_all_planes()
         .expect("Unable to fetch planes");
 
-    world.spawn_batch(planes.into_iter());
+    let mut plane_map = PlaneMap(HashMap::new());
+
+    for item in planes.into_iter() {
+        let id = item.id;
+        let entity = world.spawn(item);
+        plane_map.0.insert(id, entity.id());
+    }
+
+    world.insert_resource(plane_map);
 }
 
 fn add_continents_to_world(world: &mut World) {
@@ -45,7 +53,15 @@ fn add_continents_to_world(world: &mut World) {
         .get_all_continents()
         .expect("Unable to fetch all continents");
 
-    world.spawn_batch(items_to_add.into_iter());
+    let mut item_map = ContinentMap(HashMap::new());
+
+    for item in items_to_add.into_iter() {
+        let id = item.id;
+        let entity = world.spawn(item);
+        item_map.0.insert(id, entity.id());
+    }
+
+    world.insert_resource(item_map);
 }
 
 fn add_continents_to_planes(world: &mut World) {
@@ -78,7 +94,15 @@ fn add_areas_to_world(world: &mut World) {
         .get_all_areas()
         .expect("Unable to fetch all areas");
 
-    world.spawn_batch(items_to_add.into_iter());
+    let mut item_map = AreaMap(HashMap::new());
+
+    for item in items_to_add.into_iter() {
+        let id = item.id;
+        let entity = world.spawn(item);
+        item_map.0.insert(id, entity.id());
+    }
+
+    world.insert_resource(item_map);
 }
 
 fn add_areas_to_continents(world: &mut World) {
@@ -110,7 +134,15 @@ fn add_rooms_to_world(world: &mut World) {
         .get_all_rooms()
         .expect("Unable to fetch all rooms");
 
-    world.spawn_batch(items_to_add.into_iter());
+    let mut item_map = RoomMap(HashMap::new());
+
+    for item in items_to_add.into_iter() {
+        let id = item.id;
+        let entity = world.spawn(item);
+        item_map.0.insert(id, entity.id());
+    }
+
+    world.insert_resource(item_map);
 }
 
 fn add_environments_to_rooms(world: &mut World) {
@@ -174,7 +206,7 @@ fn add_exits_to_world(world: &mut World) {
         .get_all_exits()
         .expect("Unable to fetch all rooms");
 
-    world.spawn_batch(items_to_add.into_iter());
+    world.spawn_batch(items_to_add);
 }
 
 fn add_rooms_to_exits(world: &mut World) {
@@ -190,10 +222,9 @@ fn add_rooms_to_exits(world: &mut World) {
     }
 
     for mut exit in exits.iter_mut() {
-        exit.to_room = room_map
+        exit.to_room = *room_map
             .get(&exit.to_room_id)
-            .expect("Exit points to room that doesn't exist.")
-            .clone();
+            .expect("Exit points to room that doesn't exist.");
     }
 }
 

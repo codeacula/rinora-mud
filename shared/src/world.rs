@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 
 #[derive(Component)]
 pub struct Plane {
@@ -57,12 +57,25 @@ pub struct Exit {
 pub struct Location(pub i32);
 
 #[derive(Event)]
-pub struct CharacterEnteredWorld {
-    pub character_entity: Entity,
+pub struct EntityEnteredRoom {
+    pub entity: Entity,
+    pub room: Entity,
 }
 
 #[derive(Event)]
-pub struct CharacterEnteredRoom {
-    pub character_entity: Entity,
-    pub room_id: i32,
+pub struct EntityEnteredWorld {
+    pub entity: Entity,
+    pub room: Entity,
 }
+
+#[derive(Resource)]
+pub struct PlaneMap(pub HashMap<i32, Entity>);
+
+#[derive(Resource)]
+pub struct ContinentMap(pub HashMap<i32, Entity>);
+
+#[derive(Resource)]
+pub struct AreaMap(pub HashMap<i32, Entity>);
+
+#[derive(Resource)]
+pub struct RoomMap(pub HashMap<i32, Entity>);
