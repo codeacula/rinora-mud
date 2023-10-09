@@ -32,7 +32,7 @@ pub struct Environment {
     pub name: String,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Room {
     pub id: i32,
     pub area_id: i32,
@@ -40,6 +40,7 @@ pub struct Room {
     pub description: String,
     pub environment_id: i32,
     pub exits: Vec<Entity>,
+    pub entities: Vec<Entity>,
 }
 
 #[derive(Component)]
@@ -56,13 +57,13 @@ pub struct Exit {
 #[derive(Component)]
 pub struct Location(pub i32);
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct EntityEnteredRoom {
     pub entity: Entity,
     pub room: Entity,
 }
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct EntityEnteredWorld {
     pub entity: Entity,
     pub room: Entity,

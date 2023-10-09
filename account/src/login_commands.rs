@@ -1,4 +1,4 @@
-use bevy::{prelude::*, ecs::system::SystemState};
+use bevy::{ecs::system::SystemState, prelude::*};
 use database::prelude::*;
 use shared::prelude::*;
 
@@ -23,9 +23,10 @@ impl GameCommand for UserConfirmedPassword {
             Query<&mut UserSessionData>,
             EventWriter<TextEvent>,
             EventWriter<UserLoggedIn>,
-            Commands
+            Commands,
         )> = SystemState::new(world);
-        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx, mut commands) = system_state.get_mut(world);
+        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx, mut commands) =
+            system_state.get_mut(world);
         let mut user_sesh = query.get_mut(command.entity).unwrap();
 
         if user_sesh.pwd.is_none() {
@@ -64,6 +65,7 @@ impl GameCommand for UserConfirmedPassword {
             id: new_user.id,
             username: user_sesh.username.clone(),
             administrator: new_user.administrator,
+            current_character: None,
         });
 
         text_event_tx.send(TextEvent::from_str(
@@ -102,7 +104,7 @@ impl GameCommand for UsernameProvided {
             EventWriter<TextEvent>,
         )> = SystemState::new(world);
         let (db_repo, mut query, mut text_event_tx) = system_state.get_mut(world);
-        
+
         let username = &command.keyword;
 
         if !is_alphabetic(username) {
@@ -157,10 +159,8 @@ impl GameCommand for PasswordCreated {
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
-        let mut system_state: SystemState<(
-            Query<&mut UserSessionData>,
-            EventWriter<TextEvent>,
-        )> = SystemState::new(world);
+        let mut system_state: SystemState<(Query<&mut UserSessionData>, EventWriter<TextEvent>)> =
+            SystemState::new(world);
         let (mut query, mut text_event_tx) = system_state.get_mut(world);
         let mut user_sesh = query.get_mut(command.entity).unwrap();
 
@@ -199,7 +199,8 @@ impl GameCommand for PasswordProvided {
             EventWriter<TextEvent>,
             EventWriter<UserLoggedIn>,
         )> = SystemState::new(world);
-        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx) = system_state.get_mut(world);
+        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx) =
+            system_state.get_mut(world);
         let mut user_sesh = query.get_mut(command.entity).unwrap();
 
         let provided_password = command.full_command.clone();
@@ -226,7 +227,10 @@ impl GameCommand for PasswordProvided {
             return Ok(());
         }
 
-        text_event_tx.send(TextEvent::from_str(command.entity, "Thank you! Welcome back!\n\n"));
+        text_event_tx.send(TextEvent::from_str(
+            command.entity,
+            "Thank you! Welcome back!\n\n",
+        ));
 
         let user = user_option.unwrap();
         user_sesh.status = UserStatus::LoggedIn;

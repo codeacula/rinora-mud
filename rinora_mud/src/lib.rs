@@ -5,10 +5,12 @@ use bevy::{
 };
 use commands::CommandsPlugin;
 use database::DatabasePlugin;
+use display::*;
 use server::NetworkServerPlugin;
 use shared::SharedPlugin;
 
 mod commands;
+mod display;
 
 pub fn start_game() {
     let mut app = App::new();
@@ -25,5 +27,6 @@ pub fn start_game() {
         AccountPlugin,
         NetworkServerPlugin,
     ))
+    .add_systems(Update, display_room_to_user)
     .run()
 }

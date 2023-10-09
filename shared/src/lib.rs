@@ -22,6 +22,10 @@ impl Plugin for SharedPlugin {
         // Commands
         app.insert_resource(PossibleCommands(Vec::new()));
 
+        // Entities
+        app.add_event::<EntityEnteredRoom>()
+            .add_event::<EntityEnteredWorld>();
+
         // Events
         app.add_event::<TextEvent>();
     }

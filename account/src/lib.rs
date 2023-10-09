@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use character_management::*;
 use database::prelude::*;
 use login_commands::*;
@@ -21,6 +21,7 @@ fn add_expected_commands(
     command_list.0.push(Box::new(UserConfirmedPassword {}));
     command_list.0.push(Box::new(ProvideCharacterName {}));
     command_list.0.push(Box::new(SelectedCreateCharacter {}));
+    command_list.0.push(Box::new(CharacterWasSelected {}));
 }
 
 pub fn get_login_screen(characters: &Vec<CharacterBundle>) -> String {
@@ -119,9 +120,12 @@ pub fn handle_user_login(
 
 impl Plugin for AccountPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, add_expected_commands).add_systems(
-            Update,
-            (handle_user_login, handle_disconnect, handle_new_connections),
-        );
+        let character_map = CharacterMap(HashMap::new());
+        app.add_systems(Startup, add_expected_commands)
+            .insert_resource(character_map)
+            .add_systems(
+                Update,
+                (handle_user_login, handle_disconnect, handle_new_connections),
+            );
     }
 }

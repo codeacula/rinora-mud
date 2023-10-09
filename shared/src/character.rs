@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 
 #[derive(Component)]
 pub struct Character {
@@ -16,6 +16,9 @@ pub struct CharacterBundle {
     pub mana: Mana,
 }
 
+#[derive(Component)]
+pub struct IsControlledBy(Entity);
+
 impl Default for CharacterBundle {
     fn default() -> Self {
         CharacterBundle {
@@ -30,3 +33,6 @@ impl Default for CharacterBundle {
         }
     }
 }
+
+#[derive(Resource)]
+pub struct CharacterMap(pub HashMap<i32, Entity>);

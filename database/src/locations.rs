@@ -106,6 +106,7 @@ impl DbRoom {
             id: self.id,
             name: self.name.clone(),
             exits: Vec::new(),
+            entities: Vec::new(),
         }
     }
 }

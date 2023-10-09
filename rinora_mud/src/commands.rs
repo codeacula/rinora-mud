@@ -59,8 +59,11 @@ pub fn process_incoming_commands(world: &mut World) {
             _ => account_commands.0.iter(),
         };
 
+        let mut did_send_command = false;
+
         for game_command in commands_to_check {
             if game_command.can_execute(&sent_command, world) {
+                did_send_command = true;
                 if let Err(e) = game_command.run(&sent_command, world) {
                     error!("There was an error attempting to run command: {}", e);
                     world.send_event(TextEvent::send_generic_error(sent_command.entity));
@@ -68,6 +71,10 @@ pub fn process_incoming_commands(world: &mut World) {
 
                 break;
             }
+        }
+
+        if !did_send_command {
+            world.send_event(TextEvent::send_command_not_found(sent_command.entity));
         }
     }
 

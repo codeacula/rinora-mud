@@ -27,10 +27,12 @@ pub struct User {
     pub administrator: bool,
     pub autologin: Option<i32>,
     pub username: String,
+    pub current_character: Option<Entity>,
 }
 
 #[derive(Component)]
 pub struct UserSessionData {
+    pub controlling_entity: Option<Entity>,
     pub char_to_delete: Option<String>,
     pub connection: Uuid,
     pub pwd: Option<String>,

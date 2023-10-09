@@ -126,29 +126,40 @@ pub struct CharacterWasSelected {}
 impl GameCommand for CharacterWasSelected {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
+            info!("No session data found.");
             return false;
         };
 
         if user_session.status != UserStatus::LoggedIn {
+            info!("User isn't logged in.");
             return false;
         }
 
         let Some(user) = world.get::<User>(command.entity) else {
+            info!("Couldn't find user entity");
             return false;
         };
 
         let db_repo = world.resource::<DbInterface>();
 
-        db_repo
+        let does_own = db_repo
             .characters
-            .does_user_own_character(&command.keyword.clone(), user.id)
+            .does_user_own_character(&command.keyword.clone(), user.id);
+
+        if !does_own {
+            info!("User doesn't own that character.");
+        }
+
+        does_own
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         let mut system_state: SystemState<(
             Res<DbInterface>,
             Res<RoomMap>,
+            ResMut<CharacterMap>,
             Query<&mut UserSessionData>,
+            Query<&mut Room>,
             EventWriter<EntityEnteredWorld>,
             EventWriter<EntityEnteredRoom>,
             EventWriter<TextEvent>,
@@ -157,7 +168,9 @@ impl GameCommand for CharacterWasSelected {
         let (
             db_repo,
             room_map,
+            mut character_map,
             mut query,
+            mut room_query,
             mut ent_entered_world_tx,
             mut ent_entered_room_tx,
             mut text_event_tx,
@@ -180,8 +193,15 @@ impl GameCommand for CharacterWasSelected {
         };
 
         // They're set to be placed in game
+        let character_id = character.info.id;
         user_sesh.status = UserStatus::InGame;
         let entity = commands.spawn(character).id();
+
+        character_map.0.insert(character_id, entity);
+
+        if let Ok(mut room) = room_query.get_mut(entity) {
+            room.entities.push(entity);
+        }
 
         ent_entered_world_tx.send(EntityEnteredWorld {
             entity,

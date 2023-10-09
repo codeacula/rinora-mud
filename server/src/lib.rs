@@ -337,6 +337,7 @@ fn transfer_from_server_to_game(
                         status: UserStatus::NeedUsername,
                         username: String::new(),
                         char_to_delete: None,
+                        controlling_entity: None,
                     },))
                     .id();
                 network_info
