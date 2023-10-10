@@ -86,6 +86,7 @@ impl GameCommand for ProvideCharacterName {
             entity,
             &crate::get_login_screen(&characters),
         ));
+
         Ok(())
     }
 }
@@ -209,8 +210,10 @@ impl GameCommand for CharacterWasSelected {
             .entity(character_entity)
             .insert(IsControlledBy(command.entity));
 
-        
-        debug!("Tagged character entity {:?} as controlled by entity {:?}", character_entity, command.entity);
+        debug!(
+            "Tagged character entity {:?} as controlled by entity {:?}",
+            character_entity, command.entity
+        );
 
         ent_entered_world_tx.send(EntityEnteredWorld {
             entity: character_entity,
