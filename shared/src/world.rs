@@ -68,15 +68,3 @@ pub struct EntityEnteredWorld {
     pub entity: Entity,
     pub room: Entity,
 }
-
-#[derive(Resource)]
-pub struct PlaneMap(pub HashMap<i32, Entity>);
-
-#[derive(Resource)]
-pub struct ContinentMap(pub HashMap<i32, Entity>);
-
-#[derive(Resource)]
-pub struct AreaMap(pub HashMap<i32, Entity>);
-
-#[derive(Resource)]
-pub struct RoomMap(pub HashMap<i32, Entity>);

@@ -4,7 +4,7 @@ use bevy::utils::HashMap;
 use diesel::{Connection, PgConnection};
 use diesel_migrations::MigrationHarness;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations};
-use shared::world::*;
+use shared::prelude::*;
 use std::env;
 
 use crate::db_interface::DbInterface;

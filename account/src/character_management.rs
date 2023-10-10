@@ -203,6 +203,11 @@ impl GameCommand for CharacterWasSelected {
             room.entities.push(entity);
         }
 
+        // Tag this character as being controlled by the player
+        commands
+            .entity(entity)
+            .insert(IsControlledBy(command.entity));
+
         ent_entered_world_tx.send(EntityEnteredWorld {
             entity,
             room: *room_entity,

@@ -31,6 +31,7 @@ pub struct NewDbCharacter {
 impl DbCharacter {
     pub fn to_game_character(&self) -> CharacterBundle {
         CharacterBundle {
+            being: Being {},
             health: Health {
                 current: self.current_hp,
                 max: 0,
