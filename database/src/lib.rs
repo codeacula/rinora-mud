@@ -36,7 +36,7 @@ fn add_planes_to_world(world: &mut World) {
     let mut plane_map = PlaneMap(HashMap::new());
 
     for item in planes.into_iter() {
-        let id = item.id;
+        let id = item.plane_id;
         let entity = world.spawn(item);
         plane_map.0.insert(id, entity.id());
     }
@@ -56,7 +56,7 @@ fn add_continents_to_world(world: &mut World) {
     let mut item_map = ContinentMap(HashMap::new());
 
     for item in items_to_add.into_iter() {
-        let id = item.id;
+        let id = item.continent_id;
         let entity = world.spawn(item);
         item_map.0.insert(id, entity.id());
     }
@@ -81,7 +81,7 @@ fn add_continents_to_planes(world: &mut World) {
     }
 
     for mut parent in parents.iter_mut() {
-        parent.continents = child_map.get(&parent.id).unwrap().clone();
+        parent.continents = child_map.get(&parent.plane_id).unwrap().clone();
     }
 }
 
@@ -97,7 +97,7 @@ fn add_areas_to_world(world: &mut World) {
     let mut item_map = AreaMap(HashMap::new());
 
     for item in items_to_add.into_iter() {
-        let id = item.id;
+        let id = item.area_id;
         let entity = world.spawn(item);
         item_map.0.insert(id, entity.id());
     }
@@ -122,7 +122,7 @@ fn add_areas_to_continents(world: &mut World) {
     }
 
     for mut parent in parents.iter_mut() {
-        parent.areas = child_map.get(&parent.id).unwrap().clone();
+        parent.areas = child_map.get(&parent.continent_id).unwrap().clone();
     }
 }
 
@@ -137,7 +137,7 @@ fn add_rooms_to_world(world: &mut World) {
     let mut item_map = RoomMap(HashMap::new());
 
     for item in items_to_add.into_iter() {
-        let id = item.id;
+        let id = item.room_id;
         let entity = world.spawn(item);
         item_map.0.insert(id, entity.id());
     }
@@ -158,7 +158,7 @@ fn add_environments_to_rooms(world: &mut World) {
     let mut environment_map: HashMap<i32, Environment> = HashMap::new();
 
     for env in environments {
-        environment_map.insert(env.id, env);
+        environment_map.insert(env.environment_id, env);
     }
 
     let mut inserts: Vec<(Entity, Environment)> = Vec::new();
@@ -192,8 +192,8 @@ fn add_rooms_to_areas(world: &mut World) {
     }
 
     for mut parent in parents.iter_mut() {
-        if child_map.contains_key(&parent.id) {
-            parent.rooms = child_map.get(&parent.id).unwrap().clone();
+        if child_map.contains_key(&parent.area_id) {
+            parent.rooms = child_map.get(&parent.area_id).unwrap().clone();
         }
     }
 }
@@ -218,7 +218,7 @@ fn add_rooms_to_exits(world: &mut World) {
     let mut room_map: HashMap<i32, Entity> = HashMap::new();
 
     for (entity, room) in rooms.iter() {
-        room_map.insert(room.id, entity);
+        room_map.insert(room.room_id, entity);
     }
 
     for mut exit in exits.iter_mut() {
@@ -267,4 +267,6 @@ pub mod prelude {
     pub use crate::locations::*;
     pub use crate::settings::*;
     pub use crate::users::*;
+
+    pub use crate::DatabasePlugin;
 }

@@ -347,6 +347,7 @@ fn transfer_from_server_to_game(
                     entity,
                     id: new_event.id,
                 });
+                debug!("Spawned user session: {:?}", entity);
             }
             NetworkEventType::InputReceived => {
                 let entity = *network_info
@@ -395,8 +396,8 @@ impl Plugin for NetworkServerPlugin {
         .add_event::<InputReceivedEvent>()
         .add_event::<DisconnectionEvent>()
         .add_event::<GmcpReceivedEvent>()
-        .add_systems(Startup, start_listening)
-        .add_systems(First, transfer_from_server_to_game)
-        .add_systems(Last, (process_text_events_for_users, process_outgoing_data));
+        .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
+        .add_systems(First, transfer_from_server_to_game.in_set(GameOrderSet::Network))
+        .add_systems(Last, (process_text_events_for_users, process_outgoing_data).in_set(GameOrderSet::Network));
     }
 }

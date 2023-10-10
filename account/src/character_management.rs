@@ -191,32 +191,38 @@ impl GameCommand for CharacterWasSelected {
             text_event_tx.send(TextEvent::send_generic_error(command.entity));
             return Ok(());
         };
+        info!("User: {:?}", command.entity);
 
         // They're set to be placed in game
         let character_id = character.info.id;
         user_sesh.status = UserStatus::InGame;
-        let entity = commands.spawn(character).id();
+        let character_entity = commands.spawn(character).id();
 
-        character_map.0.insert(character_id, entity);
+        character_map.0.insert(character_id, character_entity);
 
-        if let Ok(mut room) = room_query.get_mut(entity) {
-            room.entities.push(entity);
+        if let Ok(mut room) = room_query.get_mut(character_entity) {
+            room.entities.push(character_entity);
         }
 
         // Tag this character as being controlled by the player
         commands
-            .entity(entity)
+            .entity(character_entity)
             .insert(IsControlledBy(command.entity));
 
+        
+        debug!("Tagged character entity {:?} as controlled by entity {:?}", character_entity, command.entity);
+
         ent_entered_world_tx.send(EntityEnteredWorld {
-            entity,
+            entity: character_entity,
             room: *room_entity,
         });
 
         ent_entered_room_tx.send(EntityEnteredRoom {
-            entity,
+            entity: character_entity,
             room: *room_entity,
         });
+
+        system_state.apply(world);
 
         Ok(())
     }

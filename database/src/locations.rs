@@ -18,7 +18,7 @@ impl DbPlane {
     pub fn to_plane(&self) -> Plane {
         Plane {
             description: self.description.clone(),
-            id: self.id,
+            plane_id: self.id,
             name: self.name.clone(),
             continents: Vec::new(),
         }
@@ -38,7 +38,7 @@ pub struct DbContinent {
 impl DbContinent {
     pub fn to_continent(&self) -> Continent {
         Continent {
-            id: self.id,
+            continent_id: self.id,
             plane_id: self.plane_id,
             name: self.name.clone(),
             description: self.description.clone(),
@@ -62,7 +62,7 @@ impl DbArea {
         Area {
             continent_id: self.continent_id,
             description: self.description.clone(),
-            id: self.id,
+            area_id: self.id,
             name: self.name.clone(),
             rooms: Vec::new(),
         }
@@ -80,7 +80,7 @@ pub struct DbEnvironment {
 impl DbEnvironment {
     pub fn to_environment(&self) -> Environment {
         Environment {
-            id: self.id,
+            environment_id: self.id,
             name: self.name.clone(),
         }
     }
@@ -103,7 +103,7 @@ impl DbRoom {
             area_id: self.area_id,
             description: self.description.clone(),
             environment_id: self.environment_id,
-            id: self.id,
+            room_id: self.id,
             name: self.name.clone(),
             exits: Vec::new(),
             entities: Vec::new(),
@@ -128,7 +128,7 @@ impl DbExit {
             direction: self.direction.clone(),
             from_room_id: self.from_room_id,
             hidden: self.hidden,
-            id: self.id,
+            exit_id: self.id,
             to_room_id: self.to_room_id,
             to_room: Entity::PLACEHOLDER,
         }

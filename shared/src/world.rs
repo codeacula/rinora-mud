@@ -1,8 +1,8 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Plane {
-    pub id: i32,
+    pub plane_id: i32,
     pub name: String,
     pub description: String,
     pub continents: Vec<Entity>,
@@ -10,7 +10,7 @@ pub struct Plane {
 
 #[derive(Component)]
 pub struct Continent {
-    pub id: i32,
+    pub continent_id: i32,
     pub plane_id: i32,
     pub name: String,
     pub description: String,
@@ -19,7 +19,7 @@ pub struct Continent {
 
 #[derive(Component)]
 pub struct Area {
-    pub id: i32,
+    pub area_id: i32,
     pub continent_id: i32,
     pub name: String,
     pub description: String,
@@ -28,13 +28,13 @@ pub struct Area {
 
 #[derive(Component, Clone)]
 pub struct Environment {
-    pub id: i32,
+    pub environment_id: i32,
     pub name: String,
 }
 
 #[derive(Component, Debug)]
 pub struct Room {
-    pub id: i32,
+    pub room_id: i32,
     pub area_id: i32,
     pub name: String,
     pub description: String,
@@ -45,7 +45,7 @@ pub struct Room {
 
 #[derive(Component)]
 pub struct Exit {
-    pub id: i32,
+    pub exit_id: i32,
     pub from_room_id: i32,
     pub to_room_id: i32,
     pub direction: String,

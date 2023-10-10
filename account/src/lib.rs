@@ -118,14 +118,16 @@ pub fn handle_user_login(
     }
 }
 
+
 impl Plugin for AccountPlugin {
     fn build(&self, app: &mut App) {
         let character_map = CharacterMap(HashMap::new());
-        app.add_systems(Startup, add_expected_commands)
+        
+        app.add_systems(Startup, add_expected_commands.in_set(GameOrderSet::Command))
             .insert_resource(character_map)
-            .add_systems(
-                Update,
-                (handle_user_login, handle_disconnect, handle_new_connections),
+            .add_systems(Update,
+                (handle_user_login, handle_disconnect, handle_new_connections)
+                .in_set(GameOrderSet::Command)
             );
     }
 }
