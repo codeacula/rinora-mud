@@ -397,7 +397,13 @@ impl Plugin for NetworkServerPlugin {
         .add_event::<DisconnectionEvent>()
         .add_event::<GmcpReceivedEvent>()
         .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
-        .add_systems(First, transfer_from_server_to_game.in_set(GameOrderSet::Network))
-        .add_systems(Last, (process_text_events_for_users, process_outgoing_data).in_set(GameOrderSet::Network));
+        .add_systems(
+            First,
+            transfer_from_server_to_game.in_set(GameOrderSet::Network),
+        )
+        .add_systems(
+            Last,
+            (process_text_events_for_users, process_outgoing_data).in_set(GameOrderSet::Network),
+        );
     }
 }

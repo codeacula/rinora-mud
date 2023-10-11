@@ -17,11 +17,11 @@ pub struct SharedPlugin;
 
 #[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
 pub enum GameOrderSet {
-  Network,
-  Command,
-  Account,
-  Game,
-  Cleanup,
+    Network,
+    Command,
+    Account,
+    Game,
+    Cleanup,
 }
 
 impl Plugin for SharedPlugin {
@@ -32,8 +32,14 @@ impl Plugin for SharedPlugin {
         app.configure_set(First, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(First, GameOrderSet::Game.before(GameOrderSet::Cleanup));
 
-        app.configure_set(PreUpdate, GameOrderSet::Network.before(GameOrderSet::Command));
-        app.configure_set(PreUpdate, GameOrderSet::Command.before(GameOrderSet::Account));
+        app.configure_set(
+            PreUpdate,
+            GameOrderSet::Network.before(GameOrderSet::Command),
+        );
+        app.configure_set(
+            PreUpdate,
+            GameOrderSet::Command.before(GameOrderSet::Account),
+        );
         app.configure_set(PreUpdate, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(PreUpdate, GameOrderSet::Game.before(GameOrderSet::Cleanup));
 

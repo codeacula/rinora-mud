@@ -7,7 +7,7 @@ pub fn is_alphabetic(inc_str: &str) -> bool {
 }
 
 pub fn to_title_case(inc_str: &str) -> String {
-    let mut copy = inc_str.clone().to_string().to_lowercase();
+    let mut copy = inc_str.to_string().to_lowercase();
     if let Some(r) = copy.get_mut(0..1) {
         r.make_ascii_uppercase();
     }

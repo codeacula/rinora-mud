@@ -36,7 +36,7 @@ pub fn display_room_to_user(
             debug!("Couldn't locate a IsControlledByEntity");
             break;
         };
-        
+
         let room_going_into = room_query
             .get(event.room)
             .expect("Unable to find room entity");
