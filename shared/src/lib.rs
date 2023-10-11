@@ -17,35 +17,52 @@ pub struct SharedPlugin;
 
 #[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
 pub enum GameOrderSet {
-  Network,
-  Command,
-  Account,
-  Game,
-  Cleanup,
+    Network,
+    Command,
+    Account,
+    Game,
+    Cleanup,
+    Debug,
+    Output,
 }
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         // Configure system sets
+
         app.configure_set(First, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(First, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(First, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(First, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(First, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(First, GameOrderSet::Debug.before(GameOrderSet::Output));
 
-        app.configure_set(PreUpdate, GameOrderSet::Network.before(GameOrderSet::Command));
-        app.configure_set(PreUpdate, GameOrderSet::Command.before(GameOrderSet::Account));
+        app.configure_set(
+            PreUpdate,
+            GameOrderSet::Network.before(GameOrderSet::Command),
+        );
+        app.configure_set(
+            PreUpdate,
+            GameOrderSet::Command.before(GameOrderSet::Account),
+        );
         app.configure_set(PreUpdate, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(PreUpdate, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(PreUpdate, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(PreUpdate, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         app.configure_set(Update, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Update, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(Update, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(Update, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(Update, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(Update, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         app.configure_set(Last, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Last, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(Last, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(Last, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(Last, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(Last, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         // Account
         app.add_event::<UserLoggedIn>();

@@ -228,6 +228,25 @@ fn add_rooms_to_exits(world: &mut World) {
     }
 }
 
+fn add_exits_to_rooms(world: &mut World) {
+    let mut system_state: SystemState<(Query<&mut Room>, Query<(Entity, &Exit)>, Res<RoomMap>)> =
+        SystemState::new(world);
+    let (mut rooms, exits, room_map) = system_state.get_mut(world);
+
+    for (exit_entity, exit) in exits.iter() {
+        if !room_map.0.contains_key(&exit.from_room_id) {
+            continue;
+        }
+
+        let room_entity = room_map.0.get(&exit.from_room_id).unwrap();
+
+        if rooms.contains(*room_entity) {
+            let mut room = rooms.get_mut(*room_entity).unwrap();
+            room.exits.push(exit_entity.clone());
+        }
+    }
+}
+
 impl Plugin for DatabasePlugin {
     fn build(&self, app: &mut App) {
         let host_string = get_env("DB_CONN_STRING", "postgresql://dev:dev@localhost/rinoramud");
@@ -258,6 +277,7 @@ impl Plugin for DatabasePlugin {
 
         add_exits_to_world(&mut app.world);
         add_rooms_to_exits(&mut app.world);
+        add_exits_to_rooms(&mut app.world);
     }
 }
 

@@ -198,8 +198,9 @@ impl GameCommand for PasswordProvided {
             Query<&mut UserSessionData>,
             EventWriter<TextEvent>,
             EventWriter<UserLoggedIn>,
+            Commands,
         )> = SystemState::new(world);
-        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx) =
+        let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx, mut commands) =
             system_state.get_mut(world);
         let mut user_sesh = query.get_mut(command.entity).unwrap();
 
@@ -235,10 +236,16 @@ impl GameCommand for PasswordProvided {
         let user = user_option.unwrap();
         user_sesh.status = UserStatus::LoggedIn;
 
+        if user.administrator {
+            commands.entity(command.entity).insert(IsAdmin);
+        }
+
         user_logged_in_tx.send(UserLoggedIn {
             entity: command.entity,
             id: user.id,
         });
+
+        system_state.apply(world);
         Ok(())
     }
 }

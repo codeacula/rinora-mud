@@ -6,6 +6,7 @@ use bevy::{
 use commands::CommandsPlugin;
 use database::prelude::*;
 use display::*;
+use helper::HelperPlugin;
 use server::NetworkServerPlugin;
 use shared::prelude::*;
 
@@ -26,7 +27,8 @@ pub fn start_game() {
         DatabasePlugin,
         AccountPlugin,
         NetworkServerPlugin,
+        HelperPlugin,
     ))
-    .add_systems(Update, (display_room_to_user).in_set(GameOrderSet::Game))
+    .add_systems(Update, (display_room_to_user).in_set(GameOrderSet::Output))
     .run()
 }
