@@ -88,6 +88,9 @@ impl Plugin for CommandsPlugin {
         let command_list = GameCommands(Vec::new());
         app.insert_resource(account_commands)
             .insert_resource(command_list)
-            .add_systems(PreUpdate, process_incoming_commands.in_set(GameOrderSet::Command));
+            .add_systems(
+                PreUpdate,
+                process_incoming_commands.in_set(GameOrderSet::Command),
+            );
     }
 }
