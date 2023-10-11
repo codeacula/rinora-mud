@@ -242,7 +242,7 @@ fn add_exits_to_rooms(world: &mut World) {
 
         if rooms.contains(*room_entity) {
             let mut room = rooms.get_mut(*room_entity).unwrap();
-            room.exits.push(exit_entity.clone());
+            room.exits.push(exit_entity);
         }
     }
 }
