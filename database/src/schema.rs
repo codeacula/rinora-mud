@@ -16,6 +16,8 @@ diesel::table! {
         name -> Varchar,
         description -> Varchar,
         current_room_id -> Int4,
+        current_hp -> Int4,
+        current_mp -> Int4,
     }
 }
 

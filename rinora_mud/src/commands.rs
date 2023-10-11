@@ -12,7 +12,7 @@ fn parse_keyword(command: &str) -> String {
         return "emote".to_string();
     }
 
-    command.to_string()
+    command.trim().to_string()
 }
 
 /// Takes an InputReceivedEvent and converts it into a SentCommand
@@ -45,27 +45,52 @@ fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
 pub fn process_incoming_commands(world: &mut World) {
     let user_input_events = get_user_input_events(world);
 
-    world.resource_scope(|world, game_commands: Mut<GameCommands>| {
-        for user_input in user_input_events {
-            let sent_command = create_sent_command(&user_input);
+    let account_commands = world.remove_resource::<AccountCommands>().unwrap();
+    let game_commands = world.remove_resource::<GameCommands>().unwrap();
 
-            for game_command in game_commands.0.iter() {
-                if game_command.can_execute(&sent_command, world) {
-                    if let Err(e) = game_command.run(&sent_command, world) {
-                        error!("There was an error attempting to run command: {}", e);
-                    }
+    for user_input in user_input_events {
+        let sent_command = create_sent_command(&user_input);
 
-                    break;
+        // Unwrap is safe here because they can't get here without UserSessionData
+        let user_sesh = world.get::<UserSessionData>(sent_command.entity).unwrap();
+
+        let commands_to_check = match user_sesh.status {
+            UserStatus::InGame => game_commands.0.iter(),
+            _ => account_commands.0.iter(),
+        };
+
+        let mut did_send_command = false;
+
+        for game_command in commands_to_check {
+            if game_command.can_execute(&sent_command, world) {
+                did_send_command = true;
+                if let Err(e) = game_command.run(&sent_command, world) {
+                    error!("There was an error attempting to run command: {}", e);
+                    world.send_event(TextEvent::send_generic_error(sent_command.entity));
                 }
+
+                break;
             }
         }
-    });
+
+        if !did_send_command {
+            world.send_event(TextEvent::send_command_not_found(sent_command.entity));
+        }
+    }
+
+    world.insert_resource(account_commands);
+    world.insert_resource(game_commands);
 }
 
 impl Plugin for CommandsPlugin {
     fn build(&self, app: &mut App) {
+        let account_commands = AccountCommands(Vec::new());
         let command_list = GameCommands(Vec::new());
-        app.insert_resource(command_list)
-            .add_systems(First, process_incoming_commands);
+        app.insert_resource(account_commands)
+            .insert_resource(command_list)
+            .add_systems(
+                PreUpdate,
+                process_incoming_commands.in_set(GameOrderSet::Command),
+            );
     }
 }

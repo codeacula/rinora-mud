@@ -4,11 +4,13 @@ use bevy::{
     prelude::*,
 };
 use commands::CommandsPlugin;
-use database::DatabasePlugin;
+use database::prelude::*;
+use display::*;
 use server::NetworkServerPlugin;
-use shared::SharedPlugin;
+use shared::prelude::*;
 
 mod commands;
+mod display;
 
 pub fn start_game() {
     let mut app = App::new();
@@ -25,5 +27,6 @@ pub fn start_game() {
         AccountPlugin,
         NetworkServerPlugin,
     ))
+    .add_systems(Update, (display_room_to_user).in_set(GameOrderSet::Game))
     .run()
 }

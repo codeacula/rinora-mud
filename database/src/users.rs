@@ -32,6 +32,7 @@ impl DbUser {
             autologin: self.autologin,
             username: self.username.clone(),
             id: self.id,
+            current_character: None,
         }
     }
 }

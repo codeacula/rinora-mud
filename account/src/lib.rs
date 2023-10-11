@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use character_management::*;
 use database::prelude::*;
 use login_commands::*;
@@ -12,7 +12,7 @@ pub struct AccountPlugin;
 /// Add keywords we can quickly check in the Commands module
 fn add_expected_commands(
     mut expected_commands: ResMut<PossibleCommands>,
-    mut command_list: ResMut<GameCommands>,
+    mut command_list: ResMut<AccountCommands>,
 ) {
     expected_commands.0.push("acct".to_string());
     command_list.0.push(Box::new(UsernameProvided {}));
@@ -21,9 +21,10 @@ fn add_expected_commands(
     command_list.0.push(Box::new(UserConfirmedPassword {}));
     command_list.0.push(Box::new(ProvideCharacterName {}));
     command_list.0.push(Box::new(SelectedCreateCharacter {}));
+    command_list.0.push(Box::new(CharacterWasSelected {}));
 }
 
-pub fn get_login_screen(characters: &Vec<Character>) -> String {
+pub fn get_login_screen(characters: &Vec<CharacterBundle>) -> String {
     let mut greeting = String::from("Your options:\n\n");
 
     greeting.push_str("  [{{15}}1{{7}}]: Create Character\n");
@@ -36,7 +37,7 @@ pub fn get_login_screen(characters: &Vec<Character>) -> String {
         greeting.push_str("Your characters are:\n");
 
         for character in characters {
-            greeting.push_str(&format!("  {}\n", character.shortname));
+            greeting.push_str(&format!("  {}\n", character.info.shortname));
         }
     }
 
@@ -119,9 +120,14 @@ pub fn handle_user_login(
 
 impl Plugin for AccountPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, add_expected_commands).add_systems(
-            Update,
-            (handle_user_login, handle_disconnect, handle_new_connections),
-        );
+        let character_map = CharacterMap(HashMap::new());
+
+        app.add_systems(Startup, add_expected_commands.in_set(GameOrderSet::Command))
+            .insert_resource(character_map)
+            .add_systems(
+                Update,
+                (handle_user_login, handle_disconnect, handle_new_connections)
+                    .in_set(GameOrderSet::Command),
+            );
     }
 }

@@ -3,7 +3,7 @@ use std::{fmt, str::FromStr};
 use bevy::prelude::*;
 
 /// Represents a slice of text in a text block. Can be colored.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TextSlice {
     pub foreground: i32,
     pub background: i32,
@@ -27,6 +27,7 @@ impl Default for TextSlice {
 }
 
 /// Represents a full block of text, from the beginning of the line to the \n
+#[derive(Debug)]
 pub struct TextBlock {
     pub text_slices: Vec<TextSlice>,
 }
@@ -73,7 +74,7 @@ impl FromStr for TextBlock {
     }
 }
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct TextEvent {
     pub entity: Entity,
     pub text: TextBlock,
@@ -93,7 +94,7 @@ impl TextEvent {
             text: TextBlock::from_str(text).unwrap(),
         }
     }
-    
+
     pub fn send_command_not_found(entity: Entity) -> Self {
         TextEvent {
             entity,

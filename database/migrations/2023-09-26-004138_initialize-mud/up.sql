@@ -98,7 +98,9 @@ CREATE TABLE characters (
   user_id INT NOT NULL REFERENCES users(id),
   name VARCHAR NOT NULL UNIQUE,
   description VARCHAR NOT NULL,
-  current_room_id INT NOT NULL REFERENCES rooms(id)
+  current_room_id INT NOT NULL REFERENCES rooms(id) DEFAULT 1,
+  current_hp INT NOT NULL DEFAULT 0,
+  current_mp INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE settings (

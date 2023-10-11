@@ -1,6 +1,6 @@
 use diesel::{
     prelude::*,
-    r2d2::{ConnectionManager, Pool, PooledConnection}
+    r2d2::{ConnectionManager, Pool, PooledConnection},
 };
 use shared::prelude::*;
 
@@ -15,6 +15,8 @@ pub struct DbCharacter {
     pub name: String,
     pub description: String,
     pub current_room_id: i32,
+    pub current_hp: i32,
+    pub current_mp: i32,
 }
 
 #[derive(Insertable)]
@@ -27,12 +29,23 @@ pub struct NewDbCharacter {
 }
 
 impl DbCharacter {
-    pub fn to_game_character(&self) -> Character {
-        Character {
-            id: self.id,
-            shortname: self.name.clone(),
-            user_id: self.user_id,
-            current_room_id: 0,
+    pub fn to_game_character(&self) -> CharacterBundle {
+        CharacterBundle {
+            being: Being {},
+            health: Health {
+                current: self.current_hp,
+                max: 0,
+            },
+            mana: Mana {
+                current: self.current_mp,
+                max: 0,
+            },
+            info: Character {
+                id: self.id,
+                shortname: self.name.clone(),
+                user_id: self.user_id,
+            },
+            location: Location(self.current_room_id),
         }
     }
 }
@@ -58,7 +71,12 @@ impl CharacterRepo {
     }
 
     /// Given a character name and a user, creates a new character and returns it
-    pub fn create_character(&self, charactername: &str, current_room: i32, user: &User) -> Result<Character, String> {
+    pub fn create_character(
+        &self,
+        charactername: &str,
+        current_room: i32,
+        user: &User,
+    ) -> Result<CharacterBundle, String> {
         let name = clean_character_name(charactername);
 
         let new_character = NewDbCharacter {
@@ -121,7 +139,10 @@ impl CharacterRepo {
     }
 
     /// Returns a charater matching the provided character_name if it exists
-    pub fn get_character_by_name(&self, character_name: &str) -> Result<Option<Character>, String> {
+    pub fn get_character_by_name(
+        &self,
+        character_name: &str,
+    ) -> Result<Option<CharacterBundle>, String> {
         use crate::schema::characters::dsl::*;
 
         let result: Option<DbCharacter> = characters
@@ -138,7 +159,7 @@ impl CharacterRepo {
     }
 
     /// Given a user ID, returns all characters
-    pub fn get_all_by_user(&self, provided_user_id: i32) -> Result<Vec<Character>, String> {
+    pub fn get_all_by_user(&self, provided_user_id: i32) -> Result<Vec<CharacterBundle>, String> {
         use crate::schema::characters::dsl::*;
 
         let result: Vec<DbCharacter> = characters
@@ -147,6 +168,9 @@ impl CharacterRepo {
             .get_results::<DbCharacter>(&mut self.conn())
             .expect("Unable to fetch all characters by user");
 
-        Ok(result.iter().map(|character| character.to_game_character()).collect())
+        Ok(result
+            .iter()
+            .map(|character| character.to_game_character())
+            .collect())
     }
 }
