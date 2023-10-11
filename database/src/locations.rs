@@ -15,12 +15,12 @@ pub struct DbPlane {
 }
 
 impl DbPlane {
-    pub fn to_plane(&self) -> Plane {
-        Plane {
-            description: self.description.clone(),
-            plane_id: self.id,
-            name: self.name.clone(),
-            continents: Vec::new(),
+    pub fn to_plane(&self) -> PlaneBundle {
+        PlaneBundle {
+            plane: Plane { plane_id: self.id },
+            continents: EntityCollection(Vec::new()),
+            description: Description(self.description.clone()),
+            name: DisplayName(self.name.clone()),
         }
     }
 }
@@ -36,13 +36,16 @@ pub struct DbContinent {
 }
 
 impl DbContinent {
-    pub fn to_continent(&self) -> Continent {
-        Continent {
-            continent_id: self.id,
-            plane_id: self.plane_id,
-            name: self.name.clone(),
-            description: self.description.clone(),
-            areas: Vec::new(),
+    pub fn to_continent(&self) -> ContinentBundle {
+        ContinentBundle {
+            continent: Continent {
+                continent_id: self.id,
+                plane_id: self.plane_id,
+                areas: Vec::new(),
+            },
+            areas: EntityCollection(Vec::new()),
+            description: Description(self.description.clone()),
+            name: DisplayName(self.name.clone()),
         }
     }
 }
@@ -58,13 +61,15 @@ pub struct DbArea {
 }
 
 impl DbArea {
-    pub fn to_area(&self) -> Area {
-        Area {
-            continent_id: self.continent_id,
-            description: self.description.clone(),
-            area_id: self.id,
-            name: self.name.clone(),
-            rooms: Vec::new(),
+    pub fn to_area(&self) -> AreaBundle {
+        AreaBundle {
+            area: Area {
+                continent_id: self.continent_id,
+                area_id: self.id,
+            },
+            description: Description(self.description.clone()),
+            name: DisplayName(self.name.clone()),
+            rooms: EntityCollection(Vec::new()),
         }
     }
 }
@@ -78,10 +83,13 @@ pub struct DbEnvironment {
 }
 
 impl DbEnvironment {
-    pub fn to_environment(&self) -> Environment {
-        Environment {
-            environment_id: self.id,
-            name: self.name.clone(),
+    pub fn to_environment(&self) -> EnvironmentBundle {
+        EnvironmentBundle {
+            environment: Environment {
+                environment_id: self.id,
+            },
+            name: DisplayName(self.name.clone()),
+            rooms: EntityCollection(Vec::new()),
         }
     }
 }
@@ -98,15 +106,17 @@ pub struct DbRoom {
 }
 
 impl DbRoom {
-    pub fn to_room(&self) -> Room {
-        Room {
-            area_id: self.area_id,
-            description: self.description.clone(),
-            environment_id: self.environment_id,
-            room_id: self.id,
-            name: self.name.clone(),
-            exits: Vec::new(),
-            entities: Vec::new(),
+    pub fn to_room(&self) -> RoomBundle {
+        RoomBundle {
+            room: Room {
+                area_id: self.area_id,
+                environment_id: self.environment_id,
+                room_id: self.id,
+            },
+            description: Description(self.description.clone()),
+            entities: EntityCollection(Vec::new()),
+            exits: EntityCollection(Vec::new()),
+            name: DisplayName(self.name.clone()),
         }
     }
 }
@@ -123,14 +133,14 @@ pub struct DbExit {
 }
 
 impl DbExit {
-    pub fn to_exit(&self) -> Exit {
-        Exit {
-            direction: self.direction.clone(),
-            from_room_id: self.from_room_id,
-            hidden: self.hidden,
-            exit_id: self.id,
-            to_room_id: self.to_room_id,
-            to_room: Entity::PLACEHOLDER,
+    pub fn to_exit(&self) -> ExitBundle {
+        ExitBundle {
+            exit: Exit {
+                from_room_id: self.from_room_id,
+                exit_id: self.id,
+                to_room_id: self.to_room_id,
+            },
+            to: ExitTo(Entity::PLACEHOLDER),
         }
     }
 }
@@ -151,7 +161,7 @@ impl LocationRepo {
         self.pool.get().unwrap()
     }
 
-    pub fn get_all_areas(&self) -> Result<Vec<Area>, String> {
+    pub fn get_all_areas(&self) -> Result<Vec<AreaBundle>, String> {
         use crate::schema::areas::dsl::*;
 
         Ok(areas
@@ -160,10 +170,10 @@ impl LocationRepo {
             .expect("Error querying for all the areas")
             .iter()
             .map(|x| x.to_area())
-            .collect::<Vec<Area>>())
+            .collect())
     }
 
-    pub fn get_all_continents(&self) -> Result<Vec<Continent>, String> {
+    pub fn get_all_continents(&self) -> Result<Vec<ContinentBundle>, String> {
         use crate::schema::continents::dsl::*;
 
         Ok(continents
@@ -172,10 +182,10 @@ impl LocationRepo {
             .expect("Error querying for all the continents")
             .iter()
             .map(|x| x.to_continent())
-            .collect::<Vec<Continent>>())
+            .collect())
     }
 
-    pub fn get_all_environments(&self) -> Result<Vec<Environment>, String> {
+    pub fn get_all_environments(&self) -> Result<Vec<EnvironmentBundle>, String> {
         use crate::schema::environments::dsl::*;
 
         Ok(environments
@@ -184,10 +194,10 @@ impl LocationRepo {
             .expect("Error querying for all the environments")
             .iter()
             .map(|x| x.to_environment())
-            .collect::<Vec<Environment>>())
+            .collect())
     }
 
-    pub fn get_all_exits(&self) -> Result<Vec<Exit>, String> {
+    pub fn get_all_exits(&self) -> Result<Vec<ExitBundle>, String> {
         use crate::schema::exits::dsl::*;
 
         Ok(exits
@@ -196,10 +206,10 @@ impl LocationRepo {
             .expect("Error querying for all the exits")
             .iter()
             .map(|x| x.to_exit())
-            .collect::<Vec<Exit>>())
+            .collect())
     }
 
-    pub fn get_all_planes(&self) -> Result<Vec<Plane>, String> {
+    pub fn get_all_planes(&self) -> Result<Vec<PlaneBundle>, String> {
         use crate::schema::planes::dsl::*;
 
         Ok(planes
@@ -208,10 +218,10 @@ impl LocationRepo {
             .expect("Error querying for all the planes")
             .iter()
             .map(|x| x.to_plane())
-            .collect::<Vec<Plane>>())
+            .collect())
     }
 
-    pub fn get_all_rooms(&self) -> Result<Vec<Room>, String> {
+    pub fn get_all_rooms(&self) -> Result<Vec<RoomBundle>, String> {
         use crate::schema::rooms::dsl::*;
 
         Ok(rooms
@@ -220,6 +230,6 @@ impl LocationRepo {
             .expect("Error querying for all the rooms")
             .iter()
             .map(|x| x.to_room())
-            .collect::<Vec<Room>>())
+            .collect())
     }
 }

@@ -5,6 +5,7 @@ use prelude::*;
 pub mod being;
 pub mod collections;
 pub mod command;
+pub mod content;
 pub mod display;
 pub mod helpers;
 pub mod network;
@@ -83,6 +84,7 @@ pub mod prelude {
     pub use crate::being::*;
     pub use crate::collections::*;
     pub use crate::command::*;
+    pub use crate::content::*;
     pub use crate::display::*;
     pub use crate::helpers::string::*;
     pub use crate::helpers::*;

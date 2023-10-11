@@ -36,7 +36,7 @@ fn add_planes_to_world(world: &mut World) {
     let mut plane_map = PlaneMap(HashMap::new());
 
     for item in planes.into_iter() {
-        let id = item.plane_id;
+        let id = item.plane.plane_id;
         let entity = world.spawn(item);
         plane_map.0.insert(id, entity.id());
     }
@@ -56,7 +56,7 @@ fn add_continents_to_world(world: &mut World) {
     let mut item_map = ContinentMap(HashMap::new());
 
     for item in items_to_add.into_iter() {
-        let id = item.continent_id;
+        let id = item.continent.continent_id;
         let entity = world.spawn(item);
         item_map.0.insert(id, entity.id());
     }
@@ -65,7 +65,7 @@ fn add_continents_to_world(world: &mut World) {
 }
 
 fn add_continents_to_planes(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Continent)>, Query<&mut Plane>)> =
+    let mut system_state: SystemState<(Query<(Entity, &Continent)>, Query<(Entity, &mut Plane)>)> =
         SystemState::new(world);
     let (children, mut parents) = system_state.get_mut(world);
 
@@ -80,8 +80,9 @@ fn add_continents_to_planes(world: &mut World) {
         child_map.get_mut(&child.plane_id).unwrap().push(entity);
     }
 
-    for mut parent in parents.iter_mut() {
-        parent.continents = child_map.get(&parent.plane_id).unwrap().clone();
+    for (entity, mut parent) in parents.iter_mut() {
+        let col = EntityCollection(child_map.get(&parent.plane_id).unwrap().clone());
+        world.entity_mut(entity).insert(col);
     }
 }
 

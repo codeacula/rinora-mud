@@ -195,7 +195,7 @@ impl GameCommand for CharacterWasSelected {
         info!("User: {:?}", command.entity);
 
         // They're set to be placed in game
-        let character_id = character.info.id;
+        let character_id = character.info.character_id;
         user_sesh.status = UserStatus::InGame;
         let character_entity = commands.spawn(character).id();
 
