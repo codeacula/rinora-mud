@@ -98,7 +98,7 @@ fn add_areas_to_world(world: &mut World) {
     let mut item_map = AreaMap(HashMap::new());
 
     for item in items_to_add.into_iter() {
-        let id = item.area_id;
+        let id = item.area.area_id;
         let entity = world.spawn(item);
         item_map.0.insert(id, entity.id());
     }
@@ -138,7 +138,7 @@ fn add_rooms_to_world(world: &mut World) {
     let mut item_map = RoomMap(HashMap::new());
 
     for item in items_to_add.into_iter() {
-        let id = item.room_id;
+        let id = item.room.room_id;
         let entity = world.spawn(item);
         item_map.0.insert(id, entity.id());
     }
