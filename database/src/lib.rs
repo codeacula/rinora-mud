@@ -159,7 +159,7 @@ fn add_environments_to_rooms(world: &mut World) {
     let mut environment_map: HashMap<i32, Environment> = HashMap::new();
 
     for env in environments {
-        environment_map.insert(env.environment_id, env);
+        environment_map.insert(env.environment.environment_id, env.environment);
     }
 
     let mut inserts: Vec<(Entity, Environment)> = Vec::new();
@@ -177,7 +177,7 @@ fn add_environments_to_rooms(world: &mut World) {
 }
 
 fn add_rooms_to_areas(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<&mut Area>)> =
+    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<(Entity, &mut Area)>)> =
         SystemState::new(world);
     let (children, mut parents) = system_state.get_mut(world);
 
@@ -192,9 +192,10 @@ fn add_rooms_to_areas(world: &mut World) {
         child_map.get_mut(&child.area_id).unwrap().push(entity);
     }
 
-    for mut parent in parents.iter_mut() {
+    for (entity, mut parent) in parents.iter_mut() {
         if child_map.contains_key(&parent.area_id) {
-            parent.rooms = child_map.get(&parent.area_id).unwrap().clone();
+            let res = child_map.get(&parent.area_id).unwrap().clone();
+            world.entity_mut(entity).insert(EntityCollection(res));
         }
     }
 }
@@ -211,7 +212,7 @@ fn add_exits_to_world(world: &mut World) {
 }
 
 fn add_rooms_to_exits(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<&mut Exit>)> =
+    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<(Entity, &mut Exit)>)> =
         SystemState::new(world);
     let (rooms, mut exits) = system_state.get_mut(world);
 
@@ -222,10 +223,12 @@ fn add_rooms_to_exits(world: &mut World) {
         room_map.insert(room.room_id, entity);
     }
 
-    for mut exit in exits.iter_mut() {
-        exit.to_room = *room_map
+    for (entity, mut exit) in exits.iter_mut() {
+        let to_room = *room_map
             .get(&exit.to_room_id)
             .expect("Exit points to room that doesn't exist.");
+
+        world.entity_mut(entity).insert(ExitTo(to_room));
     }
 }
 
