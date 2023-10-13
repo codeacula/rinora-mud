@@ -5,6 +5,9 @@ use bevy::prelude::*;
 pub struct EntityCollection(pub Vec<Entity>);
 
 #[derive(Component)]
+pub struct Exits(pub Vec<Entity>);
+
+#[derive(Component)]
 pub struct Plane {
     pub plane_id: i32,
 }
@@ -70,7 +73,7 @@ pub struct RoomBundle {
     pub room: Room,
     pub name: DisplayName,
     pub description: Description,
-    pub exits: EntityCollection,
+    pub exits: Exits,
     pub entities: EntityCollection,
 }
 

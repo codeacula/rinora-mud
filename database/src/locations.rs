@@ -115,7 +115,7 @@ impl DbRoom {
             },
             description: Description(self.description.clone()),
             entities: EntityCollection(Vec::new()),
-            exits: EntityCollection(Vec::new()),
+            exits: Exits(Vec::new()),
             name: DisplayName(self.name.clone()),
         }
     }
