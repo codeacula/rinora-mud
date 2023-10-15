@@ -28,8 +28,6 @@ pub fn get_login_screen(characters: &Vec<CharacterBundle>) -> String {
     let mut greeting = String::from("Your options:\n\n");
 
     greeting.push_str("  [{{15}}1{{7}}]: Create Character\n");
-    greeting.push_str("  [{{15}}2{{7}}]: Delete Character\n");
-    greeting.push_str("  [{{15}}3{{7}}]: Toggle Autologin\n\n");
 
     if characters.is_empty() {
         greeting.push_str("You currently have no characters.\n")
@@ -37,7 +35,7 @@ pub fn get_login_screen(characters: &Vec<CharacterBundle>) -> String {
         greeting.push_str("Your characters are:\n");
 
         for character in characters {
-            greeting.push_str(&format!("  {}\n", character.info.shortname));
+            greeting.push_str(&format!("  {}\n", character.display_name.0));
         }
     }
 

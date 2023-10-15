@@ -5,6 +5,7 @@ use prelude::*;
 pub mod being;
 pub mod collections;
 pub mod command;
+pub mod content;
 pub mod display;
 pub mod helpers;
 pub mod network;
@@ -22,15 +23,20 @@ pub enum GameOrderSet {
     Account,
     Game,
     Cleanup,
+    Debug,
+    Output,
 }
 
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         // Configure system sets
+
         app.configure_set(First, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(First, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(First, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(First, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(First, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(First, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         app.configure_set(
             PreUpdate,
@@ -42,16 +48,22 @@ impl Plugin for SharedPlugin {
         );
         app.configure_set(PreUpdate, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(PreUpdate, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(PreUpdate, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(PreUpdate, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         app.configure_set(Update, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Update, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(Update, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(Update, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(Update, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(Update, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         app.configure_set(Last, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Last, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(Last, GameOrderSet::Account.before(GameOrderSet::Game));
         app.configure_set(Last, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(Last, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
+        app.configure_set(Last, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         // Account
         app.add_event::<UserLoggedIn>();
@@ -72,6 +84,7 @@ pub mod prelude {
     pub use crate::being::*;
     pub use crate::collections::*;
     pub use crate::command::*;
+    pub use crate::content::*;
     pub use crate::display::*;
     pub use crate::helpers::string::*;
     pub use crate::helpers::*;

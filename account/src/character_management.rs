@@ -160,7 +160,7 @@ impl GameCommand for CharacterWasSelected {
             Res<RoomMap>,
             ResMut<CharacterMap>,
             Query<&mut UserSessionData>,
-            Query<&mut Room>,
+            Query<&mut Exits>,
             EventWriter<EntityEnteredWorld>,
             EventWriter<EntityEnteredRoom>,
             EventWriter<TextEvent>,
@@ -192,17 +192,16 @@ impl GameCommand for CharacterWasSelected {
             text_event_tx.send(TextEvent::send_generic_error(command.entity));
             return Ok(());
         };
-        info!("User: {:?}", command.entity);
 
         // They're set to be placed in game
-        let character_id = character.info.id;
+        let character_id = character.info.character_id;
         user_sesh.status = UserStatus::InGame;
         let character_entity = commands.spawn(character).id();
 
         character_map.0.insert(character_id, character_entity);
 
-        if let Ok(mut room) = room_query.get_mut(character_entity) {
-            room.entities.push(character_entity);
+        if let Ok(mut exits) = room_query.get_mut(character_entity) {
+            exits.0.push(character_entity);
         }
 
         // Tag this character as being controlled by the player

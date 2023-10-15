@@ -32,6 +32,8 @@ impl DbCharacter {
     pub fn to_game_character(&self) -> CharacterBundle {
         CharacterBundle {
             being: Being {},
+            description: Description(self.description.clone()),
+            display_name: DisplayName(self.name.clone()),
             health: Health {
                 current: self.current_hp,
                 max: 0,
@@ -41,8 +43,7 @@ impl DbCharacter {
                 max: 0,
             },
             info: Character {
-                id: self.id,
-                shortname: self.name.clone(),
+                character_id: self.id,
                 user_id: self.user_id,
             },
             location: Location(self.current_room_id),

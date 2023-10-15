@@ -1,5 +1,5 @@
 [package]
-name = "rinora_mud"
+name = "helper"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,8 +7,5 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.11.2" }
-account = { path = "../account" }
 database = { path = "../database" }
-helper = { path = "../helper" }
-server = { path = "../server" }
 shared = { path = "../shared" }
