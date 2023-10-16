@@ -46,6 +46,7 @@ pub fn get_login_screen(characters: &Vec<CharacterBundle>) -> String {
 /// When a user disconnects
 pub fn handle_disconnect(
     mut ev_disconnection_event: EventReader<DisconnectionEvent>,
+    mut ev_entity_left_room: EventWriter<EntityLeftRoom>,
     mut ev_entity_left_world: EventWriter<EntityLeftWorld>,
     query: Query<&UserSessionData>,
     character_info_query: Query<&Location>,
@@ -72,11 +73,17 @@ pub fn handle_disconnect(
                 continue;
             };
 
+            ev_entity_left_room.send(EntityLeftRoom {
+                entity: controlled_entity,
+                room_entity_was_in: *room,
+                triggered_by: MovementTriggeredBy::Logout,
+            });
+
             ev_entity_left_world.send(EntityLeftWorld {
                 entity: controlled_entity,
                 room_entity_was_in: *room,
                 triggered_by: MovementTriggeredBy::Logout,
-            })
+            });
         }
 
         commands.entity(ev.entity).despawn_recursive();
