@@ -195,6 +195,8 @@ impl GameCommand for CharacterWasSelected {
 
         // They're set to be placed in game
         let character_id = character.info.character_id;
+        let location_id = character.location.0;
+
         user_sesh.status = UserStatus::InGame;
         let character_entity = commands.spawn(character).id();
 
@@ -214,6 +216,11 @@ impl GameCommand for CharacterWasSelected {
         debug!(
             "Tagged character entity {:?} as controlled by entity {:?}",
             character_entity, command.entity
+        );
+
+        debug!(
+            "Spawned character in room {:?} entity {:?}",
+            location_id, room_entity
         );
 
         ent_entered_world_tx.send(EntityEnteredWorld {

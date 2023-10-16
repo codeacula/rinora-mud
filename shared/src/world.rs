@@ -1,18 +1,18 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct EntityCollection(pub Vec<Entity>);
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Exits(pub Vec<Entity>);
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Plane {
     pub plane_id: i32,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Debug)]
 pub struct PlaneBundle {
     pub plane: Plane,
     pub name: DisplayName,
@@ -20,14 +20,14 @@ pub struct PlaneBundle {
     pub continents: EntityCollection,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Continent {
     pub continent_id: i32,
     pub plane_id: i32,
     pub areas: Vec<Entity>,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Debug)]
 pub struct ContinentBundle {
     pub continent: Continent,
     pub name: DisplayName,
@@ -35,13 +35,13 @@ pub struct ContinentBundle {
     pub areas: EntityCollection,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Area {
     pub area_id: i32,
     pub continent_id: i32,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Debug)]
 pub struct AreaBundle {
     pub area: Area,
     pub name: DisplayName,
@@ -49,12 +49,12 @@ pub struct AreaBundle {
     pub rooms: EntityCollection,
 }
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Debug)]
 pub struct Environment {
     pub environment_id: i32,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Debug)]
 pub struct EnvironmentBundle {
     pub environment: Environment,
     pub name: DisplayName,
@@ -68,7 +68,7 @@ pub struct Room {
     pub environment_id: i32,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Debug)]
 pub struct RoomBundle {
     pub room: Room,
     pub name: DisplayName,
@@ -77,22 +77,22 @@ pub struct RoomBundle {
     pub entities: EntityCollection,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Exit {
     pub exit_id: i32,
     pub from_room_id: i32,
     pub to_room_id: i32,
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Debug)]
 pub struct ExitBundle {
     pub exit: Exit,
     pub to: ExitTo,
 }
 
 /// Indicates the component has an exit to that entity
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct ExitTo(pub Entity);
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Location(pub i32);

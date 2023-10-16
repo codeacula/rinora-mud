@@ -5,13 +5,13 @@ use bevy::{
 };
 use commands::CommandsPlugin;
 use database::prelude::*;
-use display::*;
 use helper::HelperPlugin;
 use server::NetworkServerPlugin;
 use shared::prelude::*;
 
 mod commands;
 mod display;
+mod world;
 
 pub fn start_game() {
     let mut app = App::new();
@@ -29,6 +29,18 @@ pub fn start_game() {
         NetworkServerPlugin,
         HelperPlugin,
     ))
-    .add_systems(Update, (display_room_to_user).in_set(GameOrderSet::Output))
+    .add_systems(
+        Update,
+        world::add_character_to_room.in_set(GameOrderSet::Game),
+    )
+    .add_systems(
+        Update,
+        (
+            display::display_character_entering_room,
+            display::display_character_logged_into_room,
+            display::display_room_to_user,
+        )
+            .in_set(GameOrderSet::Output),
+    )
     .run()
 }

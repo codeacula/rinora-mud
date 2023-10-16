@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct DisplayName(pub String);
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Description(pub String);
