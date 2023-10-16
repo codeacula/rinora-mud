@@ -96,15 +96,3 @@ pub struct ExitTo(pub Entity);
 
 #[derive(Component)]
 pub struct Location(pub i32);
-
-#[derive(Event, Debug)]
-pub struct EntityEnteredRoom {
-    pub entity: Entity,
-    pub room: Entity,
-}
-
-#[derive(Event, Debug)]
-pub struct EntityEnteredWorld {
-    pub entity: Entity,
-    pub room: Entity,
-}

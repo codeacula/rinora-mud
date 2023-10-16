@@ -42,7 +42,7 @@ pub fn display_room_to_user(
         };
 
         let (display_name, description) = room_query
-            .get(event.room)
+            .get(event.room_entity_is_in)
             .expect("Unable to find room entity");
 
         send_room_description(

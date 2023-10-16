@@ -10,6 +10,13 @@ pub struct Character {
     pub user_id: i32,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum MovementTriggeredBy {
+    UserInput,
+    Login,
+    Logout,
+}
+
 #[derive(Bundle)]
 pub struct CharacterBundle {
     pub being: Being,
@@ -51,4 +58,32 @@ pub struct IsControlledBy(pub Entity);
 pub struct Mana {
     pub current: i32,
     pub max: i32,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityEnteredRoom {
+    pub entity: Entity,
+    pub room_entity_is_in: Entity,
+    pub triggered_by: MovementTriggeredBy,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityEnteredWorld {
+    pub entity: Entity,
+    pub room_entity_is_in: Entity,
+    pub triggered_by: MovementTriggeredBy,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityLeftRoom {
+    pub entity: Entity,
+    pub room_entity_was_in: Entity,
+    pub triggered_by: MovementTriggeredBy,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityLeftWorld {
+    pub entity: Entity,
+    pub room_entity_was_in: Entity,
+    pub triggered_by: MovementTriggeredBy,
 }

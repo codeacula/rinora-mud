@@ -187,7 +187,7 @@ impl GameCommand for CharacterWasSelected {
         };
 
         // Make sure room is mapped
-        let Some(room_entity) = room_map.0.get(&character.location.0) else {
+        let Some(room_entity) = room_map.get_room(&character.location) else {
             warn!("Unable to find character's room in the room map.");
             text_event_tx.send(TextEvent::send_generic_error(command.entity));
             return Ok(());
@@ -209,6 +209,8 @@ impl GameCommand for CharacterWasSelected {
             .entity(character_entity)
             .insert(IsControlledBy(command.entity));
 
+        user_sesh.controlling_entity = Some(character_entity);
+
         debug!(
             "Tagged character entity {:?} as controlled by entity {:?}",
             character_entity, command.entity
@@ -216,12 +218,14 @@ impl GameCommand for CharacterWasSelected {
 
         ent_entered_world_tx.send(EntityEnteredWorld {
             entity: character_entity,
-            room: *room_entity,
+            room_entity_is_in: room_entity,
+            triggered_by: MovementTriggeredBy::Login,
         });
 
         ent_entered_room_tx.send(EntityEnteredRoom {
             entity: character_entity,
-            room: *room_entity,
+            room_entity_is_in: room_entity,
+            triggered_by: MovementTriggeredBy::Login,
         });
 
         system_state.apply(world);

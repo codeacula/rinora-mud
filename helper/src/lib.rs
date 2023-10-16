@@ -22,7 +22,7 @@ fn display_room_debug_info(
         }
 
         let room_going_into = room_query
-            .get(event.room)
+            .get(event.room_entity_is_in)
             .expect("Unable to find room entity");
 
         text_event_tx.send(TextEvent::new(

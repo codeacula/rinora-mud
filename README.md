@@ -14,3 +14,9 @@ We use [Diesel](https://diesel.rs/) to handle migrations. In order to create a m
 ```bash
 cargo install diesel_cli --no-default-features --features postgres
 ```
+
+Once installed, you can run the migrations like so, assuming you're using the default development database:
+
+```bash
+diesel migration redo --database-url=postgresql://dev:dev@localhost/rinoramud
+```
