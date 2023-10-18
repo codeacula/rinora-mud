@@ -84,9 +84,6 @@ impl Plugin for SharedPlugin {
 
         // Events
         app.add_event::<TextEvent>();
-
-        // Users
-        app.add_event::<ShowPrompt>();
     }
 }
 

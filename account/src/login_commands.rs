@@ -249,3 +249,17 @@ impl GameCommand for PasswordProvided {
         Ok(())
     }
 }
+
+pub fn show_account_prompt(
+    query: Query<(Entity, &UserSessionData), With<ShowPrompt>>,
+    mut text_event_tx: EventWriter<TextEvent>,
+    mut commands: Commands,
+) {
+    for (entity, session_data) in query.iter() {
+        if session_data.status == UserStatus::LoggedIn {
+            continue;
+        }
+
+        commands.entity(entity).remove::<ShowPrompt>();
+    }
+}
