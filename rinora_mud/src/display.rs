@@ -1,4 +1,8 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    utils::{HashMap, Uuid},
+};
+use server::*;
 use shared::prelude::*;
 
 fn send_room_description(

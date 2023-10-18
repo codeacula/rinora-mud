@@ -39,3 +39,6 @@ pub struct UserSessionData {
     pub status: UserStatus,
     pub username: String,
 }
+
+#[derive(Event)]
+pub struct ShowPrompt(Entity);

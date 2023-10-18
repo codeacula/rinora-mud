@@ -18,13 +18,14 @@ pub struct SharedPlugin;
 
 #[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
 pub enum GameOrderSet {
-    Network,
-    Command,
-    Account,
-    Game,
-    Cleanup,
-    Debug,
-    Output,
+    Network, // Ran first, so that all connections are handled and commands are sent to the command handlers
+    Command, // The command step is meant to handle processing commands from the network layer
+    Account, // The account section is a separate state from normal, and requires running first
+    Game,    // This is where all the game systems are updated
+    Post, // This is for systems that want to run after the world has processed but before cleanup
+    Cleanup, // Cleanup is meant to handle stuff like storing removed characters and stuff
+    Debug, // Debug is specifically so its output is sent before normal output
+    Output, // Flush all output here
 }
 
 impl Plugin for SharedPlugin {
@@ -34,7 +35,8 @@ impl Plugin for SharedPlugin {
         app.configure_set(First, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(First, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(First, GameOrderSet::Account.before(GameOrderSet::Game));
-        app.configure_set(First, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(First, GameOrderSet::Game.before(GameOrderSet::Post));
+        app.configure_set(First, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(First, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
         app.configure_set(First, GameOrderSet::Debug.before(GameOrderSet::Output));
 
@@ -47,21 +49,24 @@ impl Plugin for SharedPlugin {
             GameOrderSet::Command.before(GameOrderSet::Account),
         );
         app.configure_set(PreUpdate, GameOrderSet::Account.before(GameOrderSet::Game));
-        app.configure_set(PreUpdate, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(PreUpdate, GameOrderSet::Game.before(GameOrderSet::Post));
+        app.configure_set(PreUpdate, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(PreUpdate, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
         app.configure_set(PreUpdate, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         app.configure_set(Update, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Update, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(Update, GameOrderSet::Account.before(GameOrderSet::Game));
-        app.configure_set(Update, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(Update, GameOrderSet::Game.before(GameOrderSet::Post));
+        app.configure_set(Update, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(Update, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
         app.configure_set(Update, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         app.configure_set(Last, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Last, GameOrderSet::Command.before(GameOrderSet::Account));
         app.configure_set(Last, GameOrderSet::Account.before(GameOrderSet::Game));
-        app.configure_set(Last, GameOrderSet::Game.before(GameOrderSet::Cleanup));
+        app.configure_set(Last, GameOrderSet::Game.before(GameOrderSet::Post));
+        app.configure_set(Last, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(Last, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
         app.configure_set(Last, GameOrderSet::Debug.before(GameOrderSet::Output));
 
@@ -79,6 +84,9 @@ impl Plugin for SharedPlugin {
 
         // Events
         app.add_event::<TextEvent>();
+
+        // Users
+        app.add_event::<ShowPrompt>();
     }
 }
 
