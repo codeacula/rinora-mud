@@ -53,8 +53,8 @@ impl GameCommand for UserConfirmedPassword {
             .create_user(&user_sesh.username, confirmation_password)
         {
             Ok(uuid) => uuid,
-            Err(e) => {
-                error!("Unable to create user: {:?}", e);
+            Err(err) => {
+                error!("Unable to create user: {err}");
                 text_event_tx.send(TextEvent::send_generic_error(command.entity));
                 return Ok(());
             }
@@ -247,19 +247,5 @@ impl GameCommand for PasswordProvided {
 
         system_state.apply(world);
         Ok(())
-    }
-}
-
-pub fn show_account_prompt(
-    query: Query<(Entity, &UserSessionData), With<ShowPrompt>>,
-    mut text_event_tx: EventWriter<TextEvent>,
-    mut commands: Commands,
-) {
-    for (entity, session_data) in query.iter() {
-        if session_data.status == UserStatus::LoggedIn {
-            continue;
-        }
-
-        commands.entity(entity).remove::<ShowPrompt>();
     }
 }
