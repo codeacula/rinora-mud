@@ -1,4 +1,4 @@
 use bevy::prelude::*;
 
 #[derive(Event)]
-pub struct InvalidCharacterName(Entity);
+pub struct InvalidCharacterName(pub Entity);

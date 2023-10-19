@@ -1,8 +1,9 @@
+use crate::output::get_login_screen::*;
 use bevy::{ecs::system::SystemState, prelude::*};
 use database::prelude::*;
 use shared::prelude::*;
 
-pub(crate) struct ProvideCharacterName {}
+pub struct ProvideCharacterName {}
 
 impl GameCommand for ProvideCharacterName {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
@@ -19,10 +20,7 @@ impl GameCommand for ProvideCharacterName {
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         if command.parts.len() > 1 || !is_alphabetic(&command.keyword) {
-            world.send_event(TextEvent::from_str(
-                command.entity,
-                "Character names can only contain the letters A-Z, and only one word. Please try again.",
-            ));
+            world.send_event(InvalidCharacterName(command.entity));
             return Ok(());
         }
 
@@ -82,11 +80,11 @@ impl GameCommand for ProvideCharacterName {
             }
         };
 
-        world.send_event(TextEvent::new(
-            entity,
-            &crate::get_login_screen(&characters),
-        ));
+        world.send_event(TextEvent::new(entity, &get_login_screen(&characters)));
 
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {}
