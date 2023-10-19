@@ -1,7 +1,8 @@
-use bevy::prelude::*;
-use commands::prelude::*;
-use database::prelude::*;
 use shared::prelude::*;
+
+mod commands;
+mod output;
+mod systems;
 
 pub struct NewPlugin;
 
