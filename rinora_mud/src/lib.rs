@@ -35,10 +35,6 @@ pub fn start_game() {
     )
     .add_systems(
         Update,
-        display::determine_who_needs_a_prompt.in_set(GameOrderSet::Post),
-    )
-    .add_systems(
-        Update,
         (
             display::display_character_entering_room,
             display::display_character_logged_into_room,

@@ -1,4 +1,4 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 use shared::prelude::*;
 
 fn send_room_description(
@@ -145,21 +145,5 @@ pub fn display_character_logged_into_room(
                 ));
             }
         }
-    }
-}
-
-pub fn determine_who_needs_a_prompt(
-    mut text_event_rx: EventReader<TextEvent>,
-    mut commands: Commands,
-) {
-    let mut found_entities: HashMap<Entity, bool> = HashMap::new();
-
-    for ev in text_event_rx.iter() {
-        if found_entities.contains_key(&ev.entity) {
-            continue;
-        }
-
-        found_entities.insert(ev.entity, true);
-        commands.entity(ev.entity).insert(ShowPrompt);
     }
 }

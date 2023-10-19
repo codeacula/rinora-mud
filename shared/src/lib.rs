@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use command::PossibleCommands;
 use prelude::*;
 
+pub mod account;
 pub mod being;
 pub mod collections;
 pub mod command;
@@ -88,6 +89,7 @@ impl Plugin for SharedPlugin {
 }
 
 pub mod prelude {
+    pub use crate::account::*;
     pub use crate::being::*;
     pub use crate::collections::*;
     pub use crate::command::*;

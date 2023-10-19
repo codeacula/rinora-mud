@@ -24,9 +24,7 @@ impl RoomMap {
     pub fn get_room(&self, location: &Location) -> Option<Entity> {
         let ent = self.0.get(&location.0);
 
-        if ent.is_none() {
-            return None;
-        }
+        ent?;
 
         Some(*ent.unwrap())
     }

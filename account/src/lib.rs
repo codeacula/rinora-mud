@@ -5,6 +5,7 @@ use login_commands::*;
 use shared::prelude::*;
 
 mod character_management;
+mod commands;
 mod login_commands;
 
 pub struct AccountPlugin;
@@ -19,7 +20,7 @@ fn add_expected_commands(
     command_list.0.push(Box::new(PasswordCreated {}));
     command_list.0.push(Box::new(PasswordProvided {}));
     command_list.0.push(Box::new(UserConfirmedPassword {}));
-    command_list.0.push(Box::new(ProvideCharacterName {}));
+    command_list.0.push(Box::new(InvalidCharacterName {}));
     command_list.0.push(Box::new(SelectedCreateCharacter {}));
     command_list.0.push(Box::new(CharacterWasSelected {}));
 }
