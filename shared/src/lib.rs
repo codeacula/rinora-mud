@@ -80,7 +80,8 @@ impl Plugin for SharedPlugin {
         app.add_event::<EntityEnteredRoom>()
             .add_event::<EntityEnteredWorld>()
             .add_event::<EntityLeftRoom>()
-            .add_event::<EntityLeftWorld>();
+            .add_event::<EntityLeftWorld>()
+            .add_event::<ShowPrompt>();
 
         // Events
         app.add_event::<TextEvent>();

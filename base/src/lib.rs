@@ -70,6 +70,7 @@ impl Plugin for BaseRinoraPlugin {
                     display_character_entering_room,
                     display_character_logged_into_room,
                     display_room_to_user,
+                    show_prompt,
                 )
                     .in_set(GameOrderSet::Output),
             )
