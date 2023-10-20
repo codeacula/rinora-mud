@@ -40,5 +40,5 @@ pub struct UserSessionData {
     pub username: String,
 }
 
-#[derive(Component)]
-pub struct ShowPrompt;
+#[derive(Event)]
+pub struct ShowPrompt(pub Entity);
