@@ -2,9 +2,10 @@ use bevy::{ecs::system::SystemState, prelude::*};
 use database::prelude::*;
 use shared::prelude::*;
 
-pub struct CharacterWasSelected {}
+/// This command allows a user to select a character to log in to
+pub struct SelectCharacter {}
 
-impl GameCommand for CharacterWasSelected {
+impl GameCommand for SelectCharacter {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             info!("No session data found.");
@@ -120,6 +121,3 @@ impl GameCommand for CharacterWasSelected {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests {}

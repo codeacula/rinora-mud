@@ -96,6 +96,7 @@ pub mod prelude {
     pub use crate::content::*;
     pub use crate::display::*;
     pub use crate::helpers::string::*;
+    pub use crate::helpers::test::*;
     pub use crate::helpers::*;
     pub use crate::network::*;
     pub use crate::settings::*;
