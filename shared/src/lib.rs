@@ -22,7 +22,8 @@ pub enum GameOrderSet {
     Network, // Ran first, so that all connections are handled and commands are sent to the command handlers
     Command, // The command step is meant to handle processing commands from the network layer
     Account, // The account section is a separate state from normal, and requires running first
-    Game,    // This is where all the game systems are updated
+    Pre, // The is for systems we want to run before the game, such as adding users to the game world
+    Game, // This is where all the game systems are updated
     Post, // This is for systems that want to run after the world has processed but before cleanup
     Cleanup, // Cleanup is meant to handle stuff like storing removed characters and stuff
     Debug, // Debug is specifically so its output is sent before normal output
@@ -34,7 +35,8 @@ impl Plugin for SharedPlugin {
         // Configure system sets
         app.configure_set(First, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(First, GameOrderSet::Command.before(GameOrderSet::Account));
-        app.configure_set(First, GameOrderSet::Account.before(GameOrderSet::Game));
+        app.configure_set(First, GameOrderSet::Account.before(GameOrderSet::Pre));
+        app.configure_set(First, GameOrderSet::Pre.before(GameOrderSet::Game));
         app.configure_set(First, GameOrderSet::Game.before(GameOrderSet::Post));
         app.configure_set(First, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(First, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
@@ -48,7 +50,8 @@ impl Plugin for SharedPlugin {
             PreUpdate,
             GameOrderSet::Command.before(GameOrderSet::Account),
         );
-        app.configure_set(PreUpdate, GameOrderSet::Account.before(GameOrderSet::Game));
+        app.configure_set(PreUpdate, GameOrderSet::Account.before(GameOrderSet::Pre));
+        app.configure_set(PreUpdate, GameOrderSet::Pre.before(GameOrderSet::Game));
         app.configure_set(PreUpdate, GameOrderSet::Game.before(GameOrderSet::Post));
         app.configure_set(PreUpdate, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(PreUpdate, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
@@ -56,7 +59,8 @@ impl Plugin for SharedPlugin {
 
         app.configure_set(Update, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Update, GameOrderSet::Command.before(GameOrderSet::Account));
-        app.configure_set(Update, GameOrderSet::Account.before(GameOrderSet::Game));
+        app.configure_set(Update, GameOrderSet::Account.before(GameOrderSet::Pre));
+        app.configure_set(Update, GameOrderSet::Pre.before(GameOrderSet::Game));
         app.configure_set(Update, GameOrderSet::Game.before(GameOrderSet::Post));
         app.configure_set(Update, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(Update, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
@@ -64,14 +68,19 @@ impl Plugin for SharedPlugin {
 
         app.configure_set(Last, GameOrderSet::Network.before(GameOrderSet::Command));
         app.configure_set(Last, GameOrderSet::Command.before(GameOrderSet::Account));
-        app.configure_set(Last, GameOrderSet::Account.before(GameOrderSet::Game));
+        app.configure_set(Last, GameOrderSet::Account.before(GameOrderSet::Pre));
+        app.configure_set(Last, GameOrderSet::Pre.before(GameOrderSet::Game));
         app.configure_set(Last, GameOrderSet::Game.before(GameOrderSet::Post));
         app.configure_set(Last, GameOrderSet::Post.before(GameOrderSet::Cleanup));
         app.configure_set(Last, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
         app.configure_set(Last, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         // Account
-        app.add_event::<UserLoggedIn>();
+        app.add_event::<UserLoggedIn>()
+            .add_event::<CharacterCreatedEvent>()
+            .add_event::<CharacterExists>()
+            .add_event::<CharacterNameInvalid>()
+            .add_event::<CharacterNotFound>();
 
         // Commands
         app.insert_resource(PossibleCommands(Vec::new()))
@@ -81,11 +90,12 @@ impl Plugin for SharedPlugin {
         app.add_event::<EntityEnteredRoom>()
             .add_event::<EntityEnteredWorld>()
             .add_event::<EntityLeftRoom>()
-            .add_event::<EntityLeftWorld>()
-            .add_event::<ShowPrompt>();
+            .add_event::<EntityLeftWorld>();
 
         // Events
-        app.add_event::<TextEvent>();
+        app.add_event::<ShowLoginScreen>()
+            .add_event::<ShowPrompt>()
+            .add_event::<TextEvent>();
     }
 }
 

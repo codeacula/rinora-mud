@@ -12,5 +12,12 @@ pub struct CharacterExists(pub Entity);
 #[derive(Event)]
 pub struct CharacterNameInvalid(pub Entity);
 
+/// Fired when a user tries to select a character that doesn't exist on their account. Wraps the user entity
+#[derive(Event)]
+pub struct CharacterNotFound(pub Entity);
+
+#[derive(Event)]
+pub struct CreateCharacter {}
+
 #[derive(Event)]
 pub struct ShowLoginScreen(pub Entity);
