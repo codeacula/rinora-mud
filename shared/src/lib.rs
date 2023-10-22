@@ -74,7 +74,8 @@ impl Plugin for SharedPlugin {
         app.add_event::<UserLoggedIn>();
 
         // Commands
-        app.insert_resource(PossibleCommands(Vec::new()));
+        app.insert_resource(PossibleCommands(Vec::new()))
+            .add_event::<GenericErrorEvent>();
 
         // Entities
         app.add_event::<EntityEnteredRoom>()

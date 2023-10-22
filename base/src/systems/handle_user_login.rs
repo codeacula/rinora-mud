@@ -1,12 +1,11 @@
 use database::prelude::*;
 use shared::prelude::*;
 
-use crate::output::get_login_screen::*;
-
 pub fn handle_user_login(
     mut query: Query<Entity>,
     mut events: EventReader<UserLoggedIn>,
     mut text_events_tx: EventWriter<TextEvent>,
+    mut show_login_tx: EventWriter<ShowLoginScreen>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
@@ -28,19 +27,8 @@ pub fn handle_user_login(
             continue;
         };
 
-        let characters = match db_repo.characters.get_all_by_user(user.id) {
-            Ok(characters) => characters,
-            Err(e) => {
-                error!("Unable to fetch user's characters at login: {:?}", e);
-                text_events_tx.send(TextEvent::from_str(
-                    entity,
-                    "There was an issue fetching your characters. Please disconnect and try again.",
-                ));
-                continue;
-            }
-        };
-
-        text_events_tx.send(TextEvent::new(entity, &get_login_screen(&characters)));
         commands.entity(entity).insert(user);
+
+        show_login_tx.send(ShowLoginScreen(entity));
     }
 }

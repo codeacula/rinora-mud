@@ -1,9 +1,6 @@
 use shared::prelude::*;
 
 #[derive(Event)]
-pub struct CharacterNameInvalid(pub Entity);
-
-#[derive(Event)]
 pub struct OutgoingEvent {
     pub id: Uuid,
     pub text: Option<Vec<u8>>,

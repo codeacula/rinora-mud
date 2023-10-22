@@ -42,6 +42,7 @@ fn parse_keyword(command: &str) -> String {
 pub fn process_incoming_commands(world: &mut World) {
     let user_input_events = get_user_input_events(world);
 
+    // Go ahead and take these out now so we don't have to deal with borrower issues
     let account_commands = world.remove_resource::<AccountCommands>().unwrap();
     let game_commands = world.remove_resource::<GameCommands>().unwrap();
 
@@ -75,6 +76,7 @@ pub fn process_incoming_commands(world: &mut World) {
         }
     }
 
+    // We need to put the resources back when done
     world.insert_resource(account_commands);
     world.insert_resource(game_commands);
 }

@@ -1,6 +1,5 @@
 use bevy::log::{Level, LogPlugin};
 use database::prelude::*;
-use events::*;
 use helper::HelperPlugin;
 use output::*;
 use prelude::*;
@@ -63,14 +62,24 @@ impl Plugin for BaseRinoraPlugin {
                     .in_set(GameOrderSet::Command),
             )
             .add_systems(Update, add_character_to_room.in_set(GameOrderSet::Game))
-            .add_systems(Update, character_name_invalid.in_set(GameOrderSet::Post))
+            .add_systems(
+                Update,
+                (
+                    character_name_invalid,
+                    character_was_created,
+                    display_character_exists,
+                    handle_generic_error,
+                )
+                    .in_set(GameOrderSet::Post),
+            )
             .add_systems(
                 Update,
                 (
                     display_character_entering_room,
                     display_character_logged_into_room,
                     display_room_to_user,
-                    show_prompt,
+                    show_login_screen,
+                    send_prompt_to_user,
                 )
                     .in_set(GameOrderSet::Output),
             )

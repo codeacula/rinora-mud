@@ -48,3 +48,6 @@ pub struct AccountCommands(pub Vec<Box<dyn GameCommand>>);
 /// GameCommands are only ran when the user is logged into a character
 #[derive(Resource)]
 pub struct GameCommands(pub Vec<Box<dyn GameCommand>>);
+
+#[derive(Event)]
+pub struct GenericErrorEvent(pub Entity);

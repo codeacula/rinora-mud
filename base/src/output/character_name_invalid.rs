@@ -1,7 +1,5 @@
 use shared::prelude::*;
 
-use crate::events::CharacterNameInvalid;
-
 pub fn character_name_invalid(
     mut character_name_invalid_rx: EventReader<CharacterNameInvalid>,
     mut text_event_writer_tx: EventWriter<TextEvent>,
@@ -18,8 +16,6 @@ pub fn character_name_invalid(
 
 #[cfg(test)]
 mod tests {
-    use crate::events::CharacterNameInvalid;
-
     use super::character_name_invalid;
     use shared::prelude::*;
 

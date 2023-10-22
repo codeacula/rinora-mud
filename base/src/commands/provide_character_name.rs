@@ -1,4 +1,3 @@
-use crate::output::get_login_screen::*;
 use bevy::{ecs::system::SystemState, prelude::*};
 use database::prelude::*;
 use shared::prelude::*;
@@ -30,67 +29,33 @@ impl GameCommand for ProvideCharacterName {
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         if command.parts.len() > 1 || !is_alphabetic(&command.keyword) {
-            world.send_event(InvalidCharacterName(command.entity));
+            world.send_event(CharacterNameInvalid(command.entity));
             return Ok(());
         }
 
         let mut system_state: SystemState<(
             Res<DbInterface>,
             Res<GameSettings>,
-            Query<(Entity, &User, &mut UserSessionData)>,
-            EventWriter<TextEvent>,
+            Query<(&User, &mut UserSessionData)>,
         )> = SystemState::new(world);
-        let (db_repo, settings, mut query, mut text_event_tx) = system_state.get_mut(world);
+        let (db_repo, settings, mut query) = system_state.get_mut(world);
 
         let character_name = command.keyword.clone();
-        let exists_res = db_repo.characters.does_character_exist(&character_name);
+        let character_exists = db_repo.characters.does_character_exist(&character_name)?;
 
-        if let Err(err) = exists_res {
-            error!("Error checking if character exists: {err:?}");
-            text_event_tx.send(TextEvent::send_generic_error(command.entity));
+        if character_exists {
+            world.send_event(CharacterExists(command.entity));
             return Ok(());
         }
 
-        if exists_res.unwrap() {
-            text_event_tx.send(TextEvent::from_str(
-                command.entity,
-                "That character already exists. Please try a different name.",
-            ));
-            return Ok(());
-        }
+        let (user, mut user_sesh) = query.get_mut(command.entity).unwrap();
 
-        let (entity, user, mut user_sesh) = query.get_mut(command.entity).unwrap();
-
-        if let Err(err) =
-            db_repo
-                .characters
-                .create_character(&character_name, settings.default_room, user)
-        {
-            error!("Error creating character for user: {:?}", err);
-            text_event_tx.send(TextEvent::send_generic_error(command.entity));
-            return Ok(());
-        }
-
-        text_event_tx.send(TextEvent::from_str(
-            entity,
-            "Character created! You can now select them from the login screen",
-        ));
+        db_repo
+            .characters
+            .create_character(&character_name, settings.default_room, user)?;
 
         user_sesh.status = UserStatus::LoggedIn;
-
-        let characters = match db_repo.characters.get_all_by_user(user.id) {
-            Ok(characters) => characters,
-            Err(e) => {
-                error!(
-                    "Unable to fetch user's characters after creating a character: {:?}",
-                    e
-                );
-                world.send_event(TextEvent::send_generic_error(entity));
-                return Ok(());
-            }
-        };
-
-        world.send_event(TextEvent::new(entity, &get_login_screen(&characters)));
+        world.send_event(CharacterCreatedEvent(command.entity));
 
         Ok(())
     }
