@@ -3,9 +3,9 @@ use database::prelude::*;
 use shared::prelude::*;
 
 /// This command allows a user to select a character to log in to
-pub struct SelectCharacter {}
+pub struct SelectCharacterCommand {}
 
-impl GameCommand for SelectCharacter {
+impl GameCommand for SelectCharacterCommand {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             warn!("No session data found.");
@@ -49,7 +49,7 @@ impl GameCommand for SelectCharacter {
 
         // Make sure character exists
         let Some(character) = db_repo.characters.get_character_by_name(&command.keyword)? else {
-            world.send_event(CharacterNotFound(command.entity));
+            world.send_event(CharacterNotFoundEvent(command.entity));
             return Ok(());
         };
 
@@ -87,13 +87,13 @@ impl GameCommand for SelectCharacter {
 
         debug!("Spawned character in room {location_id:?} entity {room_entity:?}");
 
-        world.send_event(EntityEnteredWorld {
+        world.send_event(EntityEnteredWorldEvent {
             entity: character_entity,
             room_entity_is_in: room_entity,
             triggered_by: MovementTriggeredBy::Login,
         });
 
-        world.send_event(EntityEnteredRoom {
+        world.send_event(EntityEnteredRoomEvent {
             entity: character_entity,
             room_entity_is_in: room_entity,
             triggered_by: MovementTriggeredBy::Login,

@@ -1,9 +1,9 @@
 use database::prelude::*;
 use shared::prelude::*;
 
-pub struct UserConfirmedPassword {}
+pub struct UserConfirmedPasswordCommand {}
 
-impl GameCommand for UserConfirmedPassword {
+impl GameCommand for UserConfirmedPasswordCommand {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             return false;
@@ -21,7 +21,7 @@ impl GameCommand for UserConfirmedPassword {
             Res<DbInterface>,
             Query<&mut UserSessionData>,
             EventWriter<TextEvent>,
-            EventWriter<UserLoggedIn>,
+            EventWriter<UserLoggedInEvent>,
             Commands,
         )> = SystemState::new(world);
         let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx, mut commands) =
@@ -73,7 +73,7 @@ impl GameCommand for UserConfirmedPassword {
         ));
 
         user_sesh.status = UserStatus::LoggedIn;
-        user_logged_in_tx.send(UserLoggedIn {
+        user_logged_in_tx.send(UserLoggedInEvent {
             entity: command.entity,
             id: new_user.id,
         });

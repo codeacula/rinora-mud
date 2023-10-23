@@ -8,11 +8,17 @@ pub fn add_expected_commands(
     mut command_list: ResMut<AccountCommands>,
 ) {
     expected_commands.0.push("acct".to_string());
-    command_list.0.push(Box::new(UsernameProvided {}));
+    command_list.0.push(Box::new(UsernameProvidedCommand {}));
     command_list.0.push(Box::new(PasswordCreated {}));
     command_list.0.push(Box::new(PasswordProvided {}));
-    command_list.0.push(Box::new(UserConfirmedPassword {}));
-    command_list.0.push(Box::new(ProvideCharacterName {}));
-    command_list.0.push(Box::new(SelectedCreateCharacter {}));
-    command_list.0.push(Box::new(SelectCharacter {}));
+    command_list
+        .0
+        .push(Box::new(UserConfirmedPasswordCommand {}));
+    command_list
+        .0
+        .push(Box::new(ProvideCharacterNameCommand {}));
+    command_list
+        .0
+        .push(Box::new(SelectedCreateCharacterCommand {}));
+    command_list.0.push(Box::new(SelectCharacterCommand {}));
 }

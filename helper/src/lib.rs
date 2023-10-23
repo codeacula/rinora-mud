@@ -4,7 +4,7 @@ use shared::prelude::*;
 pub struct HelperPlugin;
 
 fn display_room_debug_info(
-    mut entity_entered_room_rx: EventReader<EntityEnteredRoom>,
+    mut entity_entered_room_rx: EventReader<EntityEnteredRoomEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
     is_controlled_by_query: Query<&IsControlledBy>,
     is_admin_query: Query<&IsAdmin>,

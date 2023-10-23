@@ -5,10 +5,10 @@ use shared::prelude::*;
 pub fn handle_generic_error(
     mut generic_error_events: EventReader<GenericErrorEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
-    mut prompt_tx: EventWriter<ShowPrompt>,
+    mut prompt_tx: EventWriter<ShowPromptEvent>,
 ) {
     for ev in generic_error_events.iter() {
         text_event_tx.send(TextEvent::send_generic_error(ev.0));
-        prompt_tx.send(ShowPrompt(ev.0));
+        prompt_tx.send(ShowPromptEvent(ev.0));
     }
 }

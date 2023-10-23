@@ -1,7 +1,7 @@
 use shared::prelude::*;
 
 pub fn display_character_entering_room(
-    mut entity_entered_room_rx: EventReader<EntityEnteredRoom>,
+    mut entity_entered_room_rx: EventReader<EntityEnteredRoomEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
     is_controlled_by_query: Query<&IsControlledBy>,
     characters_in_world: Query<&DisplayName, With<Character>>,

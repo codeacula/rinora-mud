@@ -1,7 +1,7 @@
 use bevy::{prelude::*, utils::Uuid};
 
 #[derive(Event)]
-pub struct UserLoggedIn {
+pub struct UserLoggedInEvent {
     pub entity: Entity,
     pub id: i32,
 }
@@ -41,4 +41,4 @@ pub struct UserSessionData {
 }
 
 #[derive(Event)]
-pub struct ShowPrompt(pub Entity);
+pub struct ShowPromptEvent(pub Entity);

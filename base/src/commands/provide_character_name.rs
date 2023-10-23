@@ -8,9 +8,9 @@ use shared::prelude::*;
 ///
 /// * Must have a user session
 /// * Must be creating a character
-pub struct ProvideCharacterName {}
+pub struct ProvideCharacterNameCommand {}
 
-impl GameCommand for ProvideCharacterName {
+impl GameCommand for ProvideCharacterNameCommand {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             warn!(
@@ -29,7 +29,7 @@ impl GameCommand for ProvideCharacterName {
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         if command.parts.len() > 1 || !is_alphabetic(&command.keyword) {
-            world.send_event(CharacterNameInvalid(command.entity));
+            world.send_event(CharacterNameInvalidEvent(command.entity));
             return Ok(());
         }
 
@@ -44,7 +44,7 @@ impl GameCommand for ProvideCharacterName {
         let character_exists = db_repo.characters.does_character_exist(&character_name)?;
 
         if character_exists {
-            world.send_event(CharacterExists(command.entity));
+            world.send_event(CharacterExistsEvent(command.entity));
             return Ok(());
         }
 
@@ -65,7 +65,7 @@ impl GameCommand for ProvideCharacterName {
 mod tests {
     use shared::prelude::*;
 
-    use super::ProvideCharacterName;
+    use super::ProvideCharacterNameCommand;
 
     fn get_app() -> App {
         let mut app = App::new();
@@ -75,7 +75,7 @@ mod tests {
     }
 
     fn get_command() -> Box<dyn GameCommand> {
-        Box::new(ProvideCharacterName {})
+        Box::new(ProvideCharacterNameCommand {})
     }
 
     fn get_context() -> (App, Box<dyn GameCommand>, UserCommand) {

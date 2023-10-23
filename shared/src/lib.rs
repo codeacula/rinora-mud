@@ -76,25 +76,25 @@ impl Plugin for SharedPlugin {
         app.configure_set(Last, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         // Account
-        app.add_event::<UserLoggedIn>()
+        app.add_event::<UserLoggedInEvent>()
             .add_event::<CharacterCreatedEvent>()
-            .add_event::<CharacterExists>()
-            .add_event::<CharacterNameInvalid>()
-            .add_event::<CharacterNotFound>();
+            .add_event::<CharacterExistsEvent>()
+            .add_event::<CharacterNameInvalidEvent>()
+            .add_event::<CharacterNotFoundEvent>();
 
         // Commands
         app.insert_resource(PossibleCommands(Vec::new()))
             .add_event::<GenericErrorEvent>();
 
         // Entities
-        app.add_event::<EntityEnteredRoom>()
-            .add_event::<EntityEnteredWorld>()
-            .add_event::<EntityLeftRoom>()
-            .add_event::<EntityLeftWorld>();
+        app.add_event::<EntityEnteredRoomEvent>()
+            .add_event::<EntityEnteredWorldEvent>()
+            .add_event::<EntityLeftRoomEvent>()
+            .add_event::<EntityLeftWorldEvent>();
 
         // Events
-        app.add_event::<ShowLoginScreen>()
-            .add_event::<ShowPrompt>()
+        app.add_event::<ShowLoginScreenEvent>()
+            .add_event::<ShowPromptEvent>()
             .add_event::<TextEvent>();
     }
 }

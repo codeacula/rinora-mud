@@ -1,7 +1,7 @@
 use shared::prelude::*;
 
 pub fn add_character_to_room(
-    mut entity_entered_room_rx: EventReader<EntityEnteredRoom>,
+    mut entity_entered_room_rx: EventReader<EntityEnteredRoomEvent>,
     mut all_rooms: Query<&mut EntityCollection, With<Room>>,
 ) {
     for ev in entity_entered_room_rx.iter() {

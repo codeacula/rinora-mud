@@ -1,7 +1,7 @@
 use shared::prelude::*;
 
 pub fn send_prompt_to_user(
-    mut show_prompt_rx: EventReader<ShowPrompt>,
+    mut show_prompt_rx: EventReader<ShowPromptEvent>,
     query: Query<&UserSessionData>,
     mut text_event_tx: EventWriter<TextEvent>,
 ) {

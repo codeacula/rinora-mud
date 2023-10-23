@@ -3,9 +3,9 @@ use shared::prelude::*;
 
 pub fn handle_user_login(
     mut query: Query<Entity>,
-    mut events: EventReader<UserLoggedIn>,
+    mut events: EventReader<UserLoggedInEvent>,
     mut text_events_tx: EventWriter<TextEvent>,
-    mut show_login_tx: EventWriter<ShowLoginScreen>,
+    mut show_login_tx: EventWriter<ShowLoginScreenEvent>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
 ) {
@@ -29,6 +29,6 @@ pub fn handle_user_login(
 
         commands.entity(entity).insert(user);
 
-        show_login_tx.send(ShowLoginScreen(entity));
+        show_login_tx.send(ShowLoginScreenEvent(entity));
     }
 }

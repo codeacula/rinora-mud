@@ -1,9 +1,9 @@
 use bevy::{ecs::system::SystemState, prelude::*};
 use shared::prelude::*;
 
-pub struct SelectedCreateCharacter {}
+pub struct SelectedCreateCharacterCommand {}
 
-impl GameCommand for SelectedCreateCharacter {
+impl GameCommand for SelectedCreateCharacterCommand {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             return false;

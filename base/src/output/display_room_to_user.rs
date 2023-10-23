@@ -3,7 +3,7 @@ use shared::prelude::*;
 use crate::helpers::*;
 
 pub fn display_room_to_user(
-    mut entity_entered_room_rx: EventReader<EntityEnteredRoom>,
+    mut entity_entered_room_rx: EventReader<EntityEnteredRoomEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
     is_controlled_by_query: Query<&IsControlledBy>,
     room_query: Query<(&DisplayName, &Description), With<Room>>,

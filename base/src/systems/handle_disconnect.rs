@@ -3,8 +3,8 @@ use shared::prelude::*;
 /// When a user disconnects
 pub fn handle_disconnect(
     mut ev_disconnection_event: EventReader<DisconnectionEvent>,
-    mut ev_entity_left_room: EventWriter<EntityLeftRoom>,
-    mut ev_entity_left_world: EventWriter<EntityLeftWorld>,
+    mut ev_entity_left_room: EventWriter<EntityLeftRoomEvent>,
+    mut ev_entity_left_world: EventWriter<EntityLeftWorldEvent>,
     query: Query<&UserSessionData>,
     character_info_query: Query<&Location>,
     room_map: ResMut<RoomMap>,
@@ -30,13 +30,13 @@ pub fn handle_disconnect(
                 continue;
             };
 
-            ev_entity_left_room.send(EntityLeftRoom {
+            ev_entity_left_room.send(EntityLeftRoomEvent {
                 entity: controlled_entity,
                 room_entity_was_in: *room,
                 triggered_by: MovementTriggeredBy::Logout,
             });
 
-            ev_entity_left_world.send(EntityLeftWorld {
+            ev_entity_left_world.send(EntityLeftWorldEvent {
                 entity: controlled_entity,
                 room_entity_was_in: *room,
                 triggered_by: MovementTriggeredBy::Logout,

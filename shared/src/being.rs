@@ -61,28 +61,28 @@ pub struct Mana {
 }
 
 #[derive(Event, Debug)]
-pub struct EntityEnteredRoom {
+pub struct EntityEnteredRoomEvent {
     pub entity: Entity,
     pub room_entity_is_in: Entity,
     pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
-pub struct EntityEnteredWorld {
+pub struct EntityEnteredWorldEvent {
     pub entity: Entity,
     pub room_entity_is_in: Entity,
     pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
-pub struct EntityLeftRoom {
+pub struct EntityLeftRoomEvent {
     pub entity: Entity,
     pub room_entity_was_in: Entity,
     pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
-pub struct EntityLeftWorld {
+pub struct EntityLeftWorldEvent {
     pub entity: Entity,
     pub room_entity_was_in: Entity,
     pub triggered_by: MovementTriggeredBy,

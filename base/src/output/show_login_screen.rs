@@ -2,9 +2,9 @@ use database::prelude::*;
 use shared::prelude::*;
 
 pub fn show_login_screen(
-    mut main_events: EventReader<ShowLoginScreen>,
+    mut main_events: EventReader<ShowLoginScreenEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
-    mut show_prompt_tx: EventWriter<ShowPrompt>,
+    mut show_prompt_tx: EventWriter<ShowPromptEvent>,
     mut generic_tx: EventWriter<GenericErrorEvent>,
     db_repo: Res<DbInterface>,
     query: Query<&User>,
@@ -44,6 +44,6 @@ pub fn show_login_screen(
         greeting.push_str("\nSend a number command or which character you want to play.");
 
         text_event_tx.send(TextEvent::new(entity, &greeting));
-        show_prompt_tx.send(ShowPrompt(entity));
+        show_prompt_tx.send(ShowPromptEvent(entity));
     }
 }

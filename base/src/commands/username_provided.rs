@@ -1,9 +1,9 @@
 use database::prelude::*;
 use shared::prelude::*;
 
-pub struct UsernameProvided {}
+pub struct UsernameProvidedCommand {}
 
-impl GameCommand for UsernameProvided {
+impl GameCommand for UsernameProvidedCommand {
     fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             return false;
@@ -116,7 +116,7 @@ impl GameCommand for PasswordProvided {
             Res<DbInterface>,
             Query<&mut UserSessionData>,
             EventWriter<TextEvent>,
-            EventWriter<UserLoggedIn>,
+            EventWriter<UserLoggedInEvent>,
             Commands,
         )> = SystemState::new(world);
         let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx, mut commands) =
@@ -159,7 +159,7 @@ impl GameCommand for PasswordProvided {
             commands.entity(command.entity).insert(IsAdmin);
         }
 
-        user_logged_in_tx.send(UserLoggedIn {
+        user_logged_in_tx.send(UserLoggedInEvent {
             entity: command.entity,
             id: user.id,
         });

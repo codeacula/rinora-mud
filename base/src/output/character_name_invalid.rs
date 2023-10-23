@@ -1,16 +1,16 @@
 use shared::prelude::*;
 
 pub fn character_name_invalid(
-    mut character_name_invalid_rx: EventReader<CharacterNameInvalid>,
+    mut character_name_invalid_rx: EventReader<CharacterNameInvalidEvent>,
     mut text_event_writer_tx: EventWriter<TextEvent>,
-    mut show_prompt_writer_tx: EventWriter<ShowPrompt>,
+    mut show_prompt_writer_tx: EventWriter<ShowPromptEvent>,
 ) {
     for ev in character_name_invalid_rx.iter() {
         text_event_writer_tx.send(TextEvent::from_str(
             ev.0,
             "Character names can only contain the letters A-Z, and only one word. Please try again.",
         ));
-        show_prompt_writer_tx.send(ShowPrompt(ev.0));
+        show_prompt_writer_tx.send(ShowPromptEvent(ev.0));
     }
 }
 
@@ -21,13 +21,13 @@ mod tests {
 
     fn get_app() -> App {
         let mut app = App::new();
-        app.add_event::<CharacterNameInvalid>()
+        app.add_event::<CharacterNameInvalidEvent>()
             .add_event::<TextEvent>()
-            .add_event::<ShowPrompt>()
+            .add_event::<ShowPromptEvent>()
             .add_systems(Update, character_name_invalid);
 
         app.world
-            .send_event(CharacterNameInvalid(Entity::PLACEHOLDER));
+            .send_event(CharacterNameInvalidEvent(Entity::PLACEHOLDER));
 
         app.update();
 
@@ -47,7 +47,7 @@ mod tests {
     fn sends_a_prompt_event() {
         let app = get_app();
 
-        let show_prompt_reader = app.world.resource::<Events<ShowPrompt>>();
+        let show_prompt_reader = app.world.resource::<Events<ShowPromptEvent>>();
 
         assert_eq!(1, show_prompt_reader.len());
     }
