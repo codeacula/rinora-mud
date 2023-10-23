@@ -71,16 +71,22 @@ mod tests {
     }
 
     fn get_context() -> (App, Box<dyn GameCommand>, UserCommand) {
-        return (get_app(), get_command(), get_user_command());
+        return (
+            get_app(),
+            get_command(),
+            get_user_command(String::from("Apollo")),
+        );
     }
 
-    fn get_user_command() -> UserCommand {
+    fn get_user_command(command: String) -> UserCommand {
+        let full_cmd = command.clone();
+
         UserCommand {
             entity: Entity::PLACEHOLDER,
-            full_command: String::from("apollo"),
-            keyword: String::from("apollo"),
-            parts: vec![String::from("apollo")],
-            raw_command: String::from("apollo\n"),
+            full_command: command.clone(),
+            keyword: command.clone(),
+            parts: command.split(' ').map(|f| f.to_string()).collect(),
+            raw_command: format!("{full_cmd}\n"),
         }
     }
 
@@ -115,7 +121,19 @@ mod tests {
 
     #[test]
     fn cant_have_provided_more_than_one_letter() {
-        todo!("Complete me!");
+        let (mut app, _command, mut user_command) = get_context();
+
+        let created_entity = app.world.spawn(UserSessionData {
+            status: UserStatus::CreateCharacter,
+            char_to_delete: None,
+            controlling_entity: None,
+            username: String::from("boots"),
+            connection: Uuid::new_v4(),
+            pwd: None,
+        });
+
+        user_command.entity = created_entity.id();
+        let command = get_user_command(String::from("Big Beans"));
     }
 
     #[test]
@@ -124,37 +142,12 @@ mod tests {
     }
 
     #[test]
-    fn character_doesnt_exist() {
-        todo!("Complete me!");
-    }
-
-    #[test]
-    fn sends_generic_error_on_db_issue_checking_name() {
-        todo!("Complete me!");
-    }
-
-    #[test]
-    fn sends_character_exists_event_if_exists() {
-        todo!("Complete me!");
-    }
-
-    #[test]
-    fn sends_generic_error_on_db_issue_creating_user() {
+    fn character_already_exists() {
         todo!("Complete me!");
     }
 
     #[test]
     fn sends_character_created_event_on_success() {
-        todo!("Complete me!");
-    }
-
-    #[test]
-    fn returns_the_user_to_logged_in_on_success() {
-        todo!("Complete me!");
-    }
-
-    #[test]
-    fn sends_show_login_screen_on_success() {
         todo!("Complete me!");
     }
 }

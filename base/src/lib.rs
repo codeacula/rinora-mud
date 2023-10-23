@@ -41,7 +41,6 @@ impl Plugin for BaseRinoraPlugin {
                 connection_to_entity: connection_hashmap,
             })
             // Events
-            .add_event::<CharacterNameInvalidEvent>()
             .add_event::<NewConnectionEvent>()
             .add_event::<InputReceivedEvent>()
             .add_event::<DisconnectionEvent>()
