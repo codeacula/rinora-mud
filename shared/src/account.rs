@@ -16,8 +16,13 @@ pub struct CharacterNameInvalidEvent(pub Entity);
 #[derive(Event)]
 pub struct CharacterNotFoundEvent(pub Entity);
 
+/// Fired when a user is ready to create a character through the control panel
 #[derive(Event)]
-pub struct CreateCharacter {}
+pub struct CreateCharacterEvent {
+    pub name: String,
+    pub user_entity: Entity,
+}
 
+/// Fired when we want to show the user the login screen
 #[derive(Event)]
 pub struct ShowLoginScreenEvent(pub Entity);

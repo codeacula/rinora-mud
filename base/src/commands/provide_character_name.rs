@@ -33,12 +33,8 @@ impl GameCommand for ProvideCharacterNameCommand {
             return Ok(());
         }
 
-        let mut system_state: SystemState<(
-            Res<DbInterface>,
-            Res<GameSettings>,
-            Query<(&User, &mut UserSessionData)>,
-        )> = SystemState::new(world);
-        let (db_repo, settings, mut query) = system_state.get_mut(world);
+        let mut system_state: SystemState<(Res<DbInterface>,)> = SystemState::new(world);
+        let db_repo = system_state.get_mut(world).0;
 
         let character_name = command.keyword.clone();
         let character_exists = db_repo.characters.does_character_exist(&character_name)?;
@@ -48,14 +44,10 @@ impl GameCommand for ProvideCharacterNameCommand {
             return Ok(());
         }
 
-        let (user, mut user_sesh) = query.get_mut(command.entity).unwrap();
-
-        db_repo
-            .characters
-            .create_character(&character_name, settings.default_room, user)?;
-
-        user_sesh.status = UserStatus::LoggedIn;
-        world.send_event(CharacterCreatedEvent(command.entity));
+        world.send_event(CreateCharacterEvent {
+            name: character_name,
+            user_entity: command.entity,
+        });
 
         Ok(())
     }

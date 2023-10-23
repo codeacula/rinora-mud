@@ -1,3 +1,4 @@
+use crate::events::*;
 use shared::prelude::*;
 
 /// Takes an InputReceivedEvent and converts it into a SentCommand

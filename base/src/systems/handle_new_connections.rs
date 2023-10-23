@@ -1,3 +1,4 @@
+use crate::events::*;
 use shared::prelude::*;
 
 /// When someone first connects
