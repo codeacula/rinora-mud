@@ -61,6 +61,8 @@ mod tests {
 
     fn get_app() -> App {
         let mut app = App::new();
+        app.add_event::<CharacterNameInvalidEvent>()
+            .add_event::<CharacterExistsEvent>();
         app.update();
 
         app
@@ -88,6 +90,19 @@ mod tests {
             parts: command.split(' ').map(|f| f.to_string()).collect(),
             raw_command: format!("{full_cmd}\n"),
         }
+    }
+
+    fn spawn_entity(world: &mut World) -> Entity {
+        world
+            .spawn(UserSessionData {
+                status: UserStatus::CreateCharacter,
+                char_to_delete: None,
+                controlling_entity: None,
+                username: String::from("boots"),
+                connection: Uuid::new_v4(),
+                pwd: None,
+            })
+            .id()
     }
 
     #[test]
@@ -121,29 +136,53 @@ mod tests {
 
     #[test]
     fn cant_have_provided_more_than_one_letter() {
-        let (mut app, _command, mut user_command) = get_context();
+        let (mut app, command, mut _user_command) = get_context();
 
-        let created_entity = app.world.spawn(UserSessionData {
-            status: UserStatus::CreateCharacter,
-            char_to_delete: None,
-            controlling_entity: None,
-            username: String::from("boots"),
-            connection: Uuid::new_v4(),
-            pwd: None,
-        });
+        let created_entity = spawn_entity(&mut app.world);
 
-        user_command.entity = created_entity.id();
-        let command = get_user_command(String::from("Big Beans"));
+        let mut user_command = get_user_command(String::from("Big Beans"));
+        user_command.entity = created_entity;
+
+        let res = command.run(&user_command, &mut app.world);
+
+        let evs = app.world.resource::<Events<CharacterNameInvalidEvent>>();
+
+        assert!(res.is_ok());
+        assert_eq!(1, evs.len());
     }
 
     #[test]
     fn name_must_be_alphabetic() {
-        todo!("Complete me!");
+        let (mut app, command, _user_command) = get_context();
+
+        let created_entity = spawn_entity(&mut app.world);
+
+        let mut user_command = get_user_command(String::from("3235sgndas42s"));
+        user_command.entity = created_entity;
+
+        let res = command.run(&user_command, &mut app.world);
+
+        let evs = app.world.resource::<Events<CharacterNameInvalidEvent>>();
+
+        assert!(res.is_ok());
+        assert_eq!(1, evs.len());
     }
 
     #[test]
     fn character_already_exists() {
-        todo!("Complete me!");
+        let (mut app, command, _user_command) = get_context();
+
+        let created_entity = spawn_entity(&mut app.world);
+
+        let mut user_command = get_user_command(String::from("3235sgndas42s"));
+        user_command.entity = created_entity;
+
+        let res = command.run(&user_command, &mut app.world);
+
+        let evs = app.world.resource::<Events<CharacterExistsEvent>>();
+
+        assert!(res.is_ok());
+        assert_eq!(1, evs.len());
     }
 
     #[test]

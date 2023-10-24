@@ -61,6 +61,7 @@ impl Plugin for BaseRinoraPlugin {
                 (handle_user_login, handle_disconnect, handle_new_connections)
                     .in_set(GameOrderSet::Command),
             )
+            .add_systems(Update, create_new_character.in_set(GameOrderSet::Account))
             .add_systems(Update, add_character_to_room.in_set(GameOrderSet::Game))
             .add_systems(
                 Update,
