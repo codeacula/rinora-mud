@@ -55,6 +55,7 @@ impl GameCommand for ProvideCharacterNameCommand {
 
 #[cfg(test)]
 mod tests {
+    use database::prelude::DbInterface;
     use shared::prelude::*;
 
     use super::ProvideCharacterNameCommand;
@@ -171,6 +172,8 @@ mod tests {
     #[test]
     fn character_already_exists() {
         let (mut app, command, _user_command) = get_context();
+
+        app.world.insert_resource(DbInterface::test());
 
         let created_entity = spawn_entity(&mut app.world);
 
