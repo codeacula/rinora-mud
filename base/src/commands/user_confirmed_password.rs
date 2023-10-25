@@ -4,19 +4,7 @@ use shared::prelude::*;
 pub struct UserConfirmedPasswordCommand {}
 
 impl GameCommand for UserConfirmedPasswordCommand {
-    fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
-        let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
-            return false;
-        };
-
-        if user_session.status == UserStatus::ConfirmPassword {
-            return true;
-        }
-
-        false
-    }
-
-    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
+    fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let mut system_state: SystemState<(
             Res<DbInterface>,
             Query<&mut UserSessionData>,
@@ -26,12 +14,19 @@ impl GameCommand for UserConfirmedPasswordCommand {
         )> = SystemState::new(world);
         let (db_repo, mut query, mut text_event_tx, mut user_logged_in_tx, mut commands) =
             system_state.get_mut(world);
-        let mut user_sesh = query.get_mut(command.entity).unwrap();
+
+        let Ok(mut user_sesh) = query.get_mut(command.entity) else {
+            return Ok(false);
+        };
+
+        if user_sesh.status != UserStatus::ConfirmPassword {
+            return Ok(false);
+        }
 
         if user_sesh.pwd.is_none() {
             error!("User got into ConfirmPassword state without having a password set in session!");
-            text_event_tx.send(TextEvent::send_generic_error(command.entity));
-            return Ok(());
+            world.send_event(GenericErrorEvent(command.entity));
+            return Ok(false);
         }
 
         let original_password = user_sesh.pwd.as_ref().unwrap();
@@ -44,7 +39,7 @@ impl GameCommand for UserConfirmedPasswordCommand {
             ));
 
             user_sesh.status = UserStatus::CreatePassword;
-            return Ok(());
+            return Ok(true);
         }
 
         let new_user = match db_repo
@@ -55,7 +50,7 @@ impl GameCommand for UserConfirmedPasswordCommand {
             Err(err) => {
                 error!("Unable to create user: {err}");
                 text_event_tx.send(TextEvent::send_generic_error(command.entity));
-                return Ok(());
+                return Ok(true);
             }
         };
 
@@ -76,6 +71,6 @@ impl GameCommand for UserConfirmedPasswordCommand {
             entity: command.entity,
             id: new_user.id,
         });
-        Ok(())
+        Ok(true)
     }
 }

@@ -39,7 +39,7 @@ pub fn verify_account_command_runs_on(
 
         assert_eq!(
             should_return_true,
-            command_to_test.can_execute(user_command, world)
+            command_to_test.run(user_command, world).unwrap()
         );
     }
 }

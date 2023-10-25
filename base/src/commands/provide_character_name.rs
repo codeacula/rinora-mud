@@ -17,26 +17,22 @@ use shared::prelude::*;
 pub struct ProvideCharacterNameCommand {}
 
 impl GameCommand for ProvideCharacterNameCommand {
-    fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
+    fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             warn!(
                 "Somehow user didn't have session data: {:?}",
                 command.entity
             );
-            return false;
+            return Ok(false);
         };
 
         if user_session.status != UserStatus::CreateCharacter {
-            return false;
+            return Ok(false);
         }
 
-        true
-    }
-
-    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         if command.parts.len() > 1 || !is_alphabetic(&command.keyword) {
             world.send_event(CharacterNameInvalidEvent(command.entity));
-            return Ok(());
+            return Ok(true);
         }
 
         let mut system_state: SystemState<(Res<DbInterface>,)> = SystemState::new(world);
@@ -47,7 +43,7 @@ impl GameCommand for ProvideCharacterNameCommand {
 
         if character_exists {
             world.send_event(CharacterExistsEvent(command.entity));
-            return Ok(());
+            return Ok(true);
         }
 
         world.send_event(CreateCharacterEvent {
@@ -55,7 +51,7 @@ impl GameCommand for ProvideCharacterNameCommand {
             user_entity: command.entity,
         });
 
-        Ok(())
+        Ok(true)
     }
 }
 
@@ -107,11 +103,11 @@ mod tests {
 
     #[test]
     fn user_must_have_valid_session() {
-        let app = get_app();
+        let mut app = get_app();
         let command = get_command();
         let user_command = get_user_command(String::from("Butts"));
 
-        assert_eq!(false, command.can_execute(&user_command, &app.world));
+        assert_eq!(false, command.run(&user_command, &mut app.world).unwrap());
     }
 
     #[test]

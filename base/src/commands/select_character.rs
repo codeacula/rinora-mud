@@ -19,19 +19,19 @@ use shared::prelude::*;
 pub struct SelectCharacterCommand {}
 
 impl GameCommand for SelectCharacterCommand {
-    fn can_execute(&self, command: &UserCommand, world: &World) -> bool {
+    fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
             warn!("No session data found.");
-            return false;
+            return Ok(false);
         };
 
         if user_session.status != UserStatus::LoggedIn {
-            return false;
+            return Ok(false);
         }
 
         let Some(user) = world.get::<User>(command.entity) else {
             warn!("Couldn't find user entity");
-            return false;
+            return Ok(false);
         };
 
         let db_repo = world.resource::<DbInterface>();
@@ -44,17 +44,13 @@ impl GameCommand for SelectCharacterCommand {
             info!("User doesn't own that character.");
         }
 
-        does_own
-    }
-
-    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
         // can_execute did most of the work for us here. We can just go ahead and issue the event
         world.send_event(CharacterSelectedEvent {
             name: command.keyword.clone(),
             user_entity: command.entity,
         });
 
-        Ok(())
+        Ok(true)
     }
 }
 
@@ -119,11 +115,11 @@ mod tests {
 
     #[test]
     fn user_must_have_valid_session() {
-        let app = get_app();
+        let mut app = get_app();
         let command = get_command();
         let user_command = get_user_command(String::from("Butts"));
 
-        assert_eq!(false, command.can_execute(&user_command, &app.world));
+        assert_eq!(false, command.run(&user_command, &mut app.world).unwrap());
     }
 
     #[test]
@@ -168,7 +164,7 @@ mod tests {
         app.insert_resource(db_interface);
         user_command.entity = entity;
 
-        assert!(!command.can_execute(&user_command, &app.world));
+        assert!(!command.run(&user_command, &mut app.world).unwrap());
     }
 
     #[test]
