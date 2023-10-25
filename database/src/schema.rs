@@ -78,7 +78,6 @@ diesel::table! {
         id -> Int4,
         username -> Varchar,
         password_hash -> Varchar,
-        autologin -> Nullable<Int4>,
         administrator -> Bool,
     }
 }

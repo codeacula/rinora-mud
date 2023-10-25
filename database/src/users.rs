@@ -14,7 +14,6 @@ pub struct DbUser {
     pub id: i32,
     pub username: String,
     pub password_hash: String,
-    pub autologin: Option<i32>,
     pub administrator: bool,
 }
 
@@ -29,7 +28,6 @@ impl DbUser {
     pub fn to_game_user(&self) -> User {
         User {
             administrator: self.administrator,
-            autologin: self.autologin,
             username: self.username.clone(),
             id: self.id,
             current_character: None,

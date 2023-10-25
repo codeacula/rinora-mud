@@ -8,6 +8,13 @@ use shared::prelude::*;
 ///
 /// * Must have a user session
 /// * Must be creating a character
+///
+/// ### Run Events
+///
+/// * `CharacterNameInvalidEvent` - When the user provides an invalid name
+/// * `CharacterExistsEvent` - User tried to provide a character name that's taken
+/// * `CreateCharacterEvent` - Character creation passed checks and is ready to go
+///
 pub struct ProvideCharacterNameCommand {}
 
 impl GameCommand for ProvideCharacterNameCommand {
@@ -55,7 +62,7 @@ impl GameCommand for ProvideCharacterNameCommand {
 
 #[cfg(test)]
 mod tests {
-    use database::prelude::DbInterface;
+    use database::{get_test_db_interface, prelude::create_test_character};
     use shared::prelude::*;
 
     use super::ProvideCharacterNameCommand;
@@ -63,7 +70,8 @@ mod tests {
     fn get_app() -> App {
         let mut app = App::new();
         app.add_event::<CharacterNameInvalidEvent>()
-            .add_event::<CharacterExistsEvent>();
+            .add_event::<CharacterExistsEvent>()
+            .add_event::<CreateCharacterEvent>();
         app.update();
 
         app
@@ -71,14 +79,6 @@ mod tests {
 
     fn get_command() -> Box<dyn GameCommand> {
         Box::new(ProvideCharacterNameCommand {})
-    }
-
-    fn get_context() -> (App, Box<dyn GameCommand>, UserCommand) {
-        return (
-            get_app(),
-            get_command(),
-            get_user_command(String::from("Apollo")),
-        );
     }
 
     fn get_user_command(command: String) -> UserCommand {
@@ -108,14 +108,18 @@ mod tests {
 
     #[test]
     fn user_must_have_valid_session() {
-        let (app, command, user_command) = get_context();
+        let app = get_app();
+        let command = get_command();
+        let user_command = get_user_command(String::from("Butts"));
 
         assert_eq!(false, command.can_execute(&user_command, &app.world));
     }
 
     #[test]
     fn user_must_be_creating_a_character() {
-        let (mut app, command, mut user_command) = get_context();
+        let mut app = get_app();
+        let command = get_command();
+        let mut user_command = get_user_command(String::from("Butts"));
 
         let created_entity = app.world.spawn(UserSessionData {
             status: UserStatus::CreateCharacter,
@@ -137,11 +141,11 @@ mod tests {
 
     #[test]
     fn cant_have_provided_more_than_one_letter() {
-        let (mut app, command, mut _user_command) = get_context();
+        let mut app = get_app();
+        let command = get_command();
+        let mut user_command = get_user_command(String::from("Big Beans"));
 
         let created_entity = spawn_entity(&mut app.world);
-
-        let mut user_command = get_user_command(String::from("Big Beans"));
         user_command.entity = created_entity;
 
         let res = command.run(&user_command, &mut app.world);
@@ -154,7 +158,8 @@ mod tests {
 
     #[test]
     fn name_must_be_alphabetic() {
-        let (mut app, command, _user_command) = get_context();
+        let mut app = get_app();
+        let command = get_command();
 
         let created_entity = spawn_entity(&mut app.world);
 
@@ -171,13 +176,18 @@ mod tests {
 
     #[test]
     fn character_already_exists() {
-        let (mut app, command, _user_command) = get_context();
+        let mut app = get_app();
+        let command = get_command();
+        let character_name = String::from("Kang");
 
-        app.world.insert_resource(DbInterface::test());
+        let db_interface = get_test_db_interface();
+        create_test_character(&db_interface, character_name.clone());
+
+        app.world.insert_resource(db_interface);
 
         let created_entity = spawn_entity(&mut app.world);
 
-        let mut user_command = get_user_command(String::from("3235sgndas42s"));
+        let mut user_command = get_user_command(character_name);
         user_command.entity = created_entity;
 
         let res = command.run(&user_command, &mut app.world);
@@ -190,6 +200,24 @@ mod tests {
 
     #[test]
     fn sends_character_created_event_on_success() {
-        todo!("Complete me!");
+        let mut app = get_app();
+        let command = get_command();
+        let character_name = String::from("Kang");
+
+        let db_interface = get_test_db_interface();
+
+        app.world.insert_resource(db_interface);
+
+        let created_entity = spawn_entity(&mut app.world);
+
+        let mut user_command = get_user_command(character_name);
+        user_command.entity = created_entity;
+
+        let res = command.run(&user_command, &mut app.world);
+
+        let evs = app.world.resource::<Events<CreateCharacterEvent>>();
+
+        assert!(res.is_ok());
+        assert_eq!(1, evs.len());
     }
 }

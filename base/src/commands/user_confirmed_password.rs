@@ -60,7 +60,6 @@ impl GameCommand for UserConfirmedPasswordCommand {
         };
 
         commands.entity(command.entity).insert(User {
-            autologin: new_user.autologin,
             id: new_user.id,
             username: user_sesh.username.clone(),
             administrator: new_user.administrator,

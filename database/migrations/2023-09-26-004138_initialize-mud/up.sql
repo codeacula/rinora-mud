@@ -3,9 +3,11 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   username VARCHAR NOT NULL UNIQUE,
   password_hash VARCHAR NOT NULL,
-  autologin INT DEFAULT NULL,
   administrator BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+INSERT INTO users (username, password_hash, administrator) VALUES
+  ('dummy-account', 'dummy-password', FALSE);
 
 CREATE TABLE planes (
   id SERIAL PRIMARY KEY,
