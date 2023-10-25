@@ -3,6 +3,19 @@ use database::prelude::*;
 use shared::prelude::*;
 
 /// This command allows a user to select a character to log in to
+///
+/// ### Run Conditions
+///
+/// * Must have a user session
+/// * Must be logged in
+/// * Must own the character
+///
+/// ### Run Events
+///
+/// * `CharacterNotFoundEvent` - Unable to locate the character. Shouldn't ever get here
+/// * `CharacterExistsEvent` - User tried to provide a character name that's taken
+/// * `CreateCharacterEvent` - Character creation passed checks and is ready to go
+///
 pub struct SelectCharacterCommand {}
 
 impl GameCommand for SelectCharacterCommand {
