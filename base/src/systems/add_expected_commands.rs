@@ -17,8 +17,6 @@ pub fn add_expected_commands(
     command_list
         .0
         .push(Box::new(ProvideCharacterNameCommand {}));
-    command_list
-        .0
-        .push(Box::new(SelectedCreateCharacterCommand {}));
+    command_list.0.push(Box::new(CreateCharacterCommand {}));
     command_list.0.push(Box::new(SelectCharacterCommand {}));
 }
