@@ -1,4 +1,5 @@
 use bevy::log::{Level, LogPlugin};
+use bevy::utils::HashMap;
 use database::prelude::*;
 use events::*;
 use helper::*;
@@ -22,10 +23,27 @@ pub struct BaseRinoraPlugin;
 impl Plugin for BaseRinoraPlugin {
     fn build(&self, app: &mut App) {
         // Resources
-        let account_commands = AccountCommands(Vec::new());
-        let command_list = GameCommands(Vec::new());
+        let mut command_list = GameCommands(HashMap::new());
         let connection_hashmap = HashMap::<Uuid, Entity>::new();
         let character_map = CharacterMap(HashMap::new());
+
+        // Go ahead and make the vectors for all the statuses
+        let statuses_to_add = vec![
+            UserStatus::CreateCharacter,
+            UserStatus::CreatePassword,
+            UserStatus::ConfirmDelete,
+            UserStatus::ConfirmPassword,
+            UserStatus::DeleteCharacter,
+            UserStatus::InGame,
+            UserStatus::LoggedIn,
+            UserStatus::NeedUsername,
+            UserStatus::NeedPassword,
+            UserStatus::ToggleAutologin,
+        ];
+
+        for status in statuses_to_add {
+            command_list.0.insert(status, Vec::new());
+        }
 
         app
             // System Plugins
@@ -34,7 +52,6 @@ impl Plugin for BaseRinoraPlugin {
                 filter: "debug,rinora_mud=debug".into(),
             })
             // Resources
-            .insert_resource(account_commands)
             .insert_resource(character_map)
             .insert_resource(command_list)
             .insert_resource(NetworkInfo {

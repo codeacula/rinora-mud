@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use command::PossibleCommands;
 use prelude::*;
 
 pub mod account;
@@ -83,8 +82,7 @@ impl Plugin for SharedPlugin {
             .add_event::<CharacterNotFoundEvent>();
 
         // Commands
-        app.insert_resource(PossibleCommands(Vec::new()))
-            .add_event::<GenericErrorEvent>();
+        app.add_event::<GenericErrorEvent>();
 
         // Entities
         app.add_event::<EntityEnteredRoomEvent>()
