@@ -16,6 +16,13 @@ pub struct CharacterNameInvalidEvent(pub Entity);
 #[derive(Event)]
 pub struct CharacterNotFoundEvent(pub Entity);
 
+/// Fired when a user has selected a character from the main manu
+#[derive(Event)]
+pub struct CharacterSelectedEvent {
+    pub name: String,
+    pub user_entity: Entity,
+}
+
 /// Fired when a user is ready to create a character through the control panel
 #[derive(Event)]
 pub struct CreateCharacterEvent {

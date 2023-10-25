@@ -1,4 +1,4 @@
-use bevy::{ecs::system::SystemState, prelude::*};
+use bevy::prelude::*;
 use database::prelude::*;
 use shared::prelude::*;
 
@@ -13,7 +13,7 @@ use shared::prelude::*;
 /// ### Run Events
 ///
 /// * `CharacterNotFoundEvent` - Unable to locate the character. Shouldn't ever get here
-/// * `CharacterExistsEvent` - User tried to provide a character name that's taken
+/// * `GenericErrorEvent` - When the character's room isn't in the room map
 /// * `CreateCharacterEvent` - Character creation passed checks and is ready to go
 ///
 pub struct SelectCharacterCommand {}
@@ -48,72 +48,155 @@ impl GameCommand for SelectCharacterCommand {
     }
 
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String> {
-        let mut system_state: SystemState<(
-            Res<DbInterface>,
-            Res<RoomMap>,
-            ResMut<CharacterMap>,
-            Query<&mut UserSessionData>,
-            Query<&mut EntityCollection>,
-            Commands,
-        )> = SystemState::new(world);
-        let (db_repo, room_map, mut character_map, mut query, mut room_query, mut commands) =
-            system_state.get_mut(world);
-        let mut user_sesh = query.get_mut(command.entity).unwrap();
-
-        // Make sure character exists
-        let Some(character) = db_repo.characters.get_character_by_name(&command.keyword)? else {
-            world.send_event(CharacterNotFoundEvent(command.entity));
-            return Ok(());
-        };
-
-        // Make sure room is mapped
-        let Some(room_entity) = room_map.get_room(&character.location) else {
-            warn!("Unable to find character's room in the room map.");
-            world.send_event(GenericErrorEvent(command.entity));
-            return Ok(());
-        };
-
-        // They're set to be placed in game
-        let character_id = character.info.character_id;
-        let location_id = character.location.0;
-        let character_entity = commands.spawn(character).id();
-
-        user_sesh.status = UserStatus::InGame;
-
-        character_map.0.insert(character_id, character_entity);
-
-        if let Ok(mut entities) = room_query.get_mut(character_entity) {
-            entities.0.push(character_entity);
-        }
-
-        // Tag this character as being controlled by the player
-        commands
-            .entity(character_entity)
-            .insert(IsControlledBy(command.entity));
-
-        user_sesh.controlling_entity = Some(character_entity);
-
-        debug!(
-            "Tagged character entity {character_entity:?} as controlled by entity {:?}",
-            command.entity
-        );
-
-        debug!("Spawned character in room {location_id:?} entity {room_entity:?}");
-
-        world.send_event(EntityEnteredWorldEvent {
-            entity: character_entity,
-            room_entity_is_in: room_entity,
-            triggered_by: MovementTriggeredBy::Login,
+        // can_execute did most of the work for us here. We can just go ahead and issue the event
+        world.send_event(CharacterSelectedEvent {
+            name: command.keyword.clone(),
+            user_entity: command.entity,
         });
-
-        world.send_event(EntityEnteredRoomEvent {
-            entity: character_entity,
-            room_entity_is_in: room_entity,
-            triggered_by: MovementTriggeredBy::Login,
-        });
-
-        system_state.apply(world);
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use database::{
+        get_test_db_interface,
+        prelude::{create_bad_test_character, create_test_character},
+    };
+    use shared::prelude::*;
+
+    use super::SelectCharacterCommand;
+
+    fn get_app() -> App {
+        let mut app = App::new();
+        app.add_event::<CharacterNameInvalidEvent>()
+            .add_event::<CharacterExistsEvent>()
+            .add_event::<CreateCharacterEvent>()
+            .add_event::<CharacterSelectedEvent>();
+        app.update();
+
+        app
+    }
+
+    fn get_command() -> Box<dyn GameCommand> {
+        Box::new(SelectCharacterCommand {})
+    }
+
+    fn get_user_command(command: String) -> UserCommand {
+        let full_cmd = command.clone();
+
+        UserCommand {
+            entity: Entity::PLACEHOLDER,
+            full_command: command.clone(),
+            keyword: command.clone(),
+            parts: command.split(' ').map(|f| f.to_string()).collect(),
+            raw_command: format!("{full_cmd}\n"),
+        }
+    }
+
+    fn spawn_entity(world: &mut World) -> Entity {
+        world
+            .spawn(UserSessionData {
+                status: UserStatus::LoggedIn,
+                char_to_delete: None,
+                controlling_entity: None,
+                username: String::from("boots"),
+                connection: Uuid::new_v4(),
+                pwd: None,
+            })
+            .id()
+    }
+
+    fn spawn_user(world: &mut World, entity: Entity) {
+        world.entity_mut(entity).insert(User {
+            administrator: false,
+            current_character: None,
+            id: 1,
+            username: String::from("testuser"),
+        });
+    }
+
+    #[test]
+    fn user_must_have_valid_session() {
+        let app = get_app();
+        let command = get_command();
+        let user_command = get_user_command(String::from("Butts"));
+
+        assert_eq!(false, command.can_execute(&user_command, &app.world));
+    }
+
+    #[test]
+    fn user_must_be_logged_in() {
+        let mut app: App = get_app();
+        let command = get_command();
+        let db_interface = get_test_db_interface();
+
+        let entity = spawn_entity(&mut app.world);
+        spawn_user(&mut app.world, entity);
+
+        let username = String::from("Billy");
+        let mut user_command = get_user_command(username.clone());
+
+        create_test_character(&db_interface, username);
+
+        app.insert_resource(db_interface);
+
+        user_command.entity = entity;
+        verify_account_command_runs_on(
+            &command,
+            UserStatus::LoggedIn,
+            &user_command,
+            &mut app.world,
+        );
+    }
+
+    #[test]
+    fn user_must_own_character() {
+        let mut app: App = get_app();
+        let command = get_command();
+        let db_interface = get_test_db_interface();
+
+        let entity = spawn_entity(&mut app.world);
+        spawn_user(&mut app.world, entity);
+
+        let username = String::from("Billy");
+        let mut user_command = get_user_command(username.clone());
+
+        create_bad_test_character(&db_interface, username);
+
+        app.insert_resource(db_interface);
+        user_command.entity = entity;
+
+        assert!(!command.can_execute(&user_command, &app.world));
+    }
+
+    #[test]
+    fn sends_character_selected_event() {
+        let mut app: App = get_app();
+        let command = get_command();
+        let db_interface = get_test_db_interface();
+
+        let entity = spawn_entity(&mut app.world);
+        spawn_user(&mut app.world, entity);
+
+        let username = String::from("Billy");
+        let mut user_command = get_user_command(username.clone());
+
+        create_test_character(&db_interface, username);
+
+        app.insert_resource(db_interface);
+        user_command.entity = entity;
+
+        command
+            .run(&user_command, &mut app.world)
+            .expect("Command failed to run.");
+
+        let char_selected_res = app
+            .world
+            .get_resource::<Events<CharacterSelectedEvent>>()
+            .expect("Unable to locate resource.");
+
+        assert_eq!(1, char_selected_res.len());
     }
 }

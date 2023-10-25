@@ -7,7 +7,8 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (username, password_hash, administrator) VALUES
-  ('dummy-account', 'dummy-password', FALSE);
+  ('dummy-account1', 'dummy-password1', FALSE),
+  ('dummy-account2', 'dummy-password2', FALSE);
 
 CREATE TABLE planes (
   id SERIAL PRIMARY KEY,
