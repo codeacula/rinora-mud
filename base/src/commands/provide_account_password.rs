@@ -1,9 +1,9 @@
 use database::prelude::*;
 use shared::prelude::*;
 
-pub struct PasswordProvided {}
+pub struct ProvideAccountPasswordCommand {}
 
-impl GameCommand for PasswordProvided {
+impl GameCommand for ProvideAccountPasswordCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let mut system_state: SystemState<(
             Res<DbInterface>,

@@ -1,8 +1,8 @@
 use shared::prelude::*;
 
-pub struct PasswordCreated {}
+pub struct CreateAccountPasswordCommand {}
 
-impl GameCommand for PasswordCreated {
+impl GameCommand for CreateAccountPasswordCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let mut system_state: SystemState<(Query<&mut UserSessionData>, EventWriter<TextEvent>)> =
             SystemState::new(world);

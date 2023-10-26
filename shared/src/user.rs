@@ -6,7 +6,7 @@ pub struct UserLoggedInEvent {
     pub id: i32,
 }
 
-#[derive(PartialEq, Default)]
+#[derive(Eq, PartialEq, Default, Hash)]
 pub enum UserStatus {
     CreateCharacter,
     CreatePassword,

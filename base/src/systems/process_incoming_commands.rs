@@ -43,8 +43,7 @@ fn parse_keyword(command: &str) -> String {
 pub fn process_incoming_commands(world: &mut World) {
     let user_input_events = get_user_input_events(world);
 
-    // Go ahead and take these out now so we don't have to deal with borrower issues
-    let account_commands = world.remove_resource::<AccountCommands>().unwrap();
+    // Go ahead and take these out now so we don't have to deal with borrower issues7
     let game_commands = world.remove_resource::<GameCommands>().unwrap();
 
     for user_input in user_input_events {
@@ -53,9 +52,8 @@ pub fn process_incoming_commands(world: &mut World) {
         // Unwrap is safe here because they can't get here without UserSessionData
         let user_sesh = world.get::<UserSessionData>(sent_command.entity).unwrap();
 
-        let commands_to_check = match user_sesh.status {
-            UserStatus::InGame => game_commands.0.iter(),
-            _ => account_commands.0.iter(),
+        let Some(commands_to_check) = game_commands.0.get(&user_sesh.status) else {
+            continue;
         };
 
         let mut did_send_command = false;
@@ -84,6 +82,5 @@ pub fn process_incoming_commands(world: &mut World) {
     }
 
     // We need to put the resources back when done
-    world.insert_resource(account_commands);
     world.insert_resource(game_commands);
 }

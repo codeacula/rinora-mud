@@ -18,15 +18,8 @@ impl GameCommand for UsernameProvidedCommand {
             return Ok(false);
         };
 
-        if user_sesh.status != UserStatus::NeedUsername {
-            return Ok(false);
-        }
-
         if !is_alphabetic(username) {
-            text_event_tx.send(TextEvent::new(
-                command.entity,
-                &"Only alphabetic (a-z) characters are allowed.".to_string(),
-            ));
+            world.send_event(UsernameInvalid(command.entity));
             return Ok(true);
         }
 
