@@ -80,13 +80,16 @@ impl Plugin for SharedPlugin {
             .add_event::<CharacterNameInvalidEvent>()
             .add_event::<CharacterNotFoundEvent>()
             .add_event::<CharacterSelectedEvent>()
-            .add_event::<ConfirmPasswordDoesntMatchEvent>()
+            .add_event::<ConfirmPasswordDoesNotMatchEvent>()
             .add_event::<CreateCharacterEvent>()
             .add_event::<CreateCharacterSelectedEvent>()
             .add_event::<PasswordNotLongEnoughEvent>()
             .add_event::<UnableToLocateAccountEvent>()
             .add_event::<UserConfirmedPasswordEvent>()
             .add_event::<UserLoggedInEvent>()
+            .add_event::<UserProvidedPasswordEvent>()
+            .add_event::<UsernameDoesNotExistEvent>()
+            .add_event::<UsernameExistsEvent>()
             .add_event::<UsernameInvalidEvent>()
             .add_event::<UsernameProvidedEvent>();
 

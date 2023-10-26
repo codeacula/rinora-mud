@@ -13,7 +13,7 @@ impl GameCommand for ProvideUsernameCommand {
 
         world.send_event(UsernameProvidedEvent {
             user_entity: command.entity,
-            username,
+            username: username.to_string(),
         });
 
         Ok(true)

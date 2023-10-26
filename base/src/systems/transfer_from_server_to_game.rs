@@ -32,7 +32,7 @@ pub fn transfer_from_server_to_game(
                     entity,
                     id: new_event.id,
                 });
-                debug!("Spawned user session: {:?}", entity);
+                debug!("Spawned user session: {entity:?}");
             }
             NetworkEventType::InputReceived => {
                 let entity = *network_info

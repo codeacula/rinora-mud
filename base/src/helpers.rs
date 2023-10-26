@@ -11,6 +11,7 @@ pub fn send_room_description(
         text: TextBlock {
             text_slices: Vec::new(),
         },
+        add_newline: true,
     };
 
     text_event.text.text_slices.push(TextSlice {

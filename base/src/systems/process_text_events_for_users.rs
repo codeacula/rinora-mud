@@ -32,6 +32,12 @@ pub fn process_text_events_for_users(
 
         // Reset formatting and add a newline
         outgoing_string.push_str("\u{1b}[0m");
-        outgoing_queue.send_str(user.connection, &format!("{}\n", outgoing_string.trim()));
+        outgoing_string = outgoing_string.trim().to_string();
+
+        if text_event.add_newline {
+            outgoing_string.push_str("\n");
+        }
+
+        outgoing_queue.send_str(user.connection, &outgoing_string);
     }
 }

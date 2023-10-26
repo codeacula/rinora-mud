@@ -78,7 +78,11 @@ impl Plugin for BaseRinoraPlugin {
                 (handle_user_login, handle_disconnect, handle_new_connections)
                     .in_set(GameOrderSet::Command),
             )
-            .add_systems(Update, create_new_character.in_set(GameOrderSet::Account))
+            .add_systems(
+                Update,
+                (create_new_character, check_username_and_transition_user)
+                    .in_set(GameOrderSet::Account),
+            )
             .add_systems(Update, add_character_to_room.in_set(GameOrderSet::Game))
             .add_systems(
                 Update,
@@ -87,6 +91,8 @@ impl Plugin for BaseRinoraPlugin {
                     character_was_created,
                     display_character_exists,
                     handle_generic_error,
+                    username_exists,
+                    username_does_not_exists,
                 )
                     .in_set(GameOrderSet::Post),
             )

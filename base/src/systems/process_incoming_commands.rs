@@ -59,18 +59,16 @@ pub fn process_incoming_commands(world: &mut World) {
         let mut did_send_command = false;
 
         for game_command in commands_to_check {
-            let run_result = game_command.run(&sent_command, world);
+            let run_result = match game_command.run(&sent_command, world) {
+                Ok(val) => val,
+                Err(e) => {
+                    error!("There was an error attempting to run command: {e:?}");
+                    world.send_event(GenericErrorEvent(sent_command.entity));
+                    return;
+                }
+            };
 
-            if run_result.is_err() {
-                error!(
-                    "There was an error attempting to run command: {:?}",
-                    run_result.err().unwrap()
-                );
-                world.send_event(GenericErrorEvent(sent_command.entity));
-                return;
-            }
-
-            if run_result.unwrap() {
+            if run_result {
                 did_send_command = true;
                 break;
             }

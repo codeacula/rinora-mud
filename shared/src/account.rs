@@ -25,7 +25,7 @@ pub struct CharacterSelectedEvent {
 
 /// Fired when a use tries to provide their confirmation password butx`` get it wrong
 #[derive(Event)]
-pub struct ConfirmPasswordDoesntMatchEvent(pub Entity);
+pub struct ConfirmPasswordDoesNotMatchEvent(pub Entity);
 
 /// Fired when a user is ready to create a character through the control panel
 #[derive(Event)]
@@ -53,6 +53,14 @@ pub struct ShowLoginScreenEvent(pub Entity);
 /// Fired when the user is confirming their password and it's successful
 #[derive(Event)]
 pub struct UserConfirmedPasswordEvent(pub Entity);
+
+/// Fired when a user is logging in and provides a username that isn't valid
+#[derive(Event)]
+pub struct UsernameDoesNotExistEvent(pub Entity);
+
+/// Fired when a user is logging in and provides a username that's valid
+#[derive(Event)]
+pub struct UsernameExistsEvent(pub Entity);
 
 /// Fired when a user has sent in their password
 #[derive(Event)]

@@ -3,7 +3,7 @@ use crate::prelude::*;
 pub fn get_app() -> App {
     let mut app = App::new();
     app.add_event::<GenericErrorEvent>()
-        .add_event::<ConfirmPasswordDoesntMatchEvent>()
+        .add_event::<ConfirmPasswordDoesNotMatchEvent>()
         .add_event::<UserConfirmedPasswordEvent>();
     app.update();
 
