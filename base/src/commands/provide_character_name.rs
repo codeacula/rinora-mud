@@ -18,18 +18,6 @@ pub struct ProvideCharacterNameCommand {}
 
 impl GameCommand for ProvideCharacterNameCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
-        let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
-            warn!(
-                "Somehow user didn't have session data: {:?}",
-                command.entity
-            );
-            return Ok(false);
-        };
-
-        if user_session.status != UserStatus::CreateCharacter {
-            return Ok(false);
-        }
-
         if command.parts.len() > 1 || !is_alphabetic(&command.keyword) {
             world.send_event(CharacterNameInvalidEvent(command.entity));
             return Ok(true);
@@ -108,30 +96,6 @@ mod tests {
         let user_command = get_user_command(String::from("Butts"));
 
         assert_eq!(false, command.run(&user_command, &mut app.world).unwrap());
-    }
-
-    #[test]
-    fn user_must_be_creating_a_character() {
-        let mut app = get_app();
-        let command = get_command();
-        let mut user_command = get_user_command(String::from("Butts"));
-
-        let created_entity = app.world.spawn(UserSessionData {
-            status: UserStatus::CreateCharacter,
-            char_to_delete: None,
-            controlling_entity: None,
-            username: String::from("boots"),
-            connection: Uuid::new_v4(),
-            pwd: None,
-        });
-
-        user_command.entity = created_entity.id();
-        verify_account_command_runs_on(
-            &command,
-            UserStatus::CreateCharacter,
-            &user_command,
-            &mut app.world,
-        );
     }
 
     #[test]

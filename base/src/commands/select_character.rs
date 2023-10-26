@@ -20,15 +20,6 @@ pub struct SelectCharacterCommand {}
 
 impl GameCommand for SelectCharacterCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
-        let Some(user_session) = world.get::<UserSessionData>(command.entity) else {
-            warn!("No session data found.");
-            return Ok(false);
-        };
-
-        if user_session.status != UserStatus::LoggedIn {
-            return Ok(false);
-        }
-
         let Some(user) = world.get::<User>(command.entity) else {
             warn!("Couldn't find user entity");
             return Ok(false);
@@ -38,17 +29,16 @@ impl GameCommand for SelectCharacterCommand {
 
         let does_own = db_repo
             .characters
-            .does_user_own_character(&command.keyword.clone(), user.id);
+            .does_user_own_character(&command.keyword, user.id);
 
         if !does_own {
-            info!("User doesn't own that character.");
+            world.send_event(CharacterSelectedEvent {
+                name: command.keyword.clone(),
+                user_entity: command.entity,
+            });
+        } else {
+            world.send_event(CharacterNotFoundEvent(command.entity));
         }
-
-        // can_execute did most of the work for us here. We can just go ahead and issue the event
-        world.send_event(CharacterSelectedEvent {
-            name: command.keyword.clone(),
-            user_entity: command.entity,
-        });
 
         Ok(true)
     }
@@ -120,31 +110,6 @@ mod tests {
         let user_command = get_user_command(String::from("Butts"));
 
         assert_eq!(false, command.run(&user_command, &mut app.world).unwrap());
-    }
-
-    #[test]
-    fn user_must_be_logged_in() {
-        let mut app: App = get_app();
-        let command = get_command();
-        let db_interface = get_test_db_interface();
-
-        let entity = spawn_entity(&mut app.world);
-        spawn_user(&mut app.world, entity);
-
-        let username = String::from("Billy");
-        let mut user_command = get_user_command(username.clone());
-
-        create_test_character(&db_interface, username);
-
-        app.insert_resource(db_interface);
-
-        user_command.entity = entity;
-        verify_account_command_runs_on(
-            &command,
-            UserStatus::LoggedIn,
-            &user_command,
-            &mut app.world,
-        );
     }
 
     #[test]

@@ -12,7 +12,7 @@ pub struct UserCommand {
     /// The Entity responsible for sending the command
     pub entity: Entity,
 
-    /// The main keyword of the command. Should be equivalent to parts[0], with some exceptions for commands like
+    /// The main keyword of the command. Should be equivalent to `parts[0]`, with some exceptions for commands like
     /// `'Hello` which should expand to SAY HELLO. The command interpreter will handle those specially
     pub keyword: String,
 

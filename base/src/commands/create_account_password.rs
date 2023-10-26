@@ -4,20 +4,18 @@ pub struct CreateAccountPasswordCommand {}
 
 impl GameCommand for CreateAccountPasswordCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
-        let mut system_state: SystemState<(Query<&mut UserSessionData>, EventWriter<TextEvent>)> =
-            SystemState::new(world);
-        let (mut query, mut text_event_tx) = system_state.get_mut(world);
-        let mut user_sesh = query.get_mut(command.entity).unwrap();
-
         let password = command.full_command.clone();
 
-        user_sesh.pwd = Some(password);
-        user_sesh.status = UserStatus::ConfirmPassword;
+        if password.len() < 3 {
+            world.send_event(PasswordNotLongEnoughEvent(command.entity));
+            return Ok(true);
+        }
 
-        text_event_tx.send(TextEvent::from_str(
-            command.entity,
-            "Excellent. Now, provide your password again for confirmation.",
-        ));
+        world.send_event(UserProvidedPasswordEvent {
+            user_entity: command.entity,
+            password,
+        });
+
         Ok(true)
     }
 }

@@ -4,15 +4,14 @@ pub struct ConfirmAccountPasswordCommand {}
 
 impl GameCommand for ConfirmAccountPasswordCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
-        let mut system_state: SystemState<(Query<&mut UserSessionData>,)> = SystemState::new(world);
-        let mut query = system_state.get_mut(world);
+        let mut query = world.query::<&UserSessionData>();
 
-        let Ok(user_sesh) = query.get(command.entity) else {
+        let Ok(user_sesh) = query.get(world, command.entity) else {
             return Ok(false);
         };
 
         if user_sesh.pwd.is_none() {
-            error!("User got into ConfirmPassword state without having a password set in session!");
+            error!("Expect the user to have a session, but doesn't.");
             world.send_event(GenericErrorEvent(command.entity));
             return Ok(false);
         }
@@ -21,11 +20,11 @@ impl GameCommand for ConfirmAccountPasswordCommand {
         let confirmation_password = &command.full_command;
 
         if original_password != confirmation_password {
-            world.send_event(ConfirmPasswordDoesntMatch(command.entity));
+            world.send_event(ConfirmPasswordDoesntMatchEvent(command.entity));
             return Ok(true);
         }
 
-        world.send_event(UserConfirmedPassword(command.entity));
+        world.send_event(UserConfirmedPasswordEvent(command.entity));
         Ok(true)
     }
 }

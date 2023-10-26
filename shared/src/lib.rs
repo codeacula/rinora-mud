@@ -75,14 +75,20 @@ impl Plugin for SharedPlugin {
         app.configure_set(Last, GameOrderSet::Debug.before(GameOrderSet::Output));
 
         // Account
-        app.add_event::<UserLoggedInEvent>()
-            .add_event::<CharacterCreatedEvent>()
+        app.add_event::<CharacterCreatedEvent>()
             .add_event::<CharacterExistsEvent>()
             .add_event::<CharacterNameInvalidEvent>()
-            .add_event::<CharacterNotFoundEvent>();
-
-        // Commands
-        app.add_event::<GenericErrorEvent>();
+            .add_event::<CharacterNotFoundEvent>()
+            .add_event::<CharacterSelectedEvent>()
+            .add_event::<ConfirmPasswordDoesntMatchEvent>()
+            .add_event::<CreateCharacterEvent>()
+            .add_event::<CreateCharacterSelectedEvent>()
+            .add_event::<PasswordNotLongEnoughEvent>()
+            .add_event::<UnableToLocateAccountEvent>()
+            .add_event::<UserConfirmedPasswordEvent>()
+            .add_event::<UserLoggedInEvent>()
+            .add_event::<UsernameInvalidEvent>()
+            .add_event::<UsernameProvidedEvent>();
 
         // Entities
         app.add_event::<EntityEnteredRoomEvent>()
@@ -91,7 +97,8 @@ impl Plugin for SharedPlugin {
             .add_event::<EntityLeftWorldEvent>();
 
         // Events
-        app.add_event::<ShowLoginScreenEvent>()
+        app.add_event::<GenericErrorEvent>()
+            .add_event::<ShowLoginScreenEvent>()
             .add_event::<ShowPromptEvent>()
             .add_event::<TextEvent>();
     }

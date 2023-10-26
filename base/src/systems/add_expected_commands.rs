@@ -7,7 +7,7 @@ pub fn add_expected_commands(mut command_list: ResMut<GameCommands>) {
         .0
         .get_mut(&UserStatus::NeedUsername)
         .unwrap()
-        .push(Box::new(UsernameProvidedCommand {}));
+        .push(Box::new(ProvideUsernameCommand {}));
 
     command_list
         .0
