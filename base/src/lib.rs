@@ -91,10 +91,12 @@ impl Plugin for BaseRinoraPlugin {
                     character_was_created,
                     display_character_exists,
                     handle_generic_error,
+                    passwords_do_not_match,
+                    password_was_provided,
                     username_exists,
                     username_does_not_exists,
                 )
-                    .in_set(GameOrderSet::Post),
+                    .in_set(GameOrderSet::Pre),
             )
             .add_systems(
                 Update,
