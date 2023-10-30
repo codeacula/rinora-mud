@@ -6,7 +6,7 @@ impl GameCommand for ProvideUsernameCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let username = &command.keyword;
 
-        if !is_alphabetic(username) {
+        if is_valid_username(username) {
             world.send_event(UsernameInvalidEvent(command.entity));
             return Ok(true);
         }

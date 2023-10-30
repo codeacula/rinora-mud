@@ -22,6 +22,11 @@ pub fn log_user_in_on_password(
             continue;
         };
 
+        info!(
+            "Attempting to create user: {} with password: {password}",
+            user_sesh.username
+        );
+
         let user = match db_repo.users.create_user(&user_sesh.username, &password) {
             Ok(val) => val,
             Err(e) => {

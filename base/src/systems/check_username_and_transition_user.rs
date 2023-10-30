@@ -29,6 +29,8 @@ pub fn check_username_and_transition_user(
             }
         };
 
+        user_session_data.username = ev.username.clone();
+
         if username_exists {
             username_exists_rx.send(UsernameExistsEvent(ev.user_entity));
             user_session_data.status = UserStatus::NeedPassword;
