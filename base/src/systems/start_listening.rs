@@ -56,7 +56,7 @@ pub fn start_listening(world: &mut World) {
         // listening to the currently connected clients. I don't want to make the listener non-blocking because I don't
         // want to write error handling for that.
 
-        let server_host = env::var("SERVER_HOST").unwrap_or(String::from("::1"));
+        let server_host = env::var("SERVER_HOST").unwrap_or(String::from("127.0.0.1"));
         let server_port = env::var("SERVER_PORT").unwrap_or(String::from("23"));
 
         let tcp_listener = TcpListener::bind(format!("{server_host}:{server_port}"))

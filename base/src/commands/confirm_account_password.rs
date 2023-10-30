@@ -21,7 +21,7 @@ impl GameCommand for ConfirmAccountPasswordCommand {
 
         let confirmation_password = &command.full_command;
 
-        if original_password == confirmation_password {
+        if original_password != confirmation_password {
             world.send_event(ConfirmPasswordDoesNotMatchEvent(command.entity));
             return Ok(true);
         }
