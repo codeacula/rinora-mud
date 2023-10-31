@@ -51,6 +51,8 @@ impl Plugin for BaseRinoraPlugin {
                 level: Level::DEBUG,
                 filter: "debug,rinora_mud=debug".into(),
             })
+            // Plugins
+            .add_plugins((MinimalPlugins, SharedPlugin, DatabasePlugin, HelperPlugin))
             // Resources
             .insert_resource(character_map)
             .insert_resource(command_list)
@@ -116,8 +118,6 @@ impl Plugin for BaseRinoraPlugin {
                 Last,
                 (process_text_events_for_users, process_outgoing_data)
                     .in_set(GameOrderSet::Network),
-            )
-            // Plugins
-            .add_plugins((MinimalPlugins, SharedPlugin, DatabasePlugin, HelperPlugin));
+            );
     }
 }

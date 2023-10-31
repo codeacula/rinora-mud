@@ -16,6 +16,7 @@ pub fn password_was_provided(
         };
         user_session_data.status = UserStatus::ConfirmPassword;
         user_session_data.pwd = Some(ev.password.clone());
+
         text_event_tx.send(TextEvent::from_str(
             ev.user_entity,
             "Please confirm your password:",

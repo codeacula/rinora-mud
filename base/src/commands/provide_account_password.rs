@@ -25,6 +25,7 @@ impl GameCommand for ProvideAccountPasswordCommand {
         world.send_event(UserLoggedInEvent {
             entity: command.entity,
             id: user.id,
+            password: provided_password,
         });
 
         Ok(true)

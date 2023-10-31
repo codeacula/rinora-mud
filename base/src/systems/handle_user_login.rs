@@ -2,7 +2,6 @@ use database::prelude::*;
 use shared::prelude::*;
 
 pub fn handle_user_login(
-    mut query: Query<Entity>,
     mut events: EventReader<UserLoggedInEvent>,
     mut text_events_tx: EventWriter<TextEvent>,
     mut show_login_tx: EventWriter<ShowLoginScreenEvent>,
@@ -10,7 +9,7 @@ pub fn handle_user_login(
     mut commands: Commands,
 ) {
     for event in events.iter() {
-        let entity = query.get_mut(event.entity).unwrap();
+        let entity = event.entity;
 
         let found_user = match db_repo.users.get_by_id(event.id) {
             Ok(user) => user,
@@ -28,6 +27,7 @@ pub fn handle_user_login(
         };
 
         commands.entity(entity).insert(user);
+        info!("Verifying entity {entity:?}");
 
         show_login_tx.send(ShowLoginScreenEvent(entity));
     }

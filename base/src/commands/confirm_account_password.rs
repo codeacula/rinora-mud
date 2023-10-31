@@ -10,10 +10,12 @@ impl GameCommand for ConfirmAccountPasswordCommand {
             return Ok(false);
         };
 
+        info!("User Session Data {user_sesh:?}");
+
         let original_password = match &user_sesh.pwd {
             Some(val) => val,
             None => {
-                error!("Expect the user to have a session, but doesn't.");
+                error!("Expected user to have a stored password, but didn't!");
                 world.send_event(GenericErrorEvent(command.entity));
                 return Ok(false);
             }

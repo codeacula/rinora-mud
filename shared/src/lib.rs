@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{ecs::schedule::ScheduleLabel, prelude::*};
 use prelude::*;
 
 pub mod account;
@@ -16,7 +16,7 @@ pub mod world;
 
 pub struct SharedPlugin;
 
-#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet)]
+#[derive(Hash, Debug, Eq, Clone, PartialEq, SystemSet, Copy)]
 pub enum GameOrderSet {
     Network, // Ran first, so that all connections are handled and commands are sent to the command handlers
     Command, // The command step is meant to handle processing commands from the network layer
@@ -29,50 +29,36 @@ pub enum GameOrderSet {
     Output, // Flush all output here
 }
 
+fn set_schedules(app: &mut App, stage: impl ScheduleLabel + Clone) {
+    // Configure system sets
+    let all_schedules = vec![
+        GameOrderSet::Network,
+        GameOrderSet::Command,
+        GameOrderSet::Account,
+        GameOrderSet::Pre,
+        GameOrderSet::Game,
+        GameOrderSet::Post,
+        GameOrderSet::Cleanup,
+        GameOrderSet::Debug,
+        GameOrderSet::Output,
+    ];
+
+    for (i, current_set) in all_schedules.iter().enumerate() {
+        if i != 0 {
+            let previous_set = &all_schedules[i - 1];
+            app.configure_set(stage.clone(), previous_set.before(current_set.to_owned()));
+        }
+        app.add_systems(stage.clone(), apply_deferred.in_set(current_set.to_owned()));
+    }
+}
+
 impl Plugin for SharedPlugin {
     fn build(&self, app: &mut App) {
         // Configure system sets
-        app.configure_set(First, GameOrderSet::Network.before(GameOrderSet::Command));
-        app.configure_set(First, GameOrderSet::Command.before(GameOrderSet::Account));
-        app.configure_set(First, GameOrderSet::Account.before(GameOrderSet::Pre));
-        app.configure_set(First, GameOrderSet::Pre.before(GameOrderSet::Game));
-        app.configure_set(First, GameOrderSet::Game.before(GameOrderSet::Post));
-        app.configure_set(First, GameOrderSet::Post.before(GameOrderSet::Cleanup));
-        app.configure_set(First, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
-        app.configure_set(First, GameOrderSet::Debug.before(GameOrderSet::Output));
-
-        app.configure_set(
-            PreUpdate,
-            GameOrderSet::Network.before(GameOrderSet::Command),
-        );
-        app.configure_set(
-            PreUpdate,
-            GameOrderSet::Command.before(GameOrderSet::Account),
-        );
-        app.configure_set(PreUpdate, GameOrderSet::Account.before(GameOrderSet::Pre));
-        app.configure_set(PreUpdate, GameOrderSet::Pre.before(GameOrderSet::Game));
-        app.configure_set(PreUpdate, GameOrderSet::Game.before(GameOrderSet::Post));
-        app.configure_set(PreUpdate, GameOrderSet::Post.before(GameOrderSet::Cleanup));
-        app.configure_set(PreUpdate, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
-        app.configure_set(PreUpdate, GameOrderSet::Debug.before(GameOrderSet::Output));
-
-        app.configure_set(Update, GameOrderSet::Network.before(GameOrderSet::Command));
-        app.configure_set(Update, GameOrderSet::Command.before(GameOrderSet::Account));
-        app.configure_set(Update, GameOrderSet::Account.before(GameOrderSet::Pre));
-        app.configure_set(Update, GameOrderSet::Pre.before(GameOrderSet::Game));
-        app.configure_set(Update, GameOrderSet::Game.before(GameOrderSet::Post));
-        app.configure_set(Update, GameOrderSet::Post.before(GameOrderSet::Cleanup));
-        app.configure_set(Update, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
-        app.configure_set(Update, GameOrderSet::Debug.before(GameOrderSet::Output));
-
-        app.configure_set(Last, GameOrderSet::Network.before(GameOrderSet::Command));
-        app.configure_set(Last, GameOrderSet::Command.before(GameOrderSet::Account));
-        app.configure_set(Last, GameOrderSet::Account.before(GameOrderSet::Pre));
-        app.configure_set(Last, GameOrderSet::Pre.before(GameOrderSet::Game));
-        app.configure_set(Last, GameOrderSet::Game.before(GameOrderSet::Post));
-        app.configure_set(Last, GameOrderSet::Post.before(GameOrderSet::Cleanup));
-        app.configure_set(Last, GameOrderSet::Cleanup.before(GameOrderSet::Debug));
-        app.configure_set(Last, GameOrderSet::Debug.before(GameOrderSet::Output));
+        set_schedules(app, First);
+        set_schedules(app, PreUpdate);
+        set_schedules(app, Update);
+        set_schedules(app, Last);
 
         // Account
         app.add_event::<CharacterCreatedEvent>()
