@@ -7,12 +7,12 @@ pub fn show_login_screen(
     mut show_prompt_tx: EventWriter<ShowPromptEvent>,
     mut generic_tx: EventWriter<GenericErrorEvent>,
     db_repo: Res<DbInterface>,
-    query: Query<(&User, &UserSessionData)>,
+    query: Query<&User>,
 ) {
     for ev in main_events.iter() {
         let entity = ev.0;
 
-        let Ok((user, user_sesh)) = query.get(entity) else {
+        let Ok(user) = query.get(entity) else {
             info!("Entity had no associated user information: {entity:?}");
             generic_tx.send(GenericErrorEvent(entity));
             continue;
