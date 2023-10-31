@@ -20,7 +20,7 @@ pub fn check_username_and_transition_user(
             }
         };
 
-        let mut user_session_data = match query.get_mut(ev.user_entity) {
+        let mut user_sesh = match query.get_mut(ev.user_entity) {
             Ok(val) => val,
             Err(e) => {
                 error!("Error getting user session data: {e}");
@@ -29,14 +29,14 @@ pub fn check_username_and_transition_user(
             }
         };
 
-        user_session_data.username = ev.username.clone();
+        user_sesh.username = ev.username.clone();
 
         if username_exists {
             username_exists_rx.send(UsernameExistsEvent(ev.user_entity));
-            user_session_data.status = UserStatus::NeedPassword;
+            user_sesh.status = UserStatus::NeedPassword;
         } else {
             username_does_not_exist_rx.send(UsernameDoesNotExistEvent(ev.user_entity));
-            user_session_data.status = UserStatus::CreatePassword;
+            user_sesh.status = UserStatus::CreatePassword;
         }
     }
 }

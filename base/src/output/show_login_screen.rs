@@ -7,12 +7,12 @@ pub fn show_login_screen(
     mut show_prompt_tx: EventWriter<ShowPromptEvent>,
     mut generic_tx: EventWriter<GenericErrorEvent>,
     db_repo: Res<DbInterface>,
-    query: Query<&User>,
+    query: Query<(&User, &UserSessionData)>,
 ) {
     for ev in main_events.iter() {
         let entity = ev.0;
 
-        let Ok(user) = query.get(entity) else {
+        let Ok((user, user_sesh)) = query.get(entity) else {
             info!("Entity had no associated user information: {entity:?}");
             generic_tx.send(GenericErrorEvent(entity));
             continue;
@@ -32,7 +32,7 @@ pub fn show_login_screen(
         greeting.push_str("  [{{15}}1{{7}}]: Create Character\n");
 
         if characters.is_empty() {
-            greeting.push_str("You currently have no characters.\n")
+            greeting.push_str("You currently have no characters.\n\n")
         } else {
             greeting.push_str("Your characters are:\n");
 

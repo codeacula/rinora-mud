@@ -54,6 +54,10 @@ pub struct ShowLoginScreenEvent(pub Entity);
 #[derive(Event)]
 pub struct UserConfirmedPasswordEvent(pub Entity);
 
+/// Fired when the user is creating a new account and it's successful
+#[derive(Event)]
+pub struct UserCreatedEvent(pub Entity);
+
 /// Fired when a user is logging in and provides a username that isn't valid
 #[derive(Event)]
 pub struct UsernameDoesNotExistEvent(pub Entity);

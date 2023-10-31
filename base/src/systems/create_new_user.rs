@@ -1,12 +1,14 @@
 use database::prelude::*;
 use shared::prelude::*;
 
-pub fn log_user_in_on_password(
+pub fn create_new_user(
     mut user_confirmed_password_rx: EventReader<UserConfirmedPasswordEvent>,
     mut show_login_screen_event: EventWriter<ShowLoginScreenEvent>,
     mut query: Query<&mut UserSessionData>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
+    mut user_created_tx: EventWriter<UserCreatedEvent>,
+    mut text_event_tx: EventWriter<TextEvent>,
 ) {
     for ev in user_confirmed_password_rx.iter() {
         let mut user_sesh = match query.get_mut(ev.0) {
@@ -17,9 +19,12 @@ pub fn log_user_in_on_password(
             }
         };
 
-        let Some(password) = user_sesh.pwd.clone() else {
-            error!("User session data did not have a password");
-            continue;
+        let password = match user_sesh.pwd.clone() {
+            Some(val) => val,
+            None => {
+                error!("User session data did not have a password");
+                continue;
+            }
         };
 
         info!(
@@ -34,9 +39,16 @@ pub fn log_user_in_on_password(
                 continue;
             }
         };
-        user_sesh.status = UserStatus::LoggedIn;
 
         commands.entity(ev.0).insert(user);
+        user_created_tx.send(UserCreatedEvent(ev.0));
+
+        user_sesh.status = UserStatus::LoggedIn;
+
+        text_event_tx.send(TextEvent::from_str(
+            ev.0,
+            "\nYour account was created. {{10}} Welcome to RinoraMUD!\n\n",
+        ));
         show_login_screen_event.send(ShowLoginScreenEvent(ev.0));
     }
 }

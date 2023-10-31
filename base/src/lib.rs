@@ -93,7 +93,7 @@ impl Plugin for BaseRinoraPlugin {
                     character_was_created,
                     display_character_exists,
                     handle_generic_error,
-                    log_user_in_on_password,
+                    create_new_user,
                     passwords_do_not_match,
                     password_was_provided,
                     unable_to_locate_account,

@@ -7,6 +7,7 @@ pub fn handle_user_login(
     mut show_login_tx: EventWriter<ShowLoginScreenEvent>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
+    mut query: Query<&mut UserSessionData>,
 ) {
     for event in events.iter() {
         let entity = event.entity;
@@ -27,7 +28,14 @@ pub fn handle_user_login(
         };
 
         commands.entity(entity).insert(user);
-        info!("Verifying entity {entity:?}");
+
+        let Ok(mut session_data) = query.get_mut(entity) else {
+            error!("Unable to fetch session data after login!");
+            text_events_tx.send(TextEvent::send_generic_error(entity));
+            continue;
+        };
+
+        session_data.status = UserStatus::LoggedIn;
 
         show_login_tx.send(ShowLoginScreenEvent(entity));
     }

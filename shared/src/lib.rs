@@ -72,6 +72,7 @@ impl Plugin for SharedPlugin {
             .add_event::<PasswordNotLongEnoughEvent>()
             .add_event::<UnableToLocateAccountEvent>()
             .add_event::<UserConfirmedPasswordEvent>()
+            .add_event::<UserCreatedEvent>()
             .add_event::<UserLoggedInEvent>()
             .add_event::<UserProvidedPasswordEvent>()
             .add_event::<UsernameDoesNotExistEvent>()
