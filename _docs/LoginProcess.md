@@ -12,10 +12,10 @@ DoesUnExist -->|State: CreatePassword| UsernameNoExists[UsernameDoesNotExistEven
 
 UsernameExists --> ProvidesPassword1[/Provides password/]
 ProvidesPassword1 --> CheckAccount{Does\nUN/PW\nMatch?}
-CheckAccount -->|Yes| UserLoggedInEvent 
+CheckAccount -->|Yes| UserLoggedInEvent
 CheckAccount -->|No| UnableToLocateAccountEvent
 UnableToLocateAccountEvent -->|State: NeedUsername| ProvideUsername
-UserLoggedInEvent -->|State: LoggedIn| ShowLoginScreenEvent 
+UserLoggedInEvent -->|State: LoggedIn| ShowLoginScreenEvent
 
 UsernameNoExists --> ProvidesPassword2[/Provides password/]
 ProvidesPassword2 --> UserProvidedPasswordEvent
@@ -23,5 +23,6 @@ UserProvidedPasswordEvent -->|State: ConfirmPassword| ConfirmsPassword[/Confirms
 ConfirmsPassword --> DoTheyMatch{Do\npasswords\nmatch?}
 DoTheyMatch -->|Yes| UserConfirmedPasswordEvent
 DoTheyMatch -->|No| ConfirmPasswordDoesNotMatchEvent
-UserConfirmedPasswordEvent -->|State: LoggedIn| ShowLoginScreenEvent 
+UserConfirmedPasswordEvent -->|State: LoggedIn| ShowLoginScreenEvent
+ConfirmPasswordDoesNotMatchEvent -->|State: CreatePassword| ProvidesPassword2
 ```
