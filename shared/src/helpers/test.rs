@@ -1,16 +1,14 @@
 use crate::prelude::*;
 
-pub fn get_app() -> App {
+pub fn build_test_app() -> App {
     let mut app = App::new();
-    app.add_event::<GenericErrorEvent>()
-        .add_event::<ConfirmPasswordDoesNotMatchEvent>()
-        .add_event::<UserConfirmedPasswordEvent>();
+    app.add_event::<GenericErrorEvent>();
     app.update();
 
     app
 }
 
-pub fn get_user_command(command: String) -> UserCommand {
+pub fn build_user_command(command: String) -> UserCommand {
     let full_cmd = command.clone();
 
     UserCommand {
@@ -22,7 +20,7 @@ pub fn get_user_command(command: String) -> UserCommand {
     }
 }
 
-pub fn spawn_entity(world: &mut World) -> Entity {
+pub fn build_entity(world: &mut World) -> Entity {
     world
         .spawn(UserSessionData {
             status: UserStatus::CreateCharacter,

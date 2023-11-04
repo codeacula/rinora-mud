@@ -32,3 +32,41 @@ impl GameCommand for ConfirmAccountPasswordCommand {
         Ok(true)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use shared::prelude::*;
+
+    use crate::commands::prelude::ConfirmAccountPasswordCommand;
+
+    #[test]
+    fn doesnt_run_if_no_user_sesh() {
+        let app = build_test_app();
+        let command = build_user_command(String::from("password"));
+        let mut world = app.world;
+
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        assert_eq!(result, Ok(false));
+    }
+
+    #[test]
+    fn doesnt_run_if_no_password() {
+        let app = build_test_app();
+        let mut world = app.world;
+        build_entity(&mut world);
+
+        let command = build_user_command(String::from(""));
+
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        assert_eq!(result, Ok(false));
+
+        let evs = world.resource::<Events<GenericErrorEvent>>();
+        assert_eq!(evs.len(), 1);
+    }
+
+    #[test]
+    fn works_but_procuses_password_does_not_match_if_passwords_dont_match() {}
+
+    #[test]
+    fn works() {}
+}
