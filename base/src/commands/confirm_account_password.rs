@@ -53,9 +53,15 @@ mod tests {
     fn doesnt_run_if_no_password() {
         let app = build_test_app();
         let mut world = app.world;
-        build_entity(&mut world);
 
-        let command = build_user_command(String::from(""));
+        let mut entity_builder = EntityBuilder::new();
+        let user_sesh = UserSessionData::new();
+        entity_builder.set_session_data(user_sesh);
+
+        let entity = entity_builder.build(&mut world);
+
+        let mut command = build_user_command(String::from(""));
+        command.entity = entity;
 
         let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
         assert_eq!(result, Ok(false));
@@ -65,8 +71,50 @@ mod tests {
     }
 
     #[test]
-    fn works_but_procuses_password_does_not_match_if_passwords_dont_match() {}
+    fn works_but_procuses_password_does_not_match_if_passwords_dont_match() {
+        let mut app = build_test_app();
+        app.add_event::<ConfirmPasswordDoesNotMatchEvent>();
+
+        let mut world = app.world;
+
+        let mut entity_builder = EntityBuilder::new();
+        let mut user_sesh = UserSessionData::new();
+        user_sesh.pwd = Some(String::from("password"));
+        entity_builder.set_session_data(user_sesh);
+
+        let entity = entity_builder.build(&mut world);
+
+        let mut command = build_user_command(String::from(""));
+        command.entity = entity;
+
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        assert_eq!(result, Ok(true));
+
+        let evs = world.resource::<Events<ConfirmPasswordDoesNotMatchEvent>>();
+        assert_eq!(evs.len(), 1);
+    }
 
     #[test]
-    fn works() {}
+    fn works() {
+        let mut app = build_test_app();
+        app.add_event::<UserConfirmedPasswordEvent>();
+
+        let mut world = app.world;
+
+        let mut entity_builder = EntityBuilder::new();
+        let mut user_sesh = UserSessionData::new();
+        user_sesh.pwd = Some(String::from("password"));
+        entity_builder.set_session_data(user_sesh);
+
+        let entity = entity_builder.build(&mut world);
+
+        let mut command = build_user_command(String::from("password"));
+        command.entity = entity;
+
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        assert_eq!(result, Ok(true));
+
+        let evs = world.resource::<Events<UserConfirmedPasswordEvent>>();
+        assert_eq!(evs.len(), 1);
+    }
 }

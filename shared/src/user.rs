@@ -7,7 +7,7 @@ pub struct UserLoggedInEvent {
     pub password: String,
 }
 
-#[derive(Eq, PartialEq, Default, Hash, Debug)]
+#[derive(Eq, PartialEq, Default, Hash, Debug, Clone, Copy)]
 pub enum UserStatus {
     CreateCharacter,
     CreatePassword,
@@ -30,7 +30,7 @@ pub struct User {
     pub current_character: Option<Entity>,
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct UserSessionData {
     pub controlling_entity: Option<Entity>,
     pub char_to_delete: Option<String>,
@@ -38,6 +38,19 @@ pub struct UserSessionData {
     pub pwd: Option<String>,
     pub status: UserStatus,
     pub username: String,
+}
+
+impl UserSessionData {
+    pub fn new() -> Self {
+        Self {
+            controlling_entity: None,
+            char_to_delete: None,
+            connection: Uuid::nil(),
+            pwd: None,
+            status: UserStatus::NeedUsername,
+            username: String::new(),
+        }
+    }
 }
 
 #[derive(Event)]
