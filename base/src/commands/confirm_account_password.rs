@@ -41,32 +41,27 @@ mod tests {
 
     #[test]
     fn doesnt_run_if_no_user_sesh() {
-        let app = build_test_app();
-        let command = build_user_command(String::from("password"));
-        let mut world = app.world;
+        let mut app = build_test_app();
+        let command = build_user_command(String::from("password"), Entity::PLACEHOLDER);
 
-        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut app.world);
         assert_eq!(result, Ok(false));
     }
 
     #[test]
     fn doesnt_run_if_no_password() {
-        let app = build_test_app();
-        let mut world = app.world;
+        let mut app = build_test_app();
 
         let mut entity_builder = EntityBuilder::new();
         let user_sesh = UserSessionData::new();
         entity_builder.set_session_data(user_sesh);
 
-        let entity = entity_builder.build(&mut world);
+        let command = build_user_command(String::from(""), entity_builder.build(&mut app.world));
 
-        let mut command = build_user_command(String::from(""));
-        command.entity = entity;
-
-        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut app.world);
         assert_eq!(result, Ok(false));
 
-        let evs = world.resource::<Events<GenericErrorEvent>>();
+        let evs = app.world.resource::<Events<GenericErrorEvent>>();
         assert_eq!(evs.len(), 1);
     }
 
@@ -75,22 +70,19 @@ mod tests {
         let mut app = build_test_app();
         app.add_event::<ConfirmPasswordDoesNotMatchEvent>();
 
-        let mut world = app.world;
-
         let mut entity_builder = EntityBuilder::new();
         let mut user_sesh = UserSessionData::new();
         user_sesh.pwd = Some(String::from("password"));
         entity_builder.set_session_data(user_sesh);
 
-        let entity = entity_builder.build(&mut world);
+        let command = build_user_command(String::from(""), entity_builder.build(&mut app.world));
 
-        let mut command = build_user_command(String::from(""));
-        command.entity = entity;
-
-        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut app.world);
         assert_eq!(result, Ok(true));
 
-        let evs = world.resource::<Events<ConfirmPasswordDoesNotMatchEvent>>();
+        let evs = app
+            .world
+            .resource::<Events<ConfirmPasswordDoesNotMatchEvent>>();
         assert_eq!(evs.len(), 1);
     }
 
@@ -99,22 +91,20 @@ mod tests {
         let mut app = build_test_app();
         app.add_event::<UserConfirmedPasswordEvent>();
 
-        let mut world = app.world;
-
         let mut entity_builder = EntityBuilder::new();
         let mut user_sesh = UserSessionData::new();
         user_sesh.pwd = Some(String::from("password"));
         entity_builder.set_session_data(user_sesh);
 
-        let entity = entity_builder.build(&mut world);
+        let command = build_user_command(
+            String::from("password"),
+            entity_builder.build(&mut app.world),
+        );
 
-        let mut command = build_user_command(String::from("password"));
-        command.entity = entity;
-
-        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut world);
+        let result = ConfirmAccountPasswordCommand {}.run(&command, &mut app.world);
         assert_eq!(result, Ok(true));
 
-        let evs = world.resource::<Events<UserConfirmedPasswordEvent>>();
+        let evs = app.world.resource::<Events<UserConfirmedPasswordEvent>>();
         assert_eq!(evs.len(), 1);
     }
 }

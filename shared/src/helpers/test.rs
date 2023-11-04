@@ -8,11 +8,11 @@ pub fn build_test_app() -> App {
     app
 }
 
-pub fn build_user_command(command: String) -> UserCommand {
+pub fn build_user_command(command: String, entity: Entity) -> UserCommand {
     let full_cmd = command.clone();
 
     UserCommand {
-        entity: Entity::PLACEHOLDER,
+        entity,
         full_command: command.clone(),
         keyword: command.clone(),
         parts: command.split(' ').map(|f| f.to_string()).collect(),
