@@ -45,7 +45,7 @@ impl GameCommand for ProvideCharacterNameCommand {
 
 #[cfg(test)]
 mod tests {
-    use database::{get_test_db_interface, prelude::create_test_character};
+    use database::get_test_db_interface;
     use shared::prelude::*;
 
     use super::ProvideCharacterNameCommand;

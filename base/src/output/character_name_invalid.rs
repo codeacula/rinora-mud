@@ -5,7 +5,7 @@ pub fn character_name_invalid(
     mut text_event_writer_tx: EventWriter<TextEvent>,
     mut show_prompt_writer_tx: EventWriter<ShowPromptEvent>,
 ) {
-    for ev in character_name_invalid_rx.iter() {
+    for ev in character_name_invalid_rx.read() {
         text_event_writer_tx.send(TextEvent::from_str(
             ev.0,
             "Character names can only contain the letters A-Z, and only one word. Please try again.",
