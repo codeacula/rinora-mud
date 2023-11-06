@@ -10,8 +10,6 @@ impl GameCommand for ConfirmAccountPasswordCommand {
             return Ok(false);
         };
 
-        info!("User Session Data {user_sesh:?}");
-
         let original_password = match &user_sesh.pwd {
             Some(val) => val,
             None => {
