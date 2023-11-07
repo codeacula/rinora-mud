@@ -7,7 +7,7 @@ pub fn handle_generic_error(
     mut text_event_tx: EventWriter<TextEvent>,
     mut prompt_tx: EventWriter<ShowPromptEvent>,
 ) {
-    for ev in generic_error_events.iter() {
+    for ev in generic_error_events.read() {
         text_event_tx.send(TextEvent::send_generic_error(ev.0));
         prompt_tx.send(ShowPromptEvent(ev.0));
     }

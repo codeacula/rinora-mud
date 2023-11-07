@@ -6,7 +6,7 @@ pub fn display_character_exists(
     mut text_event_tx: EventWriter<TextEvent>,
     mut prompt_tx: EventWriter<ShowPromptEvent>,
 ) {
-    for ev in main_events.iter() {
+    for ev in main_events.read() {
         text_event_tx.send(TextEvent::from_str(
             ev.0,
             "That character already exists. Please try a different name.",

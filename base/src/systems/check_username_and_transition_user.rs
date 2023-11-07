@@ -9,7 +9,7 @@ pub fn check_username_and_transition_user(
     mut username_exists_rx: EventWriter<UsernameExistsEvent>,
     mut query: Query<&mut UserSessionData>,
 ) {
-    for ev in username_provided_rx.iter() {
+    for ev in username_provided_rx.read() {
         // Look if the username exists in the db
         let username_exists = match db_repo.users.does_user_exist(&ev.username) {
             Ok(val) => val,

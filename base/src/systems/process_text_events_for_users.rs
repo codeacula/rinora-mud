@@ -17,7 +17,7 @@ pub fn process_text_events_for_users(
     mut incoming_text_events: EventReader<TextEvent>,
     mut outgoing_queue: ResMut<OutgoingQueue>,
 ) {
-    for text_event in incoming_text_events.iter() {
+    for text_event in incoming_text_events.read() {
         let user = match query.get(text_event.entity) {
             // Is an entity that isn't a user, like an NPC
             Err(_) => continue,

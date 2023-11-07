@@ -6,7 +6,7 @@ pub fn passwords_do_not_match(
     mut show_prompt_rx: EventWriter<ShowPromptEvent>,
     mut query: Query<&mut UserSessionData>,
 ) {
-    for ev in passwords_no_match_rx.iter() {
+    for ev in passwords_no_match_rx.read() {
         text_event_tx.send(TextEvent::from_str(
             ev.0,
             "Looks like your passwords don't match. Let's try again. Please enter a password:",

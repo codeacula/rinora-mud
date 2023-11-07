@@ -9,7 +9,7 @@ pub fn show_login_screen(
     db_repo: Res<DbInterface>,
     query: Query<&User>,
 ) {
-    for ev in main_events.iter() {
+    for ev in main_events.read() {
         let entity = ev.0;
 
         let Ok(user) = query.get(entity) else {

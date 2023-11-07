@@ -6,7 +6,7 @@ pub fn unable_to_locate_account(
     mut show_prompt_rx: EventWriter<ShowPromptEvent>,
     mut query: Query<&mut UserSessionData>,
 ) {
-    for ev in unable_to_locate_account_rx.iter() {
+    for ev in unable_to_locate_account_rx.read() {
         let mut user_session_data = match query.get_mut(ev.0) {
             Ok(val) => val,
             Err(e) => {

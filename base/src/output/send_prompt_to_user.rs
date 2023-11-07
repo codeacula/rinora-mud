@@ -5,7 +5,7 @@ pub fn send_prompt_to_user(
     query: Query<&UserSessionData>,
     mut text_event_tx: EventWriter<TextEvent>,
 ) {
-    for ev in show_prompt_rx.iter() {
+    for ev in show_prompt_rx.read() {
         let entity = ev.0;
 
         let Ok(session_data) = query.get(entity) else {

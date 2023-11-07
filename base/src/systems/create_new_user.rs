@@ -10,7 +10,7 @@ pub fn create_new_user(
     mut user_created_tx: EventWriter<UserCreatedEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
 ) {
-    for ev in user_confirmed_password_rx.iter() {
+    for ev in user_confirmed_password_rx.read() {
         let mut user_sesh = match query.get_mut(ev.0) {
             Ok(val) => val,
             Err(err) => {

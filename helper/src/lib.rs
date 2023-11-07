@@ -10,7 +10,7 @@ fn display_room_debug_info(
     is_admin_query: Query<&IsAdmin>,
     room_query: Query<&Room>,
 ) {
-    for event in entity_entered_room_rx.iter() {
+    for event in entity_entered_room_rx.read() {
         let Ok(controller) = is_controlled_by_query.get(event.entity) else {
             debug!("Couldn't locate a IsControlledByEntity");
             break;

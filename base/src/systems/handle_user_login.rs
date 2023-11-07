@@ -9,7 +9,7 @@ pub fn handle_user_login(
     mut commands: Commands,
     mut query: Query<&mut UserSessionData>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let entity = event.entity;
 
         let found_user = match db_repo.users.get_by_id(event.id) {

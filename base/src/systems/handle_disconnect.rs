@@ -12,7 +12,7 @@ pub fn handle_disconnect(
     room_map: ResMut<RoomMap>,
     mut commands: Commands,
 ) {
-    for ev in ev_disconnection_event.iter() {
+    for ev in ev_disconnection_event.read() {
         let Ok(user) = query.get(ev.entity) else {
             error!("User disconnected but no user component found");
             continue;

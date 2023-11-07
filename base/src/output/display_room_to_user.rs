@@ -8,7 +8,7 @@ pub fn display_room_to_user(
     is_controlled_by_query: Query<&IsControlledBy>,
     room_query: Query<(&DisplayName, &Description), With<Room>>,
 ) {
-    for event in entity_entered_room_rx.iter() {
+    for event in entity_entered_room_rx.read() {
         let Ok(controller) = is_controlled_by_query.get(event.entity) else {
             debug!("Couldn't locate a IsControlledByEntity");
             break;

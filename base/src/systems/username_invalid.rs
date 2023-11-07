@@ -6,7 +6,7 @@ pub fn username_invalid(
     mut show_prompt_rx: EventWriter<ShowPromptEvent>,
     mut query: Query<&mut UserSessionData>,
 ) {
-    for ev in username_invalid_rx.iter() {
+    for ev in username_invalid_rx.read() {
         let mut user_session_data = match query.get_mut(ev.0) {
             Ok(val) => val,
             Err(e) => {

@@ -6,7 +6,7 @@ pub fn password_was_provided(
     mut show_prompt_rx: EventWriter<ShowPromptEvent>,
     mut query: Query<&mut UserSessionData>,
 ) {
-    for ev in password_provided_rx.iter() {
+    for ev in password_provided_rx.read() {
         let mut user_session_data = match query.get_mut(ev.user_entity) {
             Ok(val) => val,
             Err(e) => {

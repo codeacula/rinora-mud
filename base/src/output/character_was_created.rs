@@ -7,7 +7,7 @@ pub fn character_was_created(
     mut login_menu_tx: EventWriter<ShowLoginScreenEvent>,
     mut prompt_tx: EventWriter<ShowPromptEvent>,
 ) {
-    for ev in main_events.iter() {
+    for ev in main_events.read() {
         text_event_tx.send(TextEvent::from_str(
             ev.0,
             "Character created! You can now select them from the login screen",

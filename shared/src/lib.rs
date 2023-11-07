@@ -46,7 +46,7 @@ fn set_schedules(app: &mut App, stage: impl ScheduleLabel + Clone) {
     for (i, current_set) in all_schedules.iter().enumerate() {
         if i != 0 {
             let previous_set = &all_schedules[i - 1];
-            app.configure_set(stage.clone(), previous_set.before(current_set.to_owned()));
+            app.configure_sets(stage.clone(), previous_set.before(current_set.to_owned()));
         }
         app.add_systems(stage.clone(), apply_deferred.in_set(current_set.to_owned()));
     }

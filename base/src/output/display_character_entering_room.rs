@@ -7,7 +7,7 @@ pub fn display_character_entering_room(
     characters_in_world: Query<&DisplayName, With<Character>>,
     room_info_query: Query<&EntityCollection, With<Room>>,
 ) {
-    for ev in entity_entered_room_rx.iter() {
+    for ev in entity_entered_room_rx.read() {
         if ev.triggered_by != MovementTriggeredBy::UserInput {
             continue;
         }
