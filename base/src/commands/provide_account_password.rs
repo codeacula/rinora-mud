@@ -55,6 +55,7 @@ mod tests {
         app.add_event::<UnableToLocateAccountEvent>();
 
         let db_handle = get_test_db_interface();
+
         db_handle
             .users
             .create_user("test", "test")
@@ -88,7 +89,7 @@ mod tests {
         let db_handle = get_test_db_interface();
         db_handle
             .users
-            .create_user("test", "test")
+            .create_user("test2", "test2")
             .expect("Could not create user");
 
         app.insert_resource(db_handle);
@@ -96,11 +97,11 @@ mod tests {
         let mut entity_builder = EntityBuilder::new();
 
         let mut user_sesh = UserSessionData::new();
-        user_sesh.username = String::from("test");
+        user_sesh.username = String::from("test2");
         entity_builder.set_session_data(user_sesh);
 
         let command =
-            build_user_command(String::from("test"), entity_builder.build(&mut app.world));
+            build_user_command(String::from("test2"), entity_builder.build(&mut app.world));
 
         let result: Result<bool, String> =
             ProvideAccountPasswordCommand {}.run(&command, &mut app.world);

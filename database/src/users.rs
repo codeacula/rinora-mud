@@ -101,7 +101,6 @@ impl UserRepo {
         provided_password: &str,
     ) -> Result<Option<User>, String> {
         use crate::schema::users::dsl::*;
-
         let calculated_hash = format!("{:x}", Sha512::digest(provided_password));
 
         let result: Option<DbUser> = users
@@ -121,7 +120,6 @@ impl UserRepo {
     /// Fetch a user by its ID
     pub fn get_by_id(&self, provided_id: i32) -> Result<Option<User>, String> {
         use crate::schema::users::dsl::*;
-
         let result: Option<DbUser> = users
             .select(DbUser::as_select())
             .filter(id.eq(provided_id))
