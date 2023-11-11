@@ -18,6 +18,7 @@ diesel::table! {
         current_room_id -> Int4,
         current_hp -> Int4,
         current_mp -> Int4,
+        pronouns -> Int2,
     }
 }
 

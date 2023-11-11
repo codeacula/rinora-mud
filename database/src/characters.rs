@@ -17,6 +17,7 @@ pub struct DbCharacter {
     pub current_room_id: i32,
     pub current_hp: i32,
     pub current_mp: i32,
+    pub pronouns: i16,
 }
 
 #[derive(Insertable)]

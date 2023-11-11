@@ -12,10 +12,10 @@ pub fn send_prompt_to_user(
             continue;
         };
 
-        if session_data.status == UserStatus::LoggedIn {
-            text_event_tx.send(TextEvent::from_str(entity, "-"));
+        if session_data.status == UserStatus::InGame {
+            text_event_tx.send(TextEvent::from_str(entity, "-\n"));
         } else {
-            let mut sent_event = TextEvent::from_str(entity, "> ");
+            let mut sent_event = TextEvent::from_str(entity, "> \n");
             sent_event.add_newline = false;
             text_event_tx.send(sent_event);
         }
