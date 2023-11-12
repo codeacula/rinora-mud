@@ -10,6 +10,9 @@ pub struct Character {
     pub user_id: i32,
 }
 
+#[derive(Component)]
+pub struct Pronouns(i16);
+
 #[derive(Debug, PartialEq)]
 pub enum MovementTriggeredBy {
     UserInput,
@@ -26,6 +29,7 @@ pub struct CharacterBundle {
     pub location: Location,
     pub health: Health,
     pub mana: Mana,
+    pub pronouns: Pronouns,
 }
 
 impl Default for CharacterBundle {
@@ -41,6 +45,7 @@ impl Default for CharacterBundle {
                 character_id: 0,
                 user_id: 0,
             },
+            pronouns: Pronouns(0),
         }
     }
 }
