@@ -8,7 +8,7 @@ pub fn character_name_invalid(
     for ev in character_name_invalid_rx.read() {
         text_event_writer_tx.send(TextEvent::from_str(
             ev.0,
-            "Character names can only contain the letters A-Z, and only one word. Please try again.",
+            "Character names can only contain the letters A-Z, be 15 characters only, and only one word. Please try again.",
         ));
         show_prompt_writer_tx.send(ShowPromptEvent(ev.0));
     }

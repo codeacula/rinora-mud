@@ -18,7 +18,8 @@ pub struct ProvideCharacterNameCommand {}
 
 impl GameCommand for ProvideCharacterNameCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
-        if command.parts.len() > 1 || !is_alphabetic(&command.keyword) {
+        if command.parts.len() > 1 || !is_alphabetic(&command.keyword) || command.keyword.len() > 15
+        {
             world.send_event(CharacterNameInvalidEvent(command.entity));
             return Ok(true);
         }

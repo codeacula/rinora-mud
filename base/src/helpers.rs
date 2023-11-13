@@ -1,5 +1,9 @@
 use shared::prelude::*;
 
+pub fn find_room_entity() {
+    todo!("Work this out");
+}
+
 pub fn send_room_description(
     target: Entity,
     name: String,

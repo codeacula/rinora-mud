@@ -27,11 +27,13 @@ impl GameCommand for SelectCharacterCommand {
 
         let db_repo = world.resource::<DbInterface>();
 
+        info!("Command: {:?}", command);
+
         let does_own = db_repo
             .characters
             .does_user_own_character(&command.keyword, user.id);
 
-        if !does_own {
+        if does_own {
             world.send_event(CharacterSelectedEvent {
                 name: command.keyword.clone(),
                 user_entity: command.entity,

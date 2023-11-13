@@ -2,7 +2,9 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Being {}
+pub struct Being {
+    pub pronouns: Pronouns,
+}
 
 #[derive(Component)]
 pub struct Character {
@@ -11,13 +13,14 @@ pub struct Character {
 }
 
 #[derive(Component)]
-pub struct Pronouns(i16);
+pub struct Pronouns(pub i16);
 
 #[derive(Debug, PartialEq)]
 pub enum MovementTriggeredBy {
     UserInput,
     Login,
     Logout,
+    CharacterCreation,
 }
 
 #[derive(Bundle)]
@@ -29,13 +32,14 @@ pub struct CharacterBundle {
     pub location: Location,
     pub health: Health,
     pub mana: Mana,
-    pub pronouns: Pronouns,
 }
 
 impl Default for CharacterBundle {
     fn default() -> Self {
         CharacterBundle {
-            being: Being {},
+            being: Being {
+                pronouns: Pronouns(3), // Default to "they/them" for now
+            },
             description: Description("".to_string()),
             display_name: DisplayName("".to_string()),
             health: Health { current: 0, max: 0 },
@@ -45,7 +49,6 @@ impl Default for CharacterBundle {
                 character_id: 0,
                 user_id: 0,
             },
-            pronouns: Pronouns(0),
         }
     }
 }
@@ -90,5 +93,15 @@ pub struct EntityLeftRoomEvent {
 pub struct EntityLeftWorldEvent {
     pub entity: Entity,
     pub room_entity_was_in: Entity,
+    pub triggered_by: MovementTriggeredBy,
+}
+
+#[derive(Event, Debug)]
+pub struct PromptUserForCharacterName(pub Entity);
+
+#[derive(Event, Debug)]
+pub struct MoveEntityToRoom {
+    pub entity: Entity,
+    pub room: Entity,
     pub triggered_by: MovementTriggeredBy,
 }

@@ -70,6 +70,7 @@ impl Plugin for SharedPlugin {
             .add_event::<CreateCharacterEvent>()
             .add_event::<CreateCharacterSelectedEvent>()
             .add_event::<PasswordNotLongEnoughEvent>()
+            .add_event::<PromptUserForCharacterName>()
             .add_event::<UnableToLocateAccountEvent>()
             .add_event::<UserConfirmedPasswordEvent>()
             .add_event::<UserCreatedEvent>()

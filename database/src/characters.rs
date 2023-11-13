@@ -32,7 +32,9 @@ pub struct NewDbCharacter {
 impl DbCharacter {
     pub fn to_game_character(&self) -> CharacterBundle {
         CharacterBundle {
-            being: Being {},
+            being: Being {
+                pronouns: Pronouns(self.pronouns),
+            },
             description: Description(self.description.clone()),
             display_name: DisplayName(self.name.clone()),
             health: Health {
