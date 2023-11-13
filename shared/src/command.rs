@@ -1,7 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 
-#[derive(Resource)]
-pub struct PossibleCommands(pub Vec<String>);
+use crate::prelude::UserStatus;
 
 /// UserCommand contains the information from the text command that was sent in. This gets converted into the actual
 /// command that will run
@@ -13,7 +12,7 @@ pub struct UserCommand {
     /// The Entity responsible for sending the command
     pub entity: Entity,
 
-    /// The main keyword of the command. Should be equivalent to parts[0], with some exceptions for commands like
+    /// The main keyword of the command. Should be equivalent to `parts[0]`, with some exceptions for commands like
     /// `'Hello` which should expand to SAY HELLO. The command interpreter will handle those specially
     pub keyword: String,
 
@@ -25,11 +24,10 @@ pub struct UserCommand {
 }
 
 pub trait GameCommand: Sync + Send {
-    /// Given a command, determines if it can run
-    fn can_execute(&self, command: &UserCommand, world: &World) -> bool;
-
-    /// Execute the command against the World
-    fn run(&self, command: &UserCommand, world: &mut World) -> Result<(), String>;
+    /// Executes the command. Returns false if the command applied, and true if it did
+    /// Application doesn't just mean matches the right pattern. There are plenty of commands that may only work when
+    /// a user is there, but then we want to fall back if they aren't.
+    fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String>;
 }
 
 pub struct GameCommandEvent(Box<dyn GameCommand>);
@@ -41,10 +39,10 @@ impl<T: GameCommand + 'static> From<T> for GameCommandEvent {
     }
 }
 
-/// AccountCommands are only ran when the user isn't logged into a character
+/// GameCommands are only ran when the user is logged into a character. They're sorted by the user status so we don't
+/// have to check the status each time
 #[derive(Resource)]
-pub struct AccountCommands(pub Vec<Box<dyn GameCommand>>);
+pub struct GameCommands(pub HashMap<UserStatus, Vec<Box<dyn GameCommand>>>);
 
-/// GameCommands are only ran when the user is logged into a character
-#[derive(Resource)]
-pub struct GameCommands(pub Vec<Box<dyn GameCommand>>);
+#[derive(Event)]
+pub struct GenericErrorEvent(pub Entity);

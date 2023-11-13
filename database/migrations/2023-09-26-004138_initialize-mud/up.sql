@@ -3,9 +3,12 @@ CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   username VARCHAR NOT NULL UNIQUE,
   password_hash VARCHAR NOT NULL,
-  autologin INT DEFAULT NULL,
   administrator BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+INSERT INTO users (username, password_hash, administrator) VALUES
+  ('dummy-account1', 'dummy-password1', FALSE),
+  ('dummy-account2', 'dummy-password2', FALSE);
 
 CREATE TABLE planes (
   id SERIAL PRIMARY KEY,
@@ -100,7 +103,8 @@ CREATE TABLE characters (
   description VARCHAR NOT NULL,
   current_room_id INT NOT NULL REFERENCES rooms(id) DEFAULT 1,
   current_hp INT NOT NULL DEFAULT 0,
-  current_mp INT NOT NULL DEFAULT 0
+  current_mp INT NOT NULL DEFAULT 0,
+  pronouns SMALLINT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE settings (

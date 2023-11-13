@@ -17,6 +17,7 @@ pub struct DbCharacter {
     pub current_room_id: i32,
     pub current_hp: i32,
     pub current_mp: i32,
+    pub pronouns: i16,
 }
 
 #[derive(Insertable)]
@@ -31,7 +32,9 @@ pub struct NewDbCharacter {
 impl DbCharacter {
     pub fn to_game_character(&self) -> CharacterBundle {
         CharacterBundle {
-            being: Being {},
+            being: Being {
+                pronouns: Pronouns(self.pronouns),
+            },
             description: Description(self.description.clone()),
             display_name: DisplayName(self.name.clone()),
             health: Health {

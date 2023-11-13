@@ -18,6 +18,7 @@ diesel::table! {
         current_room_id -> Int4,
         current_hp -> Int4,
         current_mp -> Int4,
+        pronouns -> Int2,
     }
 }
 
@@ -78,7 +79,6 @@ diesel::table! {
         id -> Int4,
         username -> Varchar,
         password_hash -> Varchar,
-        autologin -> Nullable<Int4>,
         administrator -> Bool,
     }
 }

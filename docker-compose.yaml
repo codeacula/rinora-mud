@@ -13,3 +13,12 @@ services:
         target: /var/lib/postgresql/data
     ports:
       - 5432:5432
+  testdb:
+    image: postgres
+    restart: always
+    environment:
+        POSTGRES_USER: devtest
+        POSTGRES_PASSWORD: devtest
+        POSTGRES_DB: rinoratest
+    ports:
+      - 5433:5432

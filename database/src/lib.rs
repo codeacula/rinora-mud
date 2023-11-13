@@ -1,7 +1,7 @@
 use bevy::ecs::system::SystemState;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use diesel::{Connection, PgConnection};
+use diesel::{Connection, PgConnection, RunQueryDsl};
 use diesel_migrations::MigrationHarness;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations};
 use shared::prelude::*;
@@ -16,6 +16,7 @@ mod db_interface;
 mod locations;
 mod schema;
 mod settings;
+mod testing;
 mod users;
 
 pub struct DatabasePlugin;
@@ -271,14 +272,32 @@ fn add_exits_to_rooms(world: &mut World) {
     }
 }
 
+pub fn get_test_db_interface() -> DbInterface {
+    let host_string = "postgresql://devtest:devtest@localhost:5433/rinoratest";
+
+    let mut pg_conn = PgConnection::establish(host_string).unwrap();
+
+    diesel::sql_query("DROP SCHEMA IF EXISTS public CASCADE;")
+        .execute(&mut pg_conn)
+        .expect("Issue dropping schema");
+
+    diesel::sql_query("CREATE SCHEMA public;")
+        .execute(&mut pg_conn)
+        .expect("Issue creating");
+
+    pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
+
+    DbInterface::new(String::from(host_string))
+}
+
 impl Plugin for DatabasePlugin {
     fn build(&self, app: &mut App) {
         let host_string = get_env("DB_CONN_STRING", "postgresql://dev:dev@localhost/rinoramud");
 
-        info!("Attempting to connect to database. {}", &host_string);
+        info!("Attempting to connect to database: {host_string}");
         let mut pg_conn = PgConnection::establish(&host_string).unwrap();
 
-        info!("Running migrations {}", &host_string);
+        info!("Running migrations: {host_string}");
         pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
         let repo = DbInterface::new(host_string);
@@ -310,6 +329,7 @@ pub mod prelude {
     pub use crate::db_interface::*;
     pub use crate::locations::*;
     pub use crate::settings::*;
+    pub use crate::testing::*;
     pub use crate::users::*;
 
     pub use crate::DatabasePlugin;

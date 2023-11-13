@@ -1,12 +1,13 @@
 use bevy::{prelude::*, utils::Uuid};
 
 #[derive(Event)]
-pub struct UserLoggedIn {
+pub struct UserLoggedInEvent {
     pub entity: Entity,
     pub id: i32,
+    pub password: String,
 }
 
-#[derive(PartialEq, Default)]
+#[derive(Eq, PartialEq, Default, Hash, Debug, Clone, Copy)]
 pub enum UserStatus {
     CreateCharacter,
     CreatePassword,
@@ -21,16 +22,15 @@ pub enum UserStatus {
     ToggleAutologin,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct User {
     pub id: i32,
     pub administrator: bool,
-    pub autologin: Option<i32>,
     pub username: String,
     pub current_character: Option<Entity>,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug, Clone)]
 pub struct UserSessionData {
     pub controlling_entity: Option<Entity>,
     pub char_to_delete: Option<String>,
@@ -39,3 +39,19 @@ pub struct UserSessionData {
     pub status: UserStatus,
     pub username: String,
 }
+
+impl UserSessionData {
+    pub fn new() -> Self {
+        Self {
+            controlling_entity: None,
+            char_to_delete: None,
+            connection: Uuid::nil(),
+            pwd: None,
+            status: UserStatus::NeedUsername,
+            username: String::new(),
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct ShowPromptEvent(pub Entity);
