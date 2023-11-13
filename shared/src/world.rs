@@ -79,9 +79,12 @@ pub struct RoomBundle {
 
 #[derive(Component, Debug)]
 pub struct Exit {
+    pub direction: String,
     pub exit_id: i32,
     pub from_room_id: i32,
     pub to_room_id: i32,
+    pub from_room: Entity,
+    pub to_room: Entity,
 }
 
 #[derive(Bundle, Debug)]

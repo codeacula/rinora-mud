@@ -27,7 +27,6 @@ pub struct User {
     pub id: i32,
     pub administrator: bool,
     pub username: String,
-    pub current_character: Option<Entity>,
 }
 
 #[derive(Component, Debug, Clone)]

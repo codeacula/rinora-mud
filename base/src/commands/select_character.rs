@@ -27,8 +27,6 @@ impl GameCommand for SelectCharacterCommand {
 
         let db_repo = world.resource::<DbInterface>();
 
-        info!("Command: {:?}", command);
-
         let does_own = db_repo
             .characters
             .does_user_own_character(&command.keyword, user.id);
@@ -99,7 +97,6 @@ mod tests {
     fn spawn_user(world: &mut World, entity: Entity) {
         world.entity_mut(entity).insert(User {
             administrator: false,
-            current_character: None,
             id: 1,
             username: String::from("testuser"),
         });

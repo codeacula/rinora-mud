@@ -66,7 +66,11 @@ impl Plugin for BaseRinoraPlugin {
             .add_event::<GmcpReceivedEvent>()
             // Systems
             .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
-            .add_systems(Startup, add_expected_commands.in_set(GameOrderSet::Command))
+            .add_systems(
+                Startup,
+                (add_expected_account_commands, add_character_commands)
+                    .in_set(GameOrderSet::Command),
+            )
             .add_systems(
                 First,
                 transfer_from_server_to_game.in_set(GameOrderSet::Network),

@@ -41,6 +41,41 @@ pub fn to_title_case(inc_str: &str) -> String {
     copy.to_string()
 }
 
+const DIRECTION_MAP: [(&str, &str); 12] = [
+    ("n", "north"),
+    ("s", "south"),
+    ("e", "east"),
+    ("w", "west"),
+    ("u", "up"),
+    ("d", "down"),
+    ("ne", "northeast"),
+    ("nw", "northwest"),
+    ("se", "southeast"),
+    ("sw", "southwest"),
+    ("in", "in"),
+    ("out", "out"),
+];
+
+pub fn get_short_direction(original: &String) -> String {
+    for (short, long) in DIRECTION_MAP.iter() {
+        if original == *short || original == *long {
+            return short.to_string();
+        }
+    }
+
+    original.to_string()
+}
+
+pub fn get_long_direction(original: &String) -> String {
+    for (short, long) in DIRECTION_MAP.iter() {
+        if original == *short || original == *long {
+            return long.to_string();
+        }
+    }
+
+    original.to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::to_title_case;

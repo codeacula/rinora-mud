@@ -1,5 +1,6 @@
+pub mod add_character_commands;
 pub mod add_character_to_room;
-pub mod add_expected_commands;
+pub mod add_expected_account_commands;
 pub mod add_selected_character_to_world;
 pub mod check_username_and_transition_user;
 pub mod create_character_selected;
@@ -19,8 +20,9 @@ pub mod unable_to_locate_account;
 pub mod username_invalid;
 
 pub mod prelude {
+    pub use crate::systems::add_character_commands::*;
     pub use crate::systems::add_character_to_room::*;
-    pub use crate::systems::add_expected_commands::*;
+    pub use crate::systems::add_expected_account_commands::*;
     pub use crate::systems::add_selected_character_to_world::*;
     pub use crate::systems::check_username_and_transition_user::*;
     pub use crate::systems::create_character_selected::*;

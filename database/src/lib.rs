@@ -246,24 +246,28 @@ fn add_rooms_to_exits(world: &mut World) {
 }
 
 fn add_exits_to_rooms(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Exit)>, Res<RoomMap>)> =
+    let mut system_state: SystemState<(Query<(Entity, &mut Exit)>, Res<RoomMap>)> =
         SystemState::new(world);
-    let (exits, room_map) = system_state.get_mut(world);
+    let (mut exits, room_map) = system_state.get_mut(world);
 
     let mut room_to_exits: HashMap<Entity, Vec<Entity>> = HashMap::new();
 
-    for (exit_entity, exit) in exits.iter() {
+    for (exit_entity, mut exit) in exits.iter_mut() {
         if !room_map.0.contains_key(&exit.from_room_id) {
             continue;
         }
 
-        let room_entity = room_map.0.get(&exit.from_room_id).unwrap();
+        let from_room_entity = room_map.0.get(&exit.from_room_id).unwrap();
+        let to_room_entity = room_map.0.get(&exit.to_room_id).unwrap();
 
-        if !room_to_exits.contains_key(room_entity) {
-            room_to_exits.insert(*room_entity, Vec::new());
+        exit.from_room = from_room_entity.clone();
+        exit.to_room = to_room_entity.clone();
+
+        if !room_to_exits.contains_key(from_room_entity) {
+            room_to_exits.insert(*from_room_entity, Vec::new());
         }
 
-        let collection = room_to_exits.get_mut(room_entity).unwrap();
+        let collection = room_to_exits.get_mut(from_room_entity).unwrap();
         collection.push(exit_entity);
     }
 

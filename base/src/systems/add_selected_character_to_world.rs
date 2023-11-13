@@ -8,6 +8,7 @@ pub fn add_selected_character_to_world(
     mut entity_enters_room_tx: EventWriter<EntityEnteredRoomEvent>,
     mut commands: Commands,
     room_map: Res<RoomMap>,
+    mut query: Query<&mut UserSessionData>,
 ) {
     for ev in character_selected_rx.read() {
         let character = match db_repo.characters.get_character_by_name(&ev.name) {
@@ -41,5 +42,9 @@ pub fn add_selected_character_to_world(
             room_entity_is_in: room,
             triggered_by: MovementTriggeredBy::Login,
         });
+
+        let mut user_sesh = query.get_mut(ev.user_entity).unwrap();
+        user_sesh.status = UserStatus::InGame;
+        user_sesh.controlling_entity = Some(character_ent.id());
     }
 }

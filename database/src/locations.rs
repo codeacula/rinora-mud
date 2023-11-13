@@ -136,8 +136,11 @@ impl DbExit {
     pub fn to_exit(&self) -> ExitBundle {
         ExitBundle {
             exit: Exit {
+                direction: self.direction.clone(),
                 from_room_id: self.from_room_id,
+                from_room: Entity::PLACEHOLDER,
                 exit_id: self.id,
+                to_room: Entity::PLACEHOLDER,
                 to_room_id: self.to_room_id,
             },
             to: ExitTo(Entity::PLACEHOLDER),
