@@ -116,7 +116,7 @@ impl Plugin for BaseRinoraPlugin {
                 (
                     add_selected_character_to_world,
                     invalid_direction,
-                    move_to_room,
+                    move_entity_to_room,
                 )
                     .in_set(GameOrderSet::Pre),
             )

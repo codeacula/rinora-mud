@@ -33,9 +33,7 @@ impl GameCommand for ConfirmAccountPasswordCommand {
 
 #[cfg(test)]
 mod tests {
-    use shared::prelude::*;
-
-    use crate::commands::prelude::ConfirmAccountPasswordCommand;
+    use super::*;
 
     #[test]
     fn doesnt_run_if_no_user_sesh() {
