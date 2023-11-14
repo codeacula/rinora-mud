@@ -10,17 +10,11 @@ impl GameCommand for MoveToRoomCommand {
             Res<RoomMap>,
             Query<&Exits>,
             Query<&Exit>,
-            EventWriter<EntityAttemptedToMove>,
+            EventWriter<MoveEntityToRoom>,
         )> = SystemState::new(world);
 
-        let (
-            location_query,
-            user_query,
-            room_map,
-            exits_query,
-            exit_query,
-            mut attempted_to_move_tx,
-        ) = state.get_mut(world);
+        let (location_query, user_query, room_map, exits_query, exit_query, mut move_entity_tx) =
+            state.get_mut(world);
 
         let user_sesh = user_query.get(command.entity).expect("No user found");
 
@@ -34,25 +28,34 @@ impl GameCommand for MoveToRoomCommand {
 
         let cleaned_direction = get_short_direction(&command.full_command);
 
+        let mut selected_exit: Option<&Exit> = None;
+
         for exit_entity in exits.0.iter() {
             let exit = exit_query.get(*exit_entity).expect("No exit found");
 
             if exit.direction == cleaned_direction {
-                attempted_to_move_tx.send(EntityAttemptedToMove {
-                    entity: command.entity,
-                    room: exit.to_room,
-                    triggered_by: MovementTriggeredBy::UserInput,
-                });
-                return Ok(true);
+                selected_exit = Some(exit);
+                break;
             }
         }
 
         // If it's a valid direction but we have no exit, we want to tell them so
-        if is_valid_direction(&cleaned_direction) {
+        if selected_exit.is_none() && is_valid_direction(&cleaned_direction) {
             world.send_event(InvalidDirectionEvent(command.entity));
             return Ok(true);
         }
 
-        Ok(false)
+        if selected_exit.is_none() {
+            return Ok(false);
+        }
+
+        // If we made it here, we have a valid direction and a valid exit
+        move_entity_tx.send(MoveEntityToRoom {
+            entity: command.entity,
+            room: room_entity.clone(),
+            triggered_by: MovementTriggeredBy::UserInput,
+        });
+
+        Ok(true)
     }
 }

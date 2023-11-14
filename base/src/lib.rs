@@ -96,20 +96,27 @@ impl Plugin for BaseRinoraPlugin {
             .add_systems(
                 Update,
                 (
-                    add_selected_character_to_world,
                     create_new_character,
                     create_new_user,
                     character_name_invalid,
                     character_was_created,
                     display_character_exists,
                     handle_generic_error,
-                    invalid_direction,
                     passwords_do_not_match,
                     password_was_provided,
                     unable_to_locate_account,
                     username_exists,
                     username_does_not_exists,
                     username_invalid,
+                )
+                    .in_set(GameOrderSet::Account),
+            )
+            .add_systems(
+                Update,
+                (
+                    add_selected_character_to_world,
+                    invalid_direction,
+                    move_to_room,
                 )
                     .in_set(GameOrderSet::Pre),
             )

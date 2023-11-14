@@ -183,29 +183,29 @@ fn add_environments_to_rooms(world: &mut World) {
 }
 
 fn add_rooms_to_areas(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<(Entity, &Area)>, Commands)> =
-        SystemState::new(world);
-    let (children, parents, mut commands) = system_state.get_mut(world);
+    let mut system_state: SystemState<(
+        Query<(Entity, &mut Room)>,
+        Query<(Entity, &Area)>,
+        Res<AreaMap>,
+        Commands,
+    )> = SystemState::new(world);
+    let (mut children, parents, area_map, mut commands) = system_state.get_mut(world);
 
     // Index all the rooms by id
     let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
 
-    for (entity, child) in children.iter() {
+    for (entity, mut child) in children.iter_mut() {
         if !child_map.contains_key(&child.area_id) {
             child_map.insert(child.area_id, Vec::new());
         }
 
         child_map.get_mut(&child.area_id).unwrap().push(entity);
+        child.parent_area = area_map.0.get(&child.area_id).unwrap().clone();
     }
 
     for (entity, parent) in parents.iter() {
         if child_map.contains_key(&parent.area_id) {
             let res = child_map.get(&parent.area_id).unwrap().clone();
-
-            res.iter().for_each(|mut room| {
-                commands.entity(*room).insert(AreaTo(entity.clone()));
-            });
-
             commands.entity(entity).insert(EntityCollection(res));
         }
     }
