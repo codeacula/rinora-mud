@@ -25,6 +25,7 @@ pub struct Continent {
     pub continent_id: i32,
     pub plane_id: i32,
     pub areas: Vec<Entity>,
+    pub plane: Entity,
 }
 
 #[derive(Bundle, Debug)]
@@ -39,6 +40,7 @@ pub struct ContinentBundle {
 pub struct Area {
     pub area_id: i32,
     pub continent_id: i32,
+    pub continent: Entity,
 }
 
 #[derive(Bundle, Debug)]

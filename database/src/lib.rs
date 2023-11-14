@@ -67,20 +67,22 @@ fn add_continents_to_world(world: &mut World) {
 
 fn add_continents_to_planes(world: &mut World) {
     let mut system_state: SystemState<(
-        Query<(Entity, &Continent)>,
+        Query<(Entity, &mut Continent)>,
         Query<(Entity, &Plane)>,
         Commands,
+        Res<PlaneMap>,
     )> = SystemState::new(world);
-    let (children, parents, mut commands) = system_state.get_mut(world);
+    let (mut children, parents, mut commands, plane_map) = system_state.get_mut(world);
 
     // Index all the rooms by id
     let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
 
-    for (entity, child) in children.iter() {
+    for (entity, mut child) in children.iter_mut() {
         if !child_map.contains_key(&child.plane_id) {
             child_map.insert(child.plane_id, Vec::new());
         }
 
+        child.plane = plane_map.0.get(&child.plane_id).unwrap().clone();
         child_map.get_mut(&child.plane_id).unwrap().push(entity);
     }
 
@@ -113,19 +115,23 @@ fn add_areas_to_world(world: &mut World) {
 }
 
 fn add_areas_to_continents(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Area)>, Query<&mut Continent>)> =
-        SystemState::new(world);
-    let (children, mut parents) = system_state.get_mut(world);
+    let mut system_state: SystemState<(
+        Query<(Entity, &mut Area)>,
+        Query<&mut Continent>,
+        Res<ContinentMap>,
+    )> = SystemState::new(world);
+    let (mut children, mut parents, continent_map) = system_state.get_mut(world);
 
     // Index all the rooms by id
     let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
 
-    for (entity, child) in children.iter() {
+    for (entity, mut child) in children.iter_mut() {
         if !child_map.contains_key(&child.continent_id) {
             child_map.insert(child.continent_id, Vec::new());
         }
 
         child_map.get_mut(&child.continent_id).unwrap().push(entity);
+        child.continent = continent_map.0.get(&child.continent_id).unwrap().clone();
     }
 
     for mut parent in parents.iter_mut() {

@@ -42,6 +42,7 @@ impl DbContinent {
                 continent_id: self.id,
                 plane_id: self.plane_id,
                 areas: Vec::new(),
+                plane: Entity::PLACEHOLDER,
             },
             areas: EntityCollection(Vec::new()),
             description: Description(self.description.clone()),
@@ -66,6 +67,7 @@ impl DbArea {
             area: Area {
                 continent_id: self.continent_id,
                 area_id: self.id,
+                continent: Entity::PLACEHOLDER,
             },
             description: Description(self.description.clone()),
             name: DisplayName(self.name.clone()),
