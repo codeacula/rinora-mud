@@ -65,6 +65,7 @@ pub struct EnvironmentBundle {
 pub struct Room {
     pub room_id: i32,
     pub area_id: i32,
+    pub parent_area: Entity,
     pub environment_id: i32,
 }
 

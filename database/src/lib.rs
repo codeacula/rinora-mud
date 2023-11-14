@@ -201,6 +201,11 @@ fn add_rooms_to_areas(world: &mut World) {
     for (entity, parent) in parents.iter() {
         if child_map.contains_key(&parent.area_id) {
             let res = child_map.get(&parent.area_id).unwrap().clone();
+
+            res.iter().for_each(|mut room| {
+                commands.entity(*room).insert(AreaTo(entity.clone()));
+            });
+
             commands.entity(entity).insert(EntityCollection(res));
         }
     }

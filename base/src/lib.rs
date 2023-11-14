@@ -98,11 +98,12 @@ impl Plugin for BaseRinoraPlugin {
                 (
                     add_selected_character_to_world,
                     create_new_character,
+                    create_new_user,
                     character_name_invalid,
                     character_was_created,
                     display_character_exists,
                     handle_generic_error,
-                    create_new_user,
+                    invalid_direction,
                     passwords_do_not_match,
                     password_was_provided,
                     unable_to_locate_account,
