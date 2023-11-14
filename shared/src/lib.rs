@@ -69,6 +69,7 @@ impl Plugin for SharedPlugin {
             .add_event::<ConfirmPasswordDoesNotMatchEvent>()
             .add_event::<CreateCharacterEvent>()
             .add_event::<CreateCharacterSelectedEvent>()
+            .add_event::<EntityAttemptedToMove>()
             .add_event::<PasswordNotLongEnoughEvent>()
             .add_event::<PromptUserForCharacterName>()
             .add_event::<UnableToLocateAccountEvent>()
@@ -89,6 +90,7 @@ impl Plugin for SharedPlugin {
 
         // Events
         app.add_event::<GenericErrorEvent>()
+            .add_event::<InvalidDirectionEvent>()
             .add_event::<ShowLoginScreenEvent>()
             .add_event::<ShowPromptEvent>()
             .add_event::<TextEvent>();

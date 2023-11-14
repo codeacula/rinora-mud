@@ -76,6 +76,15 @@ pub fn get_long_direction(original: &String) -> String {
     original.to_string()
 }
 
+pub fn is_valid_direction(original: &String) -> bool {
+    for (short, long) in DIRECTION_MAP.iter() {
+        if original == *short || original == *long {
+            return true;
+        }
+    }
+    return false;
+}
+
 #[cfg(test)]
 mod tests {
     use super::to_title_case;

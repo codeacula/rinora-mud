@@ -10,9 +10,17 @@ impl GameCommand for MoveToRoomCommand {
             Res<RoomMap>,
             Query<&Exits>,
             Query<&Exit>,
+            EventWriter<EntityAttemptedToMove>,
         )> = SystemState::new(world);
 
-        let (location_query, user_query, room_map, exits_query, exit_query) = state.get_mut(world);
+        let (
+            location_query,
+            user_query,
+            room_map,
+            exits_query,
+            exit_query,
+            mut attempted_to_move_tx,
+        ) = state.get_mut(world);
 
         let user_sesh = user_query.get(command.entity).expect("No user found");
 
@@ -30,9 +38,19 @@ impl GameCommand for MoveToRoomCommand {
             let exit = exit_query.get(*exit_entity).expect("No exit found");
 
             if exit.direction == cleaned_direction {
-                info!("We matched the direction!");
+                attempted_to_move_tx.send(EntityAttemptedToMove {
+                    entity: command.entity,
+                    room: exit.to_room,
+                    triggered_by: MovementTriggeredBy::UserInput,
+                });
                 return Ok(true);
             }
+        }
+
+        // If it's a valid direction but we have no exit, we want to tell them so
+        if is_valid_direction(&cleaned_direction) {
+            world.send_event(InvalidDirectionEvent(command.entity));
+            return Ok(true);
         }
 
         Ok(false)

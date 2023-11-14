@@ -17,7 +17,7 @@ pub fn send_room_description(
     };
 
     text_event.text.text_slices.push(TextSlice {
-        foreground: 117,
+        foreground: 94,
         text: name.clone() + "\n",
         ..Default::default()
     });
@@ -34,26 +34,44 @@ pub fn send_room_description(
         "exits"
     };
 
-    let mut exit_string = String::from(format!("You see {} leading", exit_phrase));
+    text_event.text.text_slices.push(TextSlice {
+        foreground: 23,
+        text: format!("You see {} leading", exit_phrase),
+        ..Default::default()
+    });
 
     for (index, value) in exits.0.iter().enumerate() {
         if index == 0 {
-            exit_string.push_str(" ");
+            text_event.text.text_slices.push(TextSlice {
+                foreground: 23,
+                text: " ".to_string(),
+                ..Default::default()
+            });
         } else if index == exits.0.len() - 1 {
-            exit_string.push_str(" and ");
+            text_event.text.text_slices.push(TextSlice {
+                foreground: 23,
+                text: " and ".to_string(),
+                ..Default::default()
+            });
         } else {
-            exit_string.push_str(", ");
+            text_event.text.text_slices.push(TextSlice {
+                foreground: 23,
+                text: ", ".to_string(),
+                ..Default::default()
+            });
         }
 
         let exit = query.get(*value).expect("Unable to find exit");
-
-        exit_string.push_str(get_long_direction(&exit.direction).as_str());
+        text_event.text.text_slices.push(TextSlice {
+            foreground: 14,
+            text: get_long_direction(&exit.direction),
+            ..Default::default()
+        });
     }
-    exit_string.push_str(".");
 
     text_event.text.text_slices.push(TextSlice {
         foreground: 23,
-        text: exit_string + "\n",
+        text: ".\n".to_string(),
         ..Default::default()
     });
 

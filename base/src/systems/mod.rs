@@ -9,6 +9,7 @@ pub mod create_new_user;
 pub mod handle_disconnect;
 pub mod handle_new_connections;
 pub mod handle_user_login;
+pub mod move_entity_to_room;
 pub mod password_was_provided;
 pub mod passwords_do_not_match;
 pub mod process_incoming_commands;
@@ -31,6 +32,7 @@ pub mod prelude {
     pub use crate::systems::handle_disconnect::*;
     pub use crate::systems::handle_new_connections::*;
     pub use crate::systems::handle_user_login::*;
+    pub use crate::systems::move_entity_to_room::*;
     pub use crate::systems::password_was_provided::*;
     pub use crate::systems::passwords_do_not_match::*;
     pub use crate::systems::process_incoming_commands::*;

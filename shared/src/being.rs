@@ -105,3 +105,10 @@ pub struct MoveEntityToRoom {
     pub room: Entity,
     pub triggered_by: MovementTriggeredBy,
 }
+
+#[derive(Event, Debug)]
+pub struct EntityAttemptedToMove {
+    pub entity: Entity,
+    pub room: Entity,
+    pub triggered_by: MovementTriggeredBy,
+}

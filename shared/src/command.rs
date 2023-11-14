@@ -46,3 +46,6 @@ pub struct GameCommands(pub HashMap<UserStatus, Vec<Box<dyn GameCommand>>>);
 
 #[derive(Event)]
 pub struct GenericErrorEvent(pub Entity);
+
+#[derive(Event)]
+pub struct InvalidDirectionEvent(pub Entity);
