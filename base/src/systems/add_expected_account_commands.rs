@@ -31,7 +31,7 @@ pub fn add_expected_account_commands(mut command_list: ResMut<GameCommands>) {
         .0
         .get_mut(&UserStatus::CreateCharacter)
         .unwrap()
-        .push(Box::new(ProvideCharacterNameCommand {}));
+        .push(Box::new(ProvideCreateCharacterNameCommand {}));
 
     command_list
         .0

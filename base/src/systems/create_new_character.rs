@@ -8,7 +8,6 @@ pub fn create_new_character(
     mut commands: Commands,
     settings: Res<GameSettings>,
     mut character_created_tx: EventWriter<CharacterCreatedEvent>,
-    mut entity_enters_world_tx: EventWriter<EntityEnteredWorldEvent>,
     mut move_entity_to_room: EventWriter<MoveEntityToRoom>,
     room_map: Res<RoomMap>,
 ) {
@@ -45,7 +44,6 @@ pub fn create_new_character(
         move_entity_to_room.send(MoveEntityToRoom {
             entity: character_entity,
             room,
-            triggered_by: MovementTriggeredBy::CharacterCreation,
         });
     }
 }

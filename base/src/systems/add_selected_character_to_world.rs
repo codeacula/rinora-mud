@@ -4,8 +4,7 @@ use shared::prelude::*;
 pub fn add_selected_character_to_world(
     mut character_selected_rx: EventReader<CharacterSelectedEvent>,
     db_repo: Res<DbInterface>,
-    mut entity_enters_world_tx: EventWriter<EntityEnteredWorldEvent>,
-    mut entity_enters_room_tx: EventWriter<EntityEnteredRoomEvent>,
+    mut move_entity_to_room_rx: EventWriter<MoveEntityToRoom>,
     mut commands: Commands,
     room_map: Res<RoomMap>,
     mut query: Query<&mut UserSessionData>,
@@ -25,22 +24,15 @@ pub fn add_selected_character_to_world(
             }
         };
 
-        let location_id = character.location.0;
+        let location_id = character.location.location_id;
         let mut character_ent = commands.spawn(character);
         let room = *room_map.0.get(&location_id).unwrap();
 
         character_ent.insert(IsControlledBy(ev.user_entity));
 
-        entity_enters_world_tx.send(EntityEnteredWorldEvent {
+        move_entity_to_room_rx.send(MoveEntityToRoom {
             entity: character_ent.id(),
-            room_entity_is_in: room,
-            triggered_by: MovementTriggeredBy::Login,
-        });
-
-        entity_enters_room_tx.send(EntityEnteredRoomEvent {
-            entity: character_ent.id(),
-            room_entity_is_in: room,
-            triggered_by: MovementTriggeredBy::Login,
+            room,
         });
 
         let mut user_sesh = query.get_mut(ev.user_entity).unwrap();

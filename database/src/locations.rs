@@ -113,7 +113,7 @@ impl DbRoom {
             room: Room {
                 area_id: self.area_id,
                 environment_id: self.environment_id,
-                parent_area: Entity::PLACEHOLDER,
+                area: Entity::PLACEHOLDER,
                 room_id: self.id,
             },
             description: Description(self.description.clone()),

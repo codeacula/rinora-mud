@@ -69,7 +69,6 @@ impl Plugin for SharedPlugin {
             .add_event::<ConfirmPasswordDoesNotMatchEvent>()
             .add_event::<CreateCharacterEvent>()
             .add_event::<CreateCharacterSelectedEvent>()
-            .add_event::<EntityAttemptedToMove>()
             .add_event::<PasswordNotLongEnoughEvent>()
             .add_event::<PromptUserForCharacterName>()
             .add_event::<UnableToLocateAccountEvent>()
@@ -85,8 +84,15 @@ impl Plugin for SharedPlugin {
         // Entities
         app.add_event::<EntityEnteredRoomEvent>()
             .add_event::<EntityEnteredWorldEvent>()
+            .add_event::<EntityEnteredPlaneEvent>()
+            .add_event::<EntityEnteredContinentEvent>()
+            .add_event::<EntityEnteredAreaEvent>()
+            .add_event::<EntityLeftWorldEvent>()
+            .add_event::<EntityLeftPlaneEvent>()
+            .add_event::<EntityLeftContinentEvent>()
+            .add_event::<EntityLeftAreaEvent>()
             .add_event::<EntityLeftRoomEvent>()
-            .add_event::<EntityLeftWorldEvent>();
+            .add_event::<MoveEntityToRoom>();
 
         // Events
         app.add_event::<GenericErrorEvent>()

@@ -206,7 +206,7 @@ fn add_rooms_to_areas(world: &mut World) {
         }
 
         child_map.get_mut(&child.area_id).unwrap().push(entity);
-        child.parent_area = area_map.0.get(&child.area_id).unwrap().clone();
+        child.area = area_map.0.get(&child.area_id).unwrap().clone();
     }
 
     for (entity, parent) in parents.iter() {

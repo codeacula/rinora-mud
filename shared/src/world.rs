@@ -67,7 +67,7 @@ pub struct EnvironmentBundle {
 pub struct Room {
     pub room_id: i32,
     pub area_id: i32,
-    pub parent_area: Entity,
+    pub area: Entity,
     pub environment_id: i32,
 }
 
@@ -101,4 +101,7 @@ pub struct ExitBundle {
 pub struct ExitTo(pub Entity);
 
 #[derive(Component, Debug)]
-pub struct Location(pub i32);
+pub struct Location {
+    pub location_id: i32,
+    pub entity: Entity,
+}

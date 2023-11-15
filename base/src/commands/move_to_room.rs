@@ -21,7 +21,7 @@ impl GameCommand for MoveToRoomCommand {
         let location = location_query
             .get(user_sesh.controlling_entity.expect("No current character"))
             .expect("No location found");
-        let room_num = location.0;
+        let room_num = location.location_id;
 
         let room_entity = room_map.0.get(&room_num).expect("Room not found");
         let exits = exits_query.get(*room_entity).expect("No exits found");
@@ -53,7 +53,6 @@ impl GameCommand for MoveToRoomCommand {
         move_entity_tx.send(MoveEntityToRoom {
             entity: command.entity,
             room: room_entity.clone(),
-            triggered_by: MovementTriggeredBy::UserInput,
         });
 
         Ok(true)

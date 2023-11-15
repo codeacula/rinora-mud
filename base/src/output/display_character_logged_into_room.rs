@@ -9,10 +9,6 @@ pub fn display_character_logged_into_room(
     room_info_query: Query<&EntityCollection, With<Room>>,
 ) {
     for ev in entity_entered_room_rx.read() {
-        if ev.triggered_by != MovementTriggeredBy::Login {
-            continue;
-        }
-
         let Ok(display_name) = characters_in_world.get(ev.entity) else {
             info!("Entity entering has no display name.");
             continue;

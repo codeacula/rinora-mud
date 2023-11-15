@@ -28,20 +28,18 @@ pub fn handle_disconnect(
                 continue;
             };
 
-            let Some(room) = room_map.0.get(&location.0) else {
+            let Some(room) = room_map.0.get(&location.location_id) else {
                 continue;
             };
 
             ev_entity_left_room.send(EntityLeftRoomEvent {
                 entity: controlled_entity,
                 room_entity_was_in: *room,
-                triggered_by: MovementTriggeredBy::Logout,
             });
 
             ev_entity_left_world.send(EntityLeftWorldEvent {
                 entity: controlled_entity,
                 room_entity_was_in: *room,
-                triggered_by: MovementTriggeredBy::Logout,
             });
         }
 

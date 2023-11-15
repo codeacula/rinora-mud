@@ -15,14 +15,6 @@ pub struct Character {
 #[derive(Component)]
 pub struct Pronouns(pub i16);
 
-#[derive(Debug, PartialEq)]
-pub enum MovementTriggeredBy {
-    UserInput,
-    Login,
-    Logout,
-    CharacterCreation,
-}
-
 #[derive(Bundle)]
 pub struct CharacterBundle {
     pub being: Being,
@@ -44,7 +36,10 @@ impl Default for CharacterBundle {
             display_name: DisplayName("".to_string()),
             health: Health { current: 0, max: 0 },
             mana: Mana { current: 0, max: 0 },
-            location: Location(1),
+            location: Location {
+                entity: Entity::PLACEHOLDER,
+                location_id: 0,
+            },
             info: Character {
                 character_id: 0,
                 user_id: 0,
@@ -68,47 +63,78 @@ pub struct Mana {
     pub max: i32,
 }
 
+#[derive(Component)]
+pub struct WantsToMove {
+    pub who: Entity,
+    pub from: Entity,
+    pub to: Entity,
+};
+
 #[derive(Event, Debug)]
 pub struct EntityEnteredRoomEvent {
     pub entity: Entity,
     pub room_entity_is_in: Entity,
-    pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
 pub struct EntityEnteredWorldEvent {
     pub entity: Entity,
     pub room_entity_is_in: Entity,
-    pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
 pub struct EntityLeftRoomEvent {
     pub entity: Entity,
     pub room_entity_was_in: Entity,
-    pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
 pub struct EntityLeftWorldEvent {
     pub entity: Entity,
     pub room_entity_was_in: Entity,
-    pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
 pub struct PromptUserForCharacterName(pub Entity);
 
-#[derive(Event, Debug)]
+#[derive(Event, Debug, Copy, Clone)]
 pub struct MoveEntityToRoom {
     pub entity: Entity,
     pub room: Entity,
-    pub triggered_by: MovementTriggeredBy,
 }
 
 #[derive(Event, Debug)]
-pub struct EntityAttemptedToMove {
+pub struct EntityEnteredPlaneEvent {
     pub entity: Entity,
-    pub room: Entity,
-    pub triggered_by: MovementTriggeredBy,
+    pub plane_entity_is_in: Entity,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityLeftPlaneEvent {
+    pub entity: Entity,
+    pub plane_entity_was_in: Entity,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityEnteredContinentEvent {
+    pub entity: Entity,
+    pub continent_entity_is_in: Entity,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityLeftContinentEvent {
+    pub entity: Entity,
+    pub continent_entity_was_in: Entity,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityEnteredAreaEvent {
+    pub entity: Entity,
+    pub area_entity_is_in: Entity,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityLeftAreaEvent {
+    pub entity: Entity,
+    pub area_entity_was_in: Entity,
 }

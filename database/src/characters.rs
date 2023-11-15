@@ -49,7 +49,10 @@ impl DbCharacter {
                 character_id: self.id,
                 user_id: self.user_id,
             },
-            location: Location(self.current_room_id),
+            location: Location {
+                entity: Entity::PLACEHOLDER,
+                location_id: self.current_room_id,
+            },
         }
     }
 }
