@@ -64,7 +64,7 @@ pub struct Mana {
 }
 
 #[derive(Component)]
-pub struct WantsToMove {
+pub struct EntityWantsToMove {
     pub who: Entity,
     pub from: Entity,
     pub to: Entity,
