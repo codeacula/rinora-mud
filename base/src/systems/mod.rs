@@ -12,6 +12,7 @@ pub mod handle_user_login;
 pub mod move_entity_to_room;
 pub mod password_was_provided;
 pub mod passwords_do_not_match;
+pub mod process_entities_that_want_to_move;
 pub mod process_incoming_commands;
 pub mod process_outgoing_data;
 pub mod process_text_events_for_users;
@@ -35,6 +36,7 @@ pub mod prelude {
     pub use crate::systems::move_entity_to_room::*;
     pub use crate::systems::password_was_provided::*;
     pub use crate::systems::passwords_do_not_match::*;
+    pub use crate::systems::process_entities_that_want_to_move::*;
     pub use crate::systems::process_incoming_commands::*;
     pub use crate::systems::process_outgoing_data::*;
     pub use crate::systems::process_text_events_for_users::*;

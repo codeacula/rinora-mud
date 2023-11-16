@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use shared::prelude::*;
 
 pub fn display_character_logged_into_room(
-    mut entity_entered_room_rx: EventReader<EntityEnteredRoomEvent>,
+    mut entity_entered_room_rx: EventReader<EntityLoggedIn>,
     mut text_event_tx: EventWriter<TextEvent>,
     is_controlled_by_query: Query<&IsControlledBy>,
     characters_in_world: Query<&DisplayName, With<Character>>,

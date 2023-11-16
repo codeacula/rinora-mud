@@ -13,7 +13,7 @@ pub fn send_prompt_to_user(
         };
 
         if session_data.status == UserStatus::InGame {
-            text_event_tx.send(TextEvent::from_str(entity, "-\n"));
+            text_event_tx.send(TextEvent::from_str(entity, "-"));
         } else {
             let mut sent_event = TextEvent::from_str(entity, "> \n");
             sent_event.add_newline = false;

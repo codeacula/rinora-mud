@@ -16,9 +16,17 @@ pub fn send_room_description(
         add_newline: true,
     };
 
+    let mut display_name = name.clone();
+
+    if let Some(last_char) = display_name.chars().last() {
+        if !last_char.is_ascii_punctuation() {
+            display_name.push('.');
+        }
+    }
+
     text_event.text.text_slices.push(TextSlice {
         foreground: 94,
-        text: name.clone() + "\n",
+        text: display_name.clone() + "\n",
         ..Default::default()
     });
 
@@ -71,7 +79,7 @@ pub fn send_room_description(
 
     text_event.text.text_slices.push(TextSlice {
         foreground: 23,
-        text: ".\n".to_string(),
+        text: ".".to_string(),
         ..Default::default()
     });
 

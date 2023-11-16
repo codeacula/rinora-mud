@@ -92,6 +92,8 @@ impl Plugin for SharedPlugin {
             .add_event::<EntityLeftContinentEvent>()
             .add_event::<EntityLeftAreaEvent>()
             .add_event::<EntityLeftRoomEvent>()
+            .add_event::<EntityLoggedIn>()
+            .add_event::<EntityMovedRooms>()
             .add_event::<MoveEntityToRoom>();
 
         // Events

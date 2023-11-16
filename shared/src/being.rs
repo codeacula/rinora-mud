@@ -63,12 +63,18 @@ pub struct Mana {
     pub max: i32,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct EntityWantsToMove {
-    pub who: Entity,
-    pub from: Entity,
-    pub to: Entity,
-};
+    pub who_entity: Entity,
+    pub exit_entity: Entity,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityMovedRooms {
+    pub moving_entity: Entity,
+    pub from_room: Entity,
+    pub to_room: Entity,
+}
 
 #[derive(Event, Debug)]
 pub struct EntityEnteredRoomEvent {
@@ -137,4 +143,10 @@ pub struct EntityEnteredAreaEvent {
 pub struct EntityLeftAreaEvent {
     pub entity: Entity,
     pub area_entity_was_in: Entity,
+}
+
+#[derive(Event, Debug)]
+pub struct EntityLoggedIn {
+    pub entity: Entity,
+    pub room_entity_is_in: Entity,
 }

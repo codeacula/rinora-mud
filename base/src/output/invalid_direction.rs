@@ -8,7 +8,7 @@ pub fn invalid_direction(
     for event in invalid_direction_rx.read() {
         text_event_tx.send(TextEvent::from_str(
             event.0,
-            "There's no exit in that direction.\n",
+            "There's no exit in that direction.",
         ));
         prompt_event_tx.send(ShowPromptEvent(event.0));
     }

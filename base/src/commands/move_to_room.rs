@@ -9,12 +9,10 @@ impl GameCommand for MoveToRoomCommand {
             Query<&mut UserSessionData>,
             Res<RoomMap>,
             Query<&Exits>,
-            Query<&Exit>,
-            EventWriter<MoveEntityToRoom>,
+            Query<(Entity, &Exit)>,
         )> = SystemState::new(world);
 
-        let (location_query, user_query, room_map, exits_query, exit_query, mut move_entity_tx) =
-            state.get_mut(world);
+        let (location_query, user_query, room_map, exits_query, exit_query) = state.get_mut(world);
 
         let user_sesh = user_query.get(command.entity).expect("No user found");
 
@@ -29,12 +27,14 @@ impl GameCommand for MoveToRoomCommand {
         let cleaned_direction = get_short_direction(&command.full_command);
 
         let mut selected_exit: Option<&Exit> = None;
+        let mut selected_exit_entity: Option<Entity> = None;
 
         for exit_entity in exits.0.iter() {
-            let exit = exit_query.get(*exit_entity).expect("No exit found");
+            let (found_exit_entity, exit) = exit_query.get(*exit_entity).expect("No exit found");
 
             if exit.direction == cleaned_direction {
                 selected_exit = Some(exit);
+                selected_exit_entity = Some(found_exit_entity);
                 break;
             }
         }
@@ -52,10 +52,13 @@ impl GameCommand for MoveToRoomCommand {
         // Let's get who they're controlling and add the tag that they're trying to move
         let current_character = user_sesh.controlling_entity.expect("No current character");
 
+        // Get the destination location to add to the EntityWantsToMove event
+
         world
             .entity_mut(current_character)
             .insert(EntityWantsToMove {
-                who: current_character,
+                exit_entity: selected_exit_entity.expect("No exit entity"),
+                who_entity: current_character,
             });
 
         Ok(true)

@@ -122,10 +122,14 @@ impl Plugin for BaseRinoraPlugin {
             )
             .add_systems(
                 Update,
+                (process_entities_that_want_to_move).in_set(GameOrderSet::Game),
+            )
+            .add_systems(
+                Update,
                 (
                     display_character_entering_room,
                     display_character_logged_into_room,
-                    display_room_to_user,
+                    display_room_to_entity,
                     prompt_for_character_name,
                     show_login_screen,
                     send_prompt_to_user,

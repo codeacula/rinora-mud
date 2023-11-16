@@ -36,6 +36,11 @@ impl GameCommand for SelectCharacterCommand {
                 name: command.keyword.clone(),
                 user_entity: command.entity,
             });
+
+            world.send_event(EntityLoggedIn {
+                entity: command.entity,
+                room_entity_is_in: Entity::PLACEHOLDER,
+            });
         } else {
             world.send_event(CharacterNotFoundEvent(command.entity));
         }

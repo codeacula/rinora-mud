@@ -5,6 +5,7 @@ flowchart
 
 subgraph command
     direction TB
+    %%Supposes Character Is Already At A Location%%
     Start1[User Enters Cardinal Direction] --> MoveToRoomCommand(MoveToRoomCommand)
     MoveToRoomCommand --> IsThereAValidExit{Is There\nA Valid\nExit?}
     IsThereAValidExit -- No --> InvalidDirectionEvent[[InvalidDirectionEvent]]
