@@ -49,11 +49,14 @@ impl GameCommand for MoveToRoomCommand {
             return Ok(false);
         }
 
-        // If we made it here, we have a valid direction and a valid exit
-        move_entity_tx.send(MoveEntityToRoom {
-            entity: command.entity,
-            room: room_entity.clone(),
-        });
+        // Let's get who they're controlling and add the tag that they're trying to move
+        let current_character = user_sesh.controlling_entity.expect("No current character");
+
+        world
+            .entity_mut(current_character)
+            .insert(EntityWantsToMove {
+                who: current_character,
+            });
 
         Ok(true)
     }
