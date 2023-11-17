@@ -1,18 +1,18 @@
 use crate::prelude::*;
 use bevy::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Being {
     pub pronouns: Pronouns,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Character {
     pub character_id: i32,
     pub user_id: i32,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Pronouns(pub i16);
 
 #[derive(Bundle)]

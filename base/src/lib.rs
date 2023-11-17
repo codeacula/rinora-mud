@@ -116,14 +116,16 @@ impl Plugin for BaseRinoraPlugin {
                 (
                     log_character_into_game,
                     invalid_direction,
-                    move_entity_to_room,
+                    move_entity_to_room_via_event,
                 )
                     .in_set(GameOrderSet::Pre),
             )
             .add_systems(
                 Update,
-                (process_entities_that_want_to_move).in_set(GameOrderSet::Game),
+                (log_character_into_room, process_entities_that_want_to_move)
+                    .in_set(GameOrderSet::Game),
             )
+            .add_systems(Update, (remove_logging_in_tags).in_set(GameOrderSet::Post))
             .add_systems(
                 Update,
                 (

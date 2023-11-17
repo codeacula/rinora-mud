@@ -33,11 +33,10 @@ pub fn log_character_into_game(
             .0
             .get(&location_id)
             .expect("Unable to locate room in map: {location_id}");
-        character.location.entity = * room;
+        character.location.entity = *room;
 
-        let mut character_ent = commands.spawn(character);
-
-        character_ent.insert((IsControlledBy(ev.user_entity), EntityIsLoggingIn));
+        let character_ent =
+            commands.spawn((character, IsControlledBy(ev.user_entity), EntityIsLoggingIn));
 
         let mut user_sesh = query.get_mut(ev.user_entity).unwrap();
         user_sesh.status = UserStatus::InGame;
