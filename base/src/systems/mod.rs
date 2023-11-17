@@ -1,7 +1,6 @@
 pub mod add_character_commands;
 pub mod add_character_to_room;
 pub mod add_expected_account_commands;
-pub mod add_selected_character_to_world;
 pub mod check_username_and_transition_user;
 pub mod create_character_selected;
 pub mod create_new_character;
@@ -9,6 +8,7 @@ pub mod create_new_user;
 pub mod handle_disconnect;
 pub mod handle_new_connections;
 pub mod handle_user_login;
+pub mod log_character_into_game;
 pub mod move_entity_to_room;
 pub mod password_was_provided;
 pub mod passwords_do_not_match;
@@ -25,7 +25,6 @@ pub mod prelude {
     pub use crate::systems::add_character_commands::*;
     pub use crate::systems::add_character_to_room::*;
     pub use crate::systems::add_expected_account_commands::*;
-    pub use crate::systems::add_selected_character_to_world::*;
     pub use crate::systems::check_username_and_transition_user::*;
     pub use crate::systems::create_character_selected::*;
     pub use crate::systems::create_new_character::*;
@@ -33,6 +32,7 @@ pub mod prelude {
     pub use crate::systems::handle_disconnect::*;
     pub use crate::systems::handle_new_connections::*;
     pub use crate::systems::handle_user_login::*;
+    pub use crate::systems::log_character_into_game::*;
     pub use crate::systems::move_entity_to_room::*;
     pub use crate::systems::password_was_provided::*;
     pub use crate::systems::passwords_do_not_match::*;

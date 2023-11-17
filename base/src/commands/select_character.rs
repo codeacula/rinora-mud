@@ -31,31 +31,15 @@ impl GameCommand for SelectCharacterCommand {
             .characters
             .does_user_own_character(&command.keyword, user.id);
 
-        if does_own {
-            let character_bundle = match db_repo.characters.get_character_by_name(&command.keyword)
-            {
-                Ok(val) => match val {
-                    Some(bundle) => bundle,
-                    None => {
-                        error!("Character not found");
-                        return Ok(false);
-                    }
-                },
-                Err(e) => {
-                    error!("Error getting character: {e:?}");
-                    return Ok(false);
-                }
-            };
-
-            let character_entity_id = world.spawn(character_bundle).id();
-
-            world.send_event(LogCharacterInEvent {
-                character_entity: character_entity_id,
-                user_entity: command.entity,
-            });
-        } else {
+        if !does_own {
             world.send_event(CharacterNotFoundEvent(command.entity));
+            return Ok(true);
         }
+
+        world.send_event(LogCharacterInEvent {
+            character_name: command.keyword.clone(),
+            user_entity: command.entity,
+        });
 
         Ok(true)
     }

@@ -2,8 +2,8 @@ use shared::prelude::*;
 
 pub fn send_room_description(
     target: Entity,
-    name: &String,
-    description: &String,
+    name: &str,
+    description: &str,
     exits: &Exits,
     query: &Query<&Exit>,
     text_event_tx: &mut EventWriter<TextEvent>,
@@ -16,7 +16,7 @@ pub fn send_room_description(
         add_newline: true,
     };
 
-    let mut display_name = name.clone();
+    let mut display_name = name.to_owned();
 
     if let Some(last_char) = display_name.chars().last() {
         if !last_char.is_ascii_punctuation() {
@@ -32,7 +32,7 @@ pub fn send_room_description(
 
     text_event.text.text_slices.push(TextSlice {
         foreground: 7,
-        text: description.clone() + "\n",
+        text: description.to_owned() + "\n",
         ..Default::default()
     });
 

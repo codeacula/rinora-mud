@@ -114,7 +114,7 @@ impl Plugin for BaseRinoraPlugin {
             .add_systems(
                 Update,
                 (
-                    add_selected_character_to_world,
+                    log_character_into_game,
                     invalid_direction,
                     move_entity_to_room,
                 )

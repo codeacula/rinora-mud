@@ -69,6 +69,9 @@ pub struct EntityWantsToMove {
     pub exit_entity: Entity,
 }
 
+#[derive(Component, Debug)]
+pub struct EntityIsLoggingIn;
+
 #[derive(Event, Debug)]
 pub struct EntityMovedRooms {
     pub moving_entity: Entity,
@@ -92,6 +95,7 @@ pub struct EntityEnteredWorldEvent {
 pub struct EntityLeftRoomEvent {
     pub entity: Entity,
     pub room_entity_was_in: Entity,
+    pub message: String,
 }
 
 #[derive(Event, Debug)]
@@ -102,6 +106,9 @@ pub struct EntityLeftWorldEvent {
 
 #[derive(Event, Debug)]
 pub struct PromptUserForCharacterName(pub Entity);
+
+#[derive(Event, Debug)]
+pub struct CharacterLoggedInEvent(pub Entity);
 
 #[derive(Event, Debug, Copy, Clone)]
 pub struct MoveEntityToRoom {

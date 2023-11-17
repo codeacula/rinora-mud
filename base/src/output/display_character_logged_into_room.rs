@@ -2,19 +2,19 @@ use bevy::prelude::*;
 use shared::prelude::*;
 
 pub fn display_character_logged_into_room(
-    mut entity_entered_room_rx: EventReader<EntityLoggedIn>,
+    mut character_logged_in_event_rx: EventReader<CharacterLoggedInEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
     is_controlled_by_query: Query<&IsControlledBy>,
-    characters_in_world: Query<&DisplayName, With<Character>>,
+    characters_in_world: Query<(&DisplayName, &Location), With<Character>>,
     room_info_query: Query<&EntityCollection, With<Room>>,
 ) {
-    for ev in entity_entered_room_rx.read() {
-        let Ok(display_name) = characters_in_world.get(ev.entity) else {
-            info!("Entity entering has no display name.");
+    for ev in character_logged_in_event_rx.read() {
+        let Ok((display_name, location)) = characters_in_world.get(ev.0) else {
+            info!("Entity entering has no display name and location.");
             continue;
         };
 
-        let Ok(collection) = room_info_query.get(ev.room_entity_is_in) else {
+        let Ok(collection) = room_info_query.get(location.entity) else {
             info!("Room being entered into has no EntityCollection");
             continue;
         };
@@ -29,7 +29,7 @@ pub fn display_character_logged_into_room(
                 continue;
             };
 
-            if ev.entity.eq(entity_in_room) {
+            if ev.0.eq(entity_in_room) {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
                     &format!("You find yourself disoriented, a blinding bright light filling your vision as your soul leaves suspension. The light pulses as it burns, warm and comforting. After a moment you feel a lurch in your guts, your soul flung from the heart of Ero'ghal and back to the planes it calls home. Almost instantly, you open your eyes and find yourself safe in {} upon the {} plane.\n", "the Wild Plains", "mortal"),

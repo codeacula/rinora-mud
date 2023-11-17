@@ -35,6 +35,7 @@ pub fn handle_disconnect(
             ev_entity_left_room.send(EntityLeftRoomEvent {
                 entity: controlled_entity,
                 room_entity_was_in: *room,
+                message: String::from("Someone suddenly vanished."),
             });
 
             ev_entity_left_world.send(EntityLeftWorldEvent {

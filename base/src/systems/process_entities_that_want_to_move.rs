@@ -19,24 +19,22 @@ pub fn process_entities_that_want_to_move(
 
         // Update the entity's location with the new room
         current_location.location_id = exit_to_room.room_id;
-        current_location.entity = exit.to_room.clone();
+        current_location.entity = exit.to_room;
         commands.entity(moving_entity).remove::<EntityWantsToMove>();
 
         // Let the world know the entity moved rooms
         entity_moved_rooms_tx.send(EntityMovedRooms {
-            moving_entity: moving_entity.clone(),
-            from_room: exit.from_room.clone(),
-            to_room: exit.to_room.clone(),
+            moving_entity,
+            from_room: exit.from_room,
+            to_room: exit.to_room,
         });
 
         // Add the entity to the new room's entity collection, and remove it from the old one
-        entering_room_entity_collection
-            .0
-            .push(moving_entity.clone());
+        entering_room_entity_collection.0.push(moving_entity);
 
         entity_entered_room_tx.send(EntityEnteredRoomEvent {
-            entity: moving_entity.clone(),
-            room_entity_is_in: exit.to_room.clone(),
+            entity: moving_entity,
+            room_entity_is_in: exit.to_room,
         });
 
         let (_exit_from_room, mut exiting_room_entity_collection) =

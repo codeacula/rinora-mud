@@ -31,7 +31,7 @@ pub enum GameOrderSet {
 
 fn set_schedules(app: &mut App, stage: impl ScheduleLabel + Clone) {
     // Configure system sets
-    let all_schedules = vec![
+    let all_schedules = [
         GameOrderSet::Network,
         GameOrderSet::Command,
         GameOrderSet::Account,
@@ -63,6 +63,7 @@ impl Plugin for SharedPlugin {
         // Account
         app.add_event::<CharacterCreatedEvent>()
             .add_event::<CharacterExistsEvent>()
+            .add_event::<CharacterLoggedInEvent>()
             .add_event::<CharacterNameInvalidEvent>()
             .add_event::<CharacterNotFoundEvent>()
             .add_event::<LogCharacterInEvent>()

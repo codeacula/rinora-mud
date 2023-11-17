@@ -9,7 +9,7 @@ use shared::prelude::*;
 pub fn move_entity_to_room(
     mut move_entity_to_room_rx: EventReader<MoveEntityToRoom>,
     mut location_query: Query<&mut Location>,
-    room_query: Query<&Room>,
+    mut room_query: Query<(&Room, &mut EntityCollection)>,
     mut entity_left_room_ev: EventWriter<EntityLeftRoomEvent>,
     mut entity_entered_room_ev: EventWriter<EntityEnteredRoomEvent>,
 ) {
@@ -19,19 +19,48 @@ pub fn move_entity_to_room(
             Err(_) => continue,
         };
 
-        entity_left_room_ev.send(EntityLeftRoomEvent {
-            entity: ev.entity,
-            room_entity_was_in: entity_location.entity,
-        });
-
-        // Get the new room
-        let new_room = match room_query.get(ev.room) {
-            Ok(room) => room,
-            Err(_) => {
-                error!("Entity moved to a room that doesn't exist: {:?}", ev.room);
+        // Update the old room's entity collection
+        let (_, mut old_room_collection) = match room_query.get_mut(entity_location.entity) {
+            Ok(collection) => collection,
+            Err(e) => {
+                error!(
+                    "Entity moved from a room that doesn't exist: {:?} - {e:?}",
+                    entity_location.entity
+                );
                 continue;
             }
         };
+
+        // Find and remove entity from old_room_collection
+        if let Some(index) = old_room_collection
+            .0
+            .iter()
+            .position(|&entity| entity == ev.entity)
+        {
+            old_room_collection.0.remove(index);
+        }
+
+        entity_left_room_ev.send(EntityLeftRoomEvent {
+            entity: ev.entity,
+            room_entity_was_in: entity_location.entity,
+            message: String::from("Someone saunters away."),
+        });
+
+        // Get the new room
+        let (new_room, mut new_entity_collection) = match room_query.get_mut(ev.room) {
+            Ok(collection) => collection,
+            Err(e) => {
+                error!(
+                    "Entity moved to a room that doesn't exist: {:?} - {e:?}",
+                    ev.room
+                );
+                continue;
+            }
+        };
+
+        // Update the room's collection of entities
+        new_entity_collection.0.push(ev.entity);
+
         // Notify new room of arrival
         entity_entered_room_ev.send(EntityEnteredRoomEvent {
             entity: ev.entity,

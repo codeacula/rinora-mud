@@ -82,7 +82,7 @@ fn add_continents_to_planes(world: &mut World) {
             child_map.insert(child.plane_id, Vec::new());
         }
 
-        child.plane = plane_map.0.get(&child.plane_id).unwrap().clone();
+        child.plane = *plane_map.0.get(&child.plane_id).unwrap();
         child_map.get_mut(&child.plane_id).unwrap().push(entity);
     }
 
@@ -131,7 +131,7 @@ fn add_areas_to_continents(world: &mut World) {
         }
 
         child_map.get_mut(&child.continent_id).unwrap().push(entity);
-        child.continent = continent_map.0.get(&child.continent_id).unwrap().clone();
+        child.continent = *continent_map.0.get(&child.continent_id).unwrap();
     }
 
     for mut parent in parents.iter_mut() {
@@ -206,7 +206,7 @@ fn add_rooms_to_areas(world: &mut World) {
         }
 
         child_map.get_mut(&child.area_id).unwrap().push(entity);
-        child.area = area_map.0.get(&child.area_id).unwrap().clone();
+        child.area = *area_map.0.get(&child.area_id).unwrap();
     }
 
     for (entity, parent) in parents.iter() {
@@ -271,8 +271,8 @@ fn add_exits_to_rooms(world: &mut World) {
         let from_room_entity = room_map.0.get(&exit.from_room_id).unwrap();
         let to_room_entity = room_map.0.get(&exit.to_room_id).unwrap();
 
-        exit.from_room = from_room_entity.clone();
-        exit.to_room = to_room_entity.clone();
+        exit.from_room = *from_room_entity;
+        exit.to_room = *to_room_entity;
 
         if !room_to_exits.contains_key(from_room_entity) {
             room_to_exits.insert(*from_room_entity, Vec::new());

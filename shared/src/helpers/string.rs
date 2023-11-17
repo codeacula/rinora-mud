@@ -20,9 +20,7 @@ pub fn is_valid_username(inc_str: &str) -> bool {
     let invalid_starting_chars = "0123456789_";
     let length = inc_str.len();
 
-    return length > 2
-        && length < 17
-        && !inc_str.starts_with(|c| invalid_starting_chars.contains(c));
+    length > 2 && length < 17 && !inc_str.starts_with(|c| invalid_starting_chars.contains(c))
 }
 
 /// Returns a [String] instance `inc_str` formatted in title case.
@@ -82,7 +80,7 @@ pub fn is_valid_direction(original: &String) -> bool {
             return true;
         }
     }
-    return false;
+    false
 }
 
 #[cfg(test)]

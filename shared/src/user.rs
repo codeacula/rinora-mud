@@ -52,5 +52,11 @@ impl UserSessionData {
     }
 }
 
+impl Default for UserSessionData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Event)]
 pub struct ShowPromptEvent(pub Entity);
