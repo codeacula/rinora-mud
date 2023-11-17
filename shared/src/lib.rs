@@ -65,7 +65,7 @@ impl Plugin for SharedPlugin {
             .add_event::<CharacterExistsEvent>()
             .add_event::<CharacterNameInvalidEvent>()
             .add_event::<CharacterNotFoundEvent>()
-            .add_event::<CharacterSelectedEvent>()
+            .add_event::<LogCharacterInEvent>()
             .add_event::<ConfirmPasswordDoesNotMatchEvent>()
             .add_event::<CreateCharacterEvent>()
             .add_event::<CreateCharacterSelectedEvent>()

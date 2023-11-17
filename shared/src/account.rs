@@ -18,8 +18,8 @@ pub struct CharacterNotFoundEvent(pub Entity);
 
 /// Fired when a user has selected a character from the main manu
 #[derive(Event)]
-pub struct CharacterSelectedEvent {
-    pub name: String,
+pub struct LogCharacterInEvent {
+    pub character_entity: Entity,
     pub user_entity: Entity,
 }
 
