@@ -32,14 +32,35 @@ impl GameCommand for SelectCharacterCommand {
             .does_user_own_character(&command.keyword, user.id);
 
         if does_own {
-            world.send_event(CharacterSelectedEvent {
-                name: command.keyword.clone(),
-                user_entity: command.entity,
-            });
+            let character_bundle = match db_repo.characters.get_character_by_name(&command.keyword)
+            {
+                Ok(val) => match val {
+                    Some(bundle) => bundle,
+                    None => {
+                        error!("Character not found");
+                        return Ok(false);
+                    }
+                },
+                Err(e) => {
+                    error!("Error getting character: {e:?}");
+                    return Ok(false);
+                }
+            };
+
+            let room_map = world.get_resource::<RoomMap>().unwrap();
+            let incoming_room_entity = room_map
+                .0
+                .get(&character_bundle.location.location_id)
+                .expect("Unable to locate room entity");
 
             world.send_event(EntityLoggedIn {
                 entity: command.entity,
-                room_entity_is_in: Entity::PLACEHOLDER,
+                room_entity_is_in: incoming_room_entity.to_owned(),
+            });
+
+            world.send_event(CharacterSelectedEvent {
+                name: command.keyword.clone(),
+                user_entity: command.entity,
             });
         } else {
             world.send_event(CharacterNotFoundEvent(command.entity));
