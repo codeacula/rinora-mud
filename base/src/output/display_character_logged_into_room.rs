@@ -7,6 +7,7 @@ pub fn display_character_logged_into_room(
     is_controlled_by_query: Query<&IsControlledBy>,
     characters_in_world: Query<(&DisplayName, &Location), With<Character>>,
     room_info_query: Query<&EntityCollection, With<Room>>,
+    mut show_prompt_event_tx: EventWriter<ShowPromptEvent>,
 ) {
     for ev in character_logged_in_event_rx.read() {
         let Ok((display_name, location)) = characters_in_world.get(ev.0) else {
@@ -32,14 +33,16 @@ pub fn display_character_logged_into_room(
             if ev.0.eq(entity_in_room) {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
-                    &format!("You find yourself disoriented, a blinding bright light filling your vision as your soul leaves suspension. The light pulses as it burns, warm and comforting. After a moment you feel a lurch in your guts, your soul flung from the heart of Ero'ghal and back to the planes it calls home. Almost instantly, you open your eyes and find yourself safe in {} upon the {} plane.\n", "the Wild Plains", "mortal"),
+                    &format!("You find yourself disoriented, a blinding bright light filling your vision as your soul leaves suspension. The light pulses as it burns, warm and comforting. After a moment you feel a lurch in your guts, your soul flung from the heart of Ero'ghal and back to the planes it calls home. Almost instantly, you open your eyes and find yourself safe in {} upon the {} plane.", "the Wild Plains", "mortal"),
                 ));
             } else {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
-                    &format!("Reality bends for a moment as {}'s soul exits suspension, their body appearing, radiating a glowing light that casts no shadows before the world settles back to normal.\n", display_name.0.clone()),
+                    &format!("Reality bends for a moment as {}'s soul exits suspension, their body appearing, radiating a glowing light that casts no shadows before the world settles back to normal.", display_name.0.clone()),
                 ));
             }
+
+            show_prompt_event_tx.send(ShowPromptEvent(controlling_entity.0));
         }
     }
 }

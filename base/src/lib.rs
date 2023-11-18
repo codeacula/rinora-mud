@@ -130,14 +130,14 @@ impl Plugin for BaseRinoraPlugin {
                 Update,
                 (
                     display_character_entering_room,
-                    display_character_logged_into_room,
-                    display_room_to_entity,
+                    display_character_logged_into_room.after(display_character_entering_room),
+                    display_room_to_entity.after(display_character_entering_room),
                     prompt_for_character_name,
                     show_login_screen,
-                    send_prompt_to_user,
                 )
                     .in_set(GameOrderSet::Output),
             )
+            .add_systems(Last, (send_prompt_to_user,).in_set(GameOrderSet::Output))
             .add_systems(
                 Last,
                 (process_text_events_for_users, process_outgoing_data)
