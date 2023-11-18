@@ -12,6 +12,7 @@ use systems::prelude::*;
 mod commands;
 mod enums;
 mod events;
+mod gmcp;
 mod helpers;
 mod models;
 mod output;

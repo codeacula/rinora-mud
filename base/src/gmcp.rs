@@ -1,18 +1,18 @@
 /// Telnet protocol constants
 /// Byte to signal subchannel negotiation
-pub const IAC: i32 = 255;
+pub const IAC: u8 = 255;
 
 /// Client WILL do something. Mostly GMCP
-pub const WILL: i32 = 251;
+pub const WILL: u8 = 251;
 
 /// Client WONT do something. Mostly GMCP
-pub const WONT: i32 = 252;
+pub const WONT: u8 = 252;
 
 /// Client requests server to DO something
-pub const DO: i32 = 253;
+pub const DO: u8 = 253;
 
 /// Client requests server to DONT do something
-pub const DONT: i32 = 254;
+pub const DONT: u8 = 254;
 
 /// GMCP byte flag
-pub const GMCP: i32 = 201;
+pub const GMCP: u8 = 201;
