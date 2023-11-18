@@ -17,7 +17,6 @@ fn display_room_debug_info(
         };
 
         if is_admin_query.get(controller.0).is_err() {
-            debug!("Couldn't locate admin tag");
             break;
         }
 
