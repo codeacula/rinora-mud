@@ -8,7 +8,7 @@ use std::{
 
 use bevy::{prelude::*, utils::Uuid};
 
-use crate::{enums::*, events::*, models::*, resources::*};
+use crate::{enums::*, events::*, gmcp::*, models::*, resources::*};
 
 // All good MUDs have a banner!
 const GREETING: &str = "
@@ -83,9 +83,18 @@ pub fn start_listening(world: &mut World) {
                 break;
             };
 
+            if let Err(err) = connection.write_all(&[IAC, WILL, GMCP]) {
+                error!(
+                    "Failed to write GMCP negotiation, closing connection: {}",
+                    err
+                );
+                break;
+            };
+
             if let Err(err) = between_threads_tx.send(NetworkConnection {
                 id: Uuid::new_v4(),
                 conn: connection,
+                gmcp: false,
             }) {
                 error!("Failed to send connection to managing thread: {}", err);
                 break;
@@ -236,4 +245,28 @@ pub fn start_listening(world: &mut World) {
     world.insert_non_send_resource(NewConnectionListener(connection_event_rx));
     world.insert_non_send_resource(OutgoingData(outgoing_event_tx));
     world.insert_resource(OutgoingQueue(Vec::new()));
+}
+
+#[cfg(test)]
+mod tests {
+    use std::net::TcpStream;
+
+    use shared::prelude::*;
+
+    use super::*;
+
+    #[test]
+    fn handles_gmcp_negotiation() {
+        let mut app = build_test_app();
+        start_listening(&mut app.world);
+
+        // Connect to the server
+        let stream = match TcpStream::connect("127.0.0.1:23") {
+            Ok(mut stream) => stream,
+            Err(e) => {
+                assert!(false, "Failed to connect to server: {e?:}");
+                return;
+            }
+        };
+    }
 }

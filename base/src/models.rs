@@ -7,6 +7,7 @@ use crate::enums::*;
 pub struct NetworkConnection {
     pub id: Uuid,        // We use a UUID so we don't have to worry about integer rollover
     pub conn: TcpStream, // The TCP stream we use to communicate
+    pub gmcp: bool,      // Whether or not the client has GMCP turned on
 }
 
 pub struct NetworkEvent {
