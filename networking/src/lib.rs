@@ -1,8 +1,10 @@
-use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
+mod connection_processor;
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    #[test]
+    fn it_turns_on_gmcp_when_client_responds_yes() {}
+}
 
 /*
 fn z_handle_client(mut stream: TcpStream) {

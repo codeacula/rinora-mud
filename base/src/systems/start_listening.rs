@@ -1,6 +1,6 @@
 use std::{
     env,
-    io::{BufRead, BufReader, ErrorKind, Write},
+    io::{BufRead, BufReader, ErrorKind, Read, Write},
     net::TcpListener,
     sync::mpsc::*,
     thread,
@@ -95,6 +95,10 @@ pub fn start_listening(world: &mut World) {
                 id: Uuid::new_v4(),
                 conn: connection,
                 gmcp: false,
+                send_chat: false,
+                send_room: false,
+                send_stats: false,
+                send_time: false,
             }) {
                 error!("Failed to send connection to managing thread: {}", err);
                 break;
@@ -211,30 +215,52 @@ pub fn start_listening(world: &mut World) {
                         continue;
                     }
                     Ok(_) => {
-                        let mut reader = BufReader::new(&network_connection.conn);
-                        let mut line = String::new();
+                        let mut buf: [u8; 1024] = [0; 1024];
+                        let amount_read = network_connection
+                            .conn
+                            .read(&mut buf)
+                            .expect("Failed to read from stream");
 
-                        let mut buffer: Vec<u8> = Vec::new();
+                        if amount_read == 0 {
+                            continue;
+                        }
 
-                        if let Err(err) = reader.read_until(SE, &mut buffer) {
-                            warn!("Error filling buffer: {err}");
-                        };
-
-                        info!("Buffer: {:?}", buffer);
-
-                        if buffer[0] == IAC {
+                        if buf[0] == IAC {
                             // handle GMCP
-                            info!("Buffer: {buffer:?}");
+                            info!("Buffer: {buf:?}");
                             continue;
                         }
 
-                        if let Err(err) = reader.read_line(&mut line) {
-                            warn!("Error reading line: {}", err);
-                            continue;
+                        let mut started_subnegotiation = false;
+                        let mut command_vec = Vec::new();
+
+                        for character in buf.iter() {
+                            match character {
+                                &IAC => {
+                                    started_subnegotiation = true;
+                                    continue;
+                                }
+                                &DO => {
+                                    if started_subnegotiation {
+                                        continue;
+                                    }
+                                }
+                                &GMCP => {
+                                    if started_subnegotiation {
+                                        started_subnegotiation = false;
+                                        network_connection.gmcp = true;
+                                        info!("Actrivating GMCP");
+                                        continue;
+                                    }
+                                }
+                                _ => command_vec.push(character),
+                            }
                         }
+
+                        let line = String::from_utf8(buf.to_vec()).expect("Trouble parsing iput");
 
                         if let Err(err) = connection_event_tx.send(NetworkEvent {
-                            data: Some(line.into_bytes()),
+                            data: Some(line.as_bytes().to_vec()),
                             id: network_connection.id,
                             event_type: NetworkEventType::InputReceived,
                         }) {
