@@ -225,6 +225,8 @@ pub fn start_listening(world: &mut World) {
                             continue;
                         }
 
+                        info!("{}", String::from_utf8(buf.to_vec()).unwrap());
+
                         if buf[0] == IAC {
                             // handle GMCP
                             info!("Buffer: {buf:?}");
