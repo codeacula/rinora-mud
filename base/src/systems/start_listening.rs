@@ -222,6 +222,12 @@ pub fn start_listening(world: &mut World) {
 
                         info!("Buffer: {:?}", buffer);
 
+                        if buffer[0] == IAC {
+                            // handle GMCP
+                            info!("Buffer: {buffer:?}");
+                            continue;
+                        }
+
                         if let Err(err) = reader.read_line(&mut line) {
                             warn!("Error reading line: {}", err);
                             continue;
