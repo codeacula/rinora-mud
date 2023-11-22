@@ -1,3 +1,7 @@
+use std::net::TcpStream;
+
+use bevy::utils::Uuid;
+
 pub const IAC: u8 = 255; // Byte to signal subchannel negotiation
 pub const WILL: u8 = 251; // Client WILL do something. Mostly GMCP
 pub const WONT: u8 = 252; // Client WONT do something. Mostly GMCP
@@ -19,45 +23,5 @@ pub struct NetworkConnection {
 }
 
 pub trait Step {
-    pub fn push(&mut self, &mut network_connection: NetworkConnection, byte: u8) -> Step;
-}
-
-struct StartingStep;
-
-impl Step for StartingStep {
-    fn push(&mut self, byte: u8) -> Step {
-        if byte == IAC {
-            return StartingNegotiation::new();
-        }
-    }
-}
-
-struct StartingNegotiation;
-
-impl Step for StartingNegotiation {
-    fn push(&mut self, byte: u8) -> Step {
-        if byte == IAC {
-            return Negotiating::new();
-        }
-    }
-}
-
-pub struct StreamProcessor {
-    connection: NetworkConnection,
-    current_step: Box<dyn Step>,
-}
-
-impl StreamProcessor {
-    pub fn process(&self, stream: &mut TcpStream) -> Result<(), Error> {
-        let mut buffer = [0; 1024];
-        let mut stream = stream.try_clone()?;
-        loop {
-            let bytes_read = stream.read(&mut buffer)?;
-            if bytes_read == 0 {
-                break;
-            }
-            stream.write(&buffer[..bytes_read])?;
-        }
-        Ok(())
-    }
+    fn push(&mut self, conn: &mut NetworkConnection, byte: u8) -> dyn Step;
 }
