@@ -16,3 +16,9 @@ pub const DONT: u8 = 254;
 
 /// GMCP byte flag
 pub const GMCP: u8 = 201;
+
+// Subnegotiation Begin
+pub const SB: u8 = 250;
+
+// Sub-negotiation End
+pub const SE: u8 = 240;

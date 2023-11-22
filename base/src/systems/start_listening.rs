@@ -214,6 +214,14 @@ pub fn start_listening(world: &mut World) {
                         let mut reader = BufReader::new(&network_connection.conn);
                         let mut line = String::new();
 
+                        let mut buffer: Vec<u8> = Vec::new();
+
+                        if let Err(err) = reader.read_until(SE, &mut buffer) {
+                            warn!("Error filling buffer: {err}");
+                        };
+
+                        info!("Buffer: {:?}", buffer);
+
                         if let Err(err) = reader.read_line(&mut line) {
                             warn!("Error reading line: {}", err);
                             continue;
@@ -264,7 +272,7 @@ mod tests {
         let stream = match TcpStream::connect("127.0.0.1:23") {
             Ok(mut stream) => stream,
             Err(e) => {
-                assert!(false, "Failed to connect to server: {e?:}");
+                assert!(false, "Failed to connect to server: {e:?}");
                 return;
             }
         };
