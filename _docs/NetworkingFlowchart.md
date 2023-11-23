@@ -3,20 +3,8 @@
 ```mermaid
 flowchart
 
-ShowCharacterRoom[[ShowCharacterRoomEvent]] --> GoesToOutput[Goes to Output Systems]
-GoesToOutput --> IsGmcp
-IsGmcp{Is\nGMCP\nEnabled?}
-
-IsGmcp -- Yes --> UserGetsGmcp
-IsGmcp -- No --> GmcpDiscarded
-
-UserGetsGmcp[User Gets GMCP]
-GmcpDiscarded[GMCP Discarded]
-
-GmcpDiscarded --> GatherData
-UserGetsGmcp --> GatherData
-
-GatherData[Gather Data For Display]
-
-UserGetsText[User Gets Text]
+InitialState[[InitialState]] --> IsIAC?{Is\nIAC\nCommand}
+IsIAC? -- Yes --> IACState[[IACState]]
+IsIAC? -- No --> CollectingText[[CollectingText]]
+CollectingText --> IsIAC2?{Is\nIAC\nCommand}
 ```

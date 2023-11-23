@@ -265,19 +265,9 @@ pub fn start_listening(world: &mut World) {
                                             continue;
                                         }
                                     }
+                                    stream_processor::NetworkCommandType::GmcpCommand => continue,
                                 }
                             };
-                        }
-
-                        let line = String::from_utf8_lossy(&buf);
-
-                        if let Err(err) = connection_event_tx.send(NetworkEvent {
-                            data: Some(line.as_bytes().to_vec()),
-                            id: network_connection.id,
-                            event_type: NetworkEventType::InputReceived,
-                        }) {
-                            warn!("Failed to send network event to junction: {}", err);
-                            continue;
                         }
                     }
                     Err(e) if e.kind() == ErrorKind::WouldBlock => {
