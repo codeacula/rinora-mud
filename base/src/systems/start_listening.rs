@@ -265,7 +265,32 @@ pub fn start_listening(world: &mut World) {
                                             continue;
                                         }
                                     }
-                                    stream_processor::NetworkCommandType::GmcpCommand => continue,
+                                    stream_processor::NetworkCommandType::GmcpCommand => {
+                                        let name = command.command_name.clone();
+                                        info!("{command:?}");
+
+                                        if name == "Core.Supports.Set" {
+                                            let data = &command.data.unwrap();
+                                            let line = String::from_utf8_lossy(data);
+
+                                            if line.contains("Char 1") {
+                                                network_connection.send_chat = true;
+                                            }
+
+                                            if line.contains("Room 1") {
+                                                network_connection.send_room = true;
+                                            }
+
+                                            if line.contains("Char 1") {
+                                                network_connection.send_stats = true;
+                                            }
+
+                                            if line.contains("Time 1") {
+                                                network_connection.send_time = true;
+                                            }
+                                        }
+                                        continue;
+                                    }
                                 }
                             };
                         }

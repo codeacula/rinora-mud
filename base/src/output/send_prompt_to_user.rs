@@ -24,7 +24,7 @@ pub fn send_prompt_to_user(
         }
 
         if session_data.status == UserStatus::InGame {
-            text_event_tx.send(TextEvent::from_str(entity, "-"));
+            text_event_tx.send(TextEvent::from_str(entity, "-\n"));
         } else {
             text_event_tx.send(TextEvent::from_str(entity, "> \n"));
         }

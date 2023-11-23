@@ -31,12 +31,12 @@ pub fn display_character_entering_room(
             if ev.entity.eq(entity_in_room) {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
-                    &format!("You wander off {}.", "somewhere"),
+                    &format!("You wander off {}.\n", "somewhere"),
                 ));
             } else {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
-                    &format!("{} has entered the location.", display_name.0.clone()),
+                    &format!("{} has entered the location.\n", display_name.0.clone()),
                 ));
             }
         }

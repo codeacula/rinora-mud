@@ -157,11 +157,7 @@ impl Step for ReadingGmcpCommand {
                     buffer: Vec::new(),
                     name: String::from_utf8_lossy(&self.buffer).to_string(),
                 }),
-                Some(NetworkCommand {
-                    command_type: NetworkCommandType::GmcpCommand,
-                    command_name: String::from_utf8_lossy(&self.buffer).to_string(),
-                    data: None,
-                }),
+                None,
             ),
             _ => {
                 self.buffer.push(byte);

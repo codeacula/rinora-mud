@@ -41,7 +41,7 @@ pub fn show_login_screen(
             }
         }
 
-        greeting.push_str("\nSend a number command or which character you want to play.");
+        greeting.push_str("\nSend a number command or which character you want to play.\n");
 
         text_event_tx.send(TextEvent::new(entity, &greeting));
         show_prompt_tx.send(ShowPromptEvent(entity));
