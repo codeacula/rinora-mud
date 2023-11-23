@@ -9,6 +9,7 @@ pub fn display_room_to_entity(
     room_query: Query<(&DisplayName, &Description, &Exits), With<Room>>,
     exit_query: Query<&Exit>,
     mut send_prompt_tx: EventWriter<ShowPromptEvent>,
+    mut gmcp_data_tx: EventWriter<SendGmcpData>,
 ) {
     for event in entity_entered_room_rx.read() {
         let Ok(controller) = is_controlled_by_query.get(event.entity) else {
@@ -28,6 +29,9 @@ pub fn display_room_to_entity(
             &exit_query,
             &mut text_event_tx,
         );
+
+        // Build the gmcp data:=
+        send_room_gmcp(&gmcp_data_tx, &controller);
 
         send_prompt_tx.send(ShowPromptEvent(controller.0));
     }

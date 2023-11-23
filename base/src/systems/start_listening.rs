@@ -102,10 +102,7 @@ pub fn start_listening(world: &mut World) {
                 id: Uuid::new_v4(),
                 conn: connection,
                 gmcp: false,
-                send_chat: false,
-                send_room: false,
-                send_stats: false,
-                send_time: false,
+                do_room: false,
             }) {
                 error!("Failed to send connection to managing thread: {}", err);
                 break;
@@ -273,20 +270,8 @@ pub fn start_listening(world: &mut World) {
                                             let data = &command.data.unwrap();
                                             let line = String::from_utf8_lossy(data);
 
-                                            if line.contains("Char 1") {
-                                                network_connection.send_chat = true;
-                                            }
-
                                             if line.contains("Room 1") {
-                                                network_connection.send_room = true;
-                                            }
-
-                                            if line.contains("Char 1") {
-                                                network_connection.send_stats = true;
-                                            }
-
-                                            if line.contains("Time 1") {
-                                                network_connection.send_time = true;
+                                                network_connection.do_room = true;
                                             }
                                         }
                                         continue;

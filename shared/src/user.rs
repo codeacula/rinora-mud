@@ -58,5 +58,12 @@ impl Default for UserSessionData {
     }
 }
 
-#[derive(Event)]
+#[derive(Debug, Event)]
 pub struct ShowPromptEvent(pub Entity);
+
+#[derive(Debug, Clone, Event)]
+pub struct SendGmcpData {
+    pub command_name: String,
+    pub data: String,
+    pub entity: Entity,
+}
