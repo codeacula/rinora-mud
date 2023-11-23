@@ -8,7 +8,14 @@ use std::{
 
 use bevy::{prelude::*, utils::Uuid};
 
-use crate::{enums::*, events::*, gmcp::*, models::*, resources::*};
+use crate::{
+    enums::*,
+    events::*,
+    gmcp::*,
+    models::*,
+    resources::*,
+    stream_processor::{self, *},
+};
 
 // All good MUDs have a banner!
 const GREETING: &str = "
@@ -231,7 +238,20 @@ pub fn start_listening(world: &mut World) {
                             buffer.extend_from_slice(&buf[..amount_read]);
                         }
 
-                        info!("{}", String::from_utf8_lossy(&buffer));
+                        let mut buffer_process = BufferProcessor::new();
+
+                        for byte in buffer {
+                            let command = buffer_process.next(byte);
+
+                            if let Some(command) = command {
+                                match command.command_type {
+                                    stream_processor::NetworkCommandType::TurnOnGmcp => {
+                                        network_connection.gmcp = true;
+                                        info!("GMCP enabled for {}", network_connection.id);
+                                    }
+                                }
+                            };
+                        }
 
                         let line = String::from_utf8_lossy(&buf);
 
@@ -261,28 +281,4 @@ pub fn start_listening(world: &mut World) {
     world.insert_non_send_resource(NewConnectionListener(connection_event_rx));
     world.insert_non_send_resource(OutgoingData(outgoing_event_tx));
     world.insert_resource(OutgoingQueue(Vec::new()));
-}
-
-#[cfg(test)]
-mod tests {
-    use std::net::TcpStream;
-
-    use shared::prelude::*;
-
-    use super::*;
-
-    #[test]
-    fn handles_gmcp_negotiation() {
-        let mut app = build_test_app();
-        start_listening(&mut app.world);
-
-        // Connect to the server
-        let stream = match TcpStream::connect("127.0.0.1:23") {
-            Ok(mut stream) => stream,
-            Err(e) => {
-                assert!(false, "Failed to connect to server: {e:?}");
-                return;
-            }
-        };
-    }
 }

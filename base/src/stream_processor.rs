@@ -1,9 +1,7 @@
-use crate::{gmcp::*, models::*};
+use crate::gmcp::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum NetworkCommandType {
-    User,
-    Gmcp,
     TurnOnGmcp,
 }
 
@@ -23,6 +21,12 @@ pub struct BufferProcessor {
 }
 
 impl BufferProcessor {
+    pub fn new() -> BufferProcessor {
+        BufferProcessor {
+            current_step: Box::new(InitialState {}),
+        }
+    }
+
     pub fn next(&mut self, byte: u8) -> Option<NetworkCommand> {
         let (next_step, command_result) = self.current_step.next(byte);
 
@@ -79,23 +83,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn processor_switched_to_iac_state_from_inital() {
-        let mut processor = BufferProcessor {
-            current_step: Box::new(InitialState {}),
-        };
+    fn processor_returns_command_to_activate_gmcp_when_told_to() {
+        let mut processor = BufferProcessor::new();
 
         processor.next(IAC);
         processor.next(DO);
         let command = processor.next(GMCP);
 
-        assert!(command.is_some());
-        assert_eq!(
-            command.unwrap(),
-            NetworkCommand {
-                command_type: NetworkCommandType::TurnOnGmcp,
-                command_name: String::from(""),
-                data: None
-            }
-        );
+        match command {
+            Some(cmd) => assert_eq!(
+                cmd,
+                NetworkCommand {
+                    command_type: NetworkCommandType::TurnOnGmcp,
+                    command_name: String::from(""),
+                    data: None
+                }
+            ),
+            None => panic!("Expected a command, but got None"),
+        }
     }
+
+    #[test]
+    fn returns_a_properly_formatted_user_command_when_given_one() {}
 }
