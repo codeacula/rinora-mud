@@ -249,6 +249,22 @@ pub fn start_listening(world: &mut World) {
                                         network_connection.gmcp = true;
                                         info!("GMCP enabled for {}", network_connection.id);
                                     }
+                                    stream_processor::NetworkCommandType::UserCommand => {
+                                        let data = &command.data.unwrap();
+                                        let line = String::from_utf8_lossy(data);
+
+                                        if let Err(err) = connection_event_tx.send(NetworkEvent {
+                                            data: Some(line.as_bytes().to_vec()),
+                                            id: network_connection.id,
+                                            event_type: NetworkEventType::InputReceived,
+                                        }) {
+                                            warn!(
+                                                "Failed to send network event to junction: {}",
+                                                err
+                                            );
+                                            continue;
+                                        }
+                                    }
                                 }
                             };
                         }

@@ -3,6 +3,7 @@ use crate::gmcp::*;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum NetworkCommandType {
     TurnOnGmcp,
+    UserCommand,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -42,7 +43,7 @@ impl Step for InitialState {
     fn next(&mut self, byte: u8) -> (Box<dyn Step>, Option<NetworkCommand>) {
         match byte {
             IAC => (Box::new(IACState {}), None),
-            _ => (Box::new(InitialState {}), None),
+            _ => (Box::new(CollectingText { buffer: vec![byte] }), None),
         }
     }
 }
@@ -78,6 +79,45 @@ impl Step for DoState {
     }
 }
 
+#[derive(Debug)]
+struct CollectingText {
+    buffer: Vec<u8>,
+}
+
+impl Step for CollectingText {
+    fn next(&mut self, byte: u8) -> (Box<dyn Step>, Option<NetworkCommand>) {
+        match byte {
+            IAC => (Box::new(IACState {}), None),
+            b'\n' => {
+                self.buffer.push(byte);
+                (
+                    Box::new(InitialState {}),
+                    Some(NetworkCommand {
+                        command_type: NetworkCommandType::UserCommand,
+                        command_name: String::from(""),
+                        data: Some(self.buffer.clone()),
+                    }),
+                )
+            }
+            b'\r' => (
+                Box::new(CollectingText {
+                    buffer: self.buffer.clone(),
+                }),
+                None,
+            ),
+            _ => {
+                self.buffer.push(byte);
+                (
+                    Box::new(CollectingText {
+                        buffer: self.buffer.clone(),
+                    }),
+                    None,
+                )
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -104,5 +144,27 @@ mod tests {
     }
 
     #[test]
-    fn returns_a_properly_formatted_user_command_when_given_one() {}
+    fn returns_a_properly_formatted_user_command_when_given_one() {
+        let test = String::from("This is a test.\r\n");
+
+        let mut processor = BufferProcessor::new();
+        let mut network_command: Option<NetworkCommand> = None;
+
+        for byte in test.bytes() {
+            network_command = processor.next(byte);
+            println!("{:?}", network_command);
+        }
+
+        match network_command {
+            Some(cmd) => assert_eq!(
+                cmd,
+                NetworkCommand {
+                    command_type: NetworkCommandType::UserCommand,
+                    command_name: String::from(""),
+                    data: Some(String::from("This is a test.\n").bytes().collect()),
+                }
+            ),
+            None => panic!("Expected a command, but got None"),
+        }
+    }
 }
