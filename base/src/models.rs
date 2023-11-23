@@ -14,6 +14,7 @@ pub struct NetworkConnection {
     pub send_time: bool, //Send time changes via GMCP. This should be morning, afternoon, dusk, night, and midnights
 }
 
+#[derive(Debug, Clone)]
 pub struct NetworkEvent {
     pub id: Uuid,
     pub data: Option<Vec<u8>>,

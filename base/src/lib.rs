@@ -17,6 +17,7 @@ mod helpers;
 mod models;
 mod output;
 mod resources;
+mod stream_processor;
 mod systems;
 
 pub struct BaseRinoraPlugin;

@@ -8,7 +8,6 @@ pub mod command;
 pub mod content;
 pub mod display;
 pub mod helpers;
-pub mod network;
 pub mod settings;
 pub mod status;
 pub mod user;
@@ -132,7 +131,6 @@ pub mod prelude {
     pub use crate::helpers::string::*;
     pub use crate::helpers::test::*;
     pub use crate::helpers::*;
-    pub use crate::network::*;
     pub use crate::settings::*;
     pub use crate::status::*;
     pub use crate::user::*;
