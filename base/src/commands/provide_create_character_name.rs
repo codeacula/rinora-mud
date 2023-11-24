@@ -14,9 +14,9 @@ use shared::prelude::*;
 /// * `CharacterExistsEvent` - User tried to provide a character name that's taken
 /// * `CreateCharacterEvent` - Character creation passed checks and is ready to go
 ///
-pub struct ProvideCharacterNameCommand {}
+pub struct ProvideCreateCharacterNameCommand {}
 
-impl GameCommand for ProvideCharacterNameCommand {
+impl GameCommand for ProvideCreateCharacterNameCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         if command.parts.len() > 1 || !is_alphabetic(&command.keyword) || command.keyword.len() > 15
         {
@@ -49,12 +49,12 @@ mod tests {
     use database::get_test_db_interface;
     use shared::prelude::*;
 
-    use super::ProvideCharacterNameCommand;
+    use super::ProvideCreateCharacterNameCommand;
 
     #[test]
     fn user_must_have_valid_session() {
         let mut app = build_test_app();
-        let command = ProvideCharacterNameCommand {};
+        let command = ProvideCreateCharacterNameCommand {};
         let user_command = build_user_command(String::from("password"), Entity::PLACEHOLDER);
 
         assert_eq!(false, command.run(&user_command, &mut app.world).unwrap());
@@ -64,7 +64,7 @@ mod tests {
     fn cant_have_provided_more_than_one_letter() {
         let mut app = build_test_app();
         app.insert_resource(get_test_db_interface());
-        let command = ProvideCharacterNameCommand {};
+        let command = ProvideCreateCharacterNameCommand {};
         let user_command = build_user_command(String::from("password"), Entity::PLACEHOLDER);
 
         let res = command.run(&user_command, &mut app.world);

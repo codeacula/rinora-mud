@@ -25,6 +25,7 @@ pub struct Continent {
     pub continent_id: i32,
     pub plane_id: i32,
     pub areas: Vec<Entity>,
+    pub plane: Entity,
 }
 
 #[derive(Bundle, Debug)]
@@ -39,6 +40,7 @@ pub struct ContinentBundle {
 pub struct Area {
     pub area_id: i32,
     pub continent_id: i32,
+    pub continent: Entity,
 }
 
 #[derive(Bundle, Debug)]
@@ -65,6 +67,7 @@ pub struct EnvironmentBundle {
 pub struct Room {
     pub room_id: i32,
     pub area_id: i32,
+    pub area: Entity,
     pub environment_id: i32,
 }
 
@@ -79,9 +82,12 @@ pub struct RoomBundle {
 
 #[derive(Component, Debug)]
 pub struct Exit {
+    pub direction: String,
     pub exit_id: i32,
     pub from_room_id: i32,
     pub to_room_id: i32,
+    pub from_room: Entity,
+    pub to_room: Entity,
 }
 
 #[derive(Bundle, Debug)]
@@ -95,4 +101,7 @@ pub struct ExitBundle {
 pub struct ExitTo(pub Entity);
 
 #[derive(Component, Debug)]
-pub struct Location(pub i32);
+pub struct Location {
+    pub location_id: i32,
+    pub entity: Entity,
+}

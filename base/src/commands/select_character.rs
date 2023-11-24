@@ -27,20 +27,19 @@ impl GameCommand for SelectCharacterCommand {
 
         let db_repo = world.resource::<DbInterface>();
 
-        info!("Command: {:?}", command);
-
         let does_own = db_repo
             .characters
             .does_user_own_character(&command.keyword, user.id);
 
-        if does_own {
-            world.send_event(CharacterSelectedEvent {
-                name: command.keyword.clone(),
-                user_entity: command.entity,
-            });
-        } else {
+        if !does_own {
             world.send_event(CharacterNotFoundEvent(command.entity));
+            return Ok(true);
         }
+
+        world.send_event(LogCharacterInEvent {
+            character_name: command.keyword.clone(),
+            user_entity: command.entity,
+        });
 
         Ok(true)
     }
@@ -61,7 +60,7 @@ mod tests {
         app.add_event::<CharacterNameInvalidEvent>()
             .add_event::<CharacterExistsEvent>()
             .add_event::<CreateCharacterEvent>()
-            .add_event::<CharacterSelectedEvent>();
+            .add_event::<LogCharacterInEvent>();
         app.update();
 
         app
@@ -99,7 +98,6 @@ mod tests {
     fn spawn_user(world: &mut World, entity: Entity) {
         world.entity_mut(entity).insert(User {
             administrator: false,
-            current_character: None,
             id: 1,
             username: String::from("testuser"),
         });
@@ -157,7 +155,7 @@ mod tests {
 
         let char_selected_res = app
             .world
-            .get_resource::<Events<CharacterSelectedEvent>>()
+            .get_resource::<Events<LogCharacterInEvent>>()
             .expect("Unable to locate resource.");
 
         assert_eq!(1, char_selected_res.len());

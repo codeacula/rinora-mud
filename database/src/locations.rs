@@ -42,6 +42,7 @@ impl DbContinent {
                 continent_id: self.id,
                 plane_id: self.plane_id,
                 areas: Vec::new(),
+                plane: Entity::PLACEHOLDER,
             },
             areas: EntityCollection(Vec::new()),
             description: Description(self.description.clone()),
@@ -66,6 +67,7 @@ impl DbArea {
             area: Area {
                 continent_id: self.continent_id,
                 area_id: self.id,
+                continent: Entity::PLACEHOLDER,
             },
             description: Description(self.description.clone()),
             name: DisplayName(self.name.clone()),
@@ -111,6 +113,7 @@ impl DbRoom {
             room: Room {
                 area_id: self.area_id,
                 environment_id: self.environment_id,
+                area: Entity::PLACEHOLDER,
                 room_id: self.id,
             },
             description: Description(self.description.clone()),
@@ -136,8 +139,11 @@ impl DbExit {
     pub fn to_exit(&self) -> ExitBundle {
         ExitBundle {
             exit: Exit {
+                direction: self.direction.clone(),
                 from_room_id: self.from_room_id,
+                from_room: Entity::PLACEHOLDER,
                 exit_id: self.id,
+                to_room: Entity::PLACEHOLDER,
                 to_room_id: self.to_room_id,
             },
             to: ExitTo(Entity::PLACEHOLDER),

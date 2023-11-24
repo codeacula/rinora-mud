@@ -67,20 +67,22 @@ fn add_continents_to_world(world: &mut World) {
 
 fn add_continents_to_planes(world: &mut World) {
     let mut system_state: SystemState<(
-        Query<(Entity, &Continent)>,
+        Query<(Entity, &mut Continent)>,
         Query<(Entity, &Plane)>,
         Commands,
+        Res<PlaneMap>,
     )> = SystemState::new(world);
-    let (children, parents, mut commands) = system_state.get_mut(world);
+    let (mut children, parents, mut commands, plane_map) = system_state.get_mut(world);
 
     // Index all the rooms by id
     let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
 
-    for (entity, child) in children.iter() {
+    for (entity, mut child) in children.iter_mut() {
         if !child_map.contains_key(&child.plane_id) {
             child_map.insert(child.plane_id, Vec::new());
         }
 
+        child.plane = *plane_map.0.get(&child.plane_id).unwrap();
         child_map.get_mut(&child.plane_id).unwrap().push(entity);
     }
 
@@ -113,19 +115,23 @@ fn add_areas_to_world(world: &mut World) {
 }
 
 fn add_areas_to_continents(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Area)>, Query<&mut Continent>)> =
-        SystemState::new(world);
-    let (children, mut parents) = system_state.get_mut(world);
+    let mut system_state: SystemState<(
+        Query<(Entity, &mut Area)>,
+        Query<&mut Continent>,
+        Res<ContinentMap>,
+    )> = SystemState::new(world);
+    let (mut children, mut parents, continent_map) = system_state.get_mut(world);
 
     // Index all the rooms by id
     let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
 
-    for (entity, child) in children.iter() {
+    for (entity, mut child) in children.iter_mut() {
         if !child_map.contains_key(&child.continent_id) {
             child_map.insert(child.continent_id, Vec::new());
         }
 
         child_map.get_mut(&child.continent_id).unwrap().push(entity);
+        child.continent = *continent_map.0.get(&child.continent_id).unwrap();
     }
 
     for mut parent in parents.iter_mut() {
@@ -183,19 +189,24 @@ fn add_environments_to_rooms(world: &mut World) {
 }
 
 fn add_rooms_to_areas(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Room)>, Query<(Entity, &Area)>, Commands)> =
-        SystemState::new(world);
-    let (children, parents, mut commands) = system_state.get_mut(world);
+    let mut system_state: SystemState<(
+        Query<(Entity, &mut Room)>,
+        Query<(Entity, &Area)>,
+        Res<AreaMap>,
+        Commands,
+    )> = SystemState::new(world);
+    let (mut children, parents, area_map, mut commands) = system_state.get_mut(world);
 
     // Index all the rooms by id
     let mut child_map: HashMap<i32, Vec<Entity>> = HashMap::new();
 
-    for (entity, child) in children.iter() {
+    for (entity, mut child) in children.iter_mut() {
         if !child_map.contains_key(&child.area_id) {
             child_map.insert(child.area_id, Vec::new());
         }
 
         child_map.get_mut(&child.area_id).unwrap().push(entity);
+        child.area = *area_map.0.get(&child.area_id).unwrap();
     }
 
     for (entity, parent) in parents.iter() {
@@ -246,24 +257,28 @@ fn add_rooms_to_exits(world: &mut World) {
 }
 
 fn add_exits_to_rooms(world: &mut World) {
-    let mut system_state: SystemState<(Query<(Entity, &Exit)>, Res<RoomMap>)> =
+    let mut system_state: SystemState<(Query<(Entity, &mut Exit)>, Res<RoomMap>)> =
         SystemState::new(world);
-    let (exits, room_map) = system_state.get_mut(world);
+    let (mut exits, room_map) = system_state.get_mut(world);
 
     let mut room_to_exits: HashMap<Entity, Vec<Entity>> = HashMap::new();
 
-    for (exit_entity, exit) in exits.iter() {
+    for (exit_entity, mut exit) in exits.iter_mut() {
         if !room_map.0.contains_key(&exit.from_room_id) {
             continue;
         }
 
-        let room_entity = room_map.0.get(&exit.from_room_id).unwrap();
+        let from_room_entity = room_map.0.get(&exit.from_room_id).unwrap();
+        let to_room_entity = room_map.0.get(&exit.to_room_id).unwrap();
 
-        if !room_to_exits.contains_key(room_entity) {
-            room_to_exits.insert(*room_entity, Vec::new());
+        exit.from_room = *from_room_entity;
+        exit.to_room = *to_room_entity;
+
+        if !room_to_exits.contains_key(from_room_entity) {
+            room_to_exits.insert(*from_room_entity, Vec::new());
         }
 
-        let collection = room_to_exits.get_mut(room_entity).unwrap();
+        let collection = room_to_exits.get_mut(from_room_entity).unwrap();
         collection.push(exit_entity);
     }
 

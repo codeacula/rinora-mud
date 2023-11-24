@@ -10,7 +10,7 @@ pub fn handle_new_connections(
     for ev in ev_new_connection.read() {
         ev_outgoing_text_events.send(TextEvent::from_str(
             ev.entity,
-            "Please provide your username.",
+            "Please provide your username.\n",
         ));
         show_prompt_ev.send(ShowPromptEvent(ev.entity));
     }

@@ -12,12 +12,11 @@ fn display_room_debug_info(
 ) {
     for event in entity_entered_room_rx.read() {
         let Ok(controller) = is_controlled_by_query.get(event.entity) else {
-            debug!("Couldn't locate a IsControlledByEntity");
+            debug!("Couldn't locate a IsControlledBy");
             break;
         };
 
         if is_admin_query.get(controller.0).is_err() {
-            debug!("Couldn't locate admin tag");
             break;
         }
 

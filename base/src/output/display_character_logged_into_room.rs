@@ -2,23 +2,17 @@ use bevy::prelude::*;
 use shared::prelude::*;
 
 pub fn display_character_logged_into_room(
-    mut entity_entered_room_rx: EventReader<EntityEnteredRoomEvent>,
+    characters_logging_in: Query<
+        (Entity, &DisplayName, &Location),
+        (With<EntityIsLoggingIn>, With<Character>),
+    >,
     mut text_event_tx: EventWriter<TextEvent>,
     is_controlled_by_query: Query<&IsControlledBy>,
-    characters_in_world: Query<&DisplayName, With<Character>>,
     room_info_query: Query<&EntityCollection, With<Room>>,
+    mut show_prompt_event_tx: EventWriter<ShowPromptEvent>,
 ) {
-    for ev in entity_entered_room_rx.read() {
-        if ev.triggered_by != MovementTriggeredBy::Login {
-            continue;
-        }
-
-        let Ok(display_name) = characters_in_world.get(ev.entity) else {
-            info!("Entity entering has no display name.");
-            continue;
-        };
-
-        let Ok(collection) = room_info_query.get(ev.room_entity_is_in) else {
+    for (entity, display_name, location) in characters_logging_in.iter() {
+        let Ok(collection) = room_info_query.get(location.entity) else {
             info!("Room being entered into has no EntityCollection");
             continue;
         };
@@ -33,7 +27,7 @@ pub fn display_character_logged_into_room(
                 continue;
             };
 
-            if ev.entity.eq(entity_in_room) {
+            if entity_in_room == &entity {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
                     &format!("You find yourself disoriented, a blinding bright light filling your vision as your soul leaves suspension. The light pulses as it burns, warm and comforting. After a moment you feel a lurch in your guts, your soul flung from the heart of Ero'ghal and back to the planes it calls home. Almost instantly, you open your eyes and find yourself safe in {} upon the {} plane.", "the Wild Plains", "mortal"),
@@ -44,6 +38,8 @@ pub fn display_character_logged_into_room(
                     &format!("Reality bends for a moment as {}'s soul exits suspension, their body appearing, radiating a glowing light that casts no shadows before the world settles back to normal.", display_name.0.clone()),
                 ));
             }
+
+            show_prompt_event_tx.send(ShowPromptEvent(controlling_entity.0));
         }
     }
 }

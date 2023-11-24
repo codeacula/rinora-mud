@@ -8,10 +8,6 @@ pub fn display_character_entering_room(
     room_info_query: Query<&EntityCollection, With<Room>>,
 ) {
     for ev in entity_entered_room_rx.read() {
-        if ev.triggered_by != MovementTriggeredBy::UserInput {
-            continue;
-        }
-
         let Ok(display_name) = characters_in_world.get(ev.entity) else {
             info!("Entity entering has no display name.");
             continue;
@@ -35,12 +31,12 @@ pub fn display_character_entering_room(
             if ev.entity.eq(entity_in_room) {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
-                    &format!("You wander off {}.", "somewhere"),
+                    &format!("You wander off {}.\n", "somewhere"),
                 ));
             } else {
                 text_event_tx.send(TextEvent::new(
                     controlling_entity.0,
-                    &format!("{} has entered the location.", display_name.0.clone()),
+                    &format!("{} has entered the location.\n", display_name.0.clone()),
                 ));
             }
         }

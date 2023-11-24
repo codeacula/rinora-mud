@@ -12,10 +12,12 @@ use systems::prelude::*;
 mod commands;
 mod enums;
 mod events;
+mod gmcp;
 mod helpers;
 mod models;
 mod output;
 mod resources;
+mod stream_processor;
 mod systems;
 
 pub struct BaseRinoraPlugin;
@@ -66,7 +68,11 @@ impl Plugin for BaseRinoraPlugin {
             .add_event::<GmcpReceivedEvent>()
             // Systems
             .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
-            .add_systems(Startup, add_expected_commands.in_set(GameOrderSet::Command))
+            .add_systems(
+                Startup,
+                (add_expected_account_commands, add_character_commands)
+                    .in_set(GameOrderSet::Command),
+            )
             .add_systems(
                 First,
                 transfer_from_server_to_game.in_set(GameOrderSet::Network),
@@ -92,13 +98,12 @@ impl Plugin for BaseRinoraPlugin {
             .add_systems(
                 Update,
                 (
-                    add_selected_character_to_world,
                     create_new_character,
+                    create_new_user,
                     character_name_invalid,
                     character_was_created,
                     display_character_exists,
                     handle_generic_error,
-                    create_new_user,
                     passwords_do_not_match,
                     password_was_provided,
                     unable_to_locate_account,
@@ -106,19 +111,37 @@ impl Plugin for BaseRinoraPlugin {
                     username_does_not_exists,
                     username_invalid,
                 )
-                    .in_set(GameOrderSet::Pre),
+                    .in_set(GameOrderSet::Account),
             )
             .add_systems(
                 Update,
                 (
+                    log_character_into_game,
+                    invalid_direction,
+                    move_entity_to_room_via_event,
+                )
+                    .in_set(GameOrderSet::Pre),
+            )
+            .add_systems(
+                Update,
+                (log_character_into_room, process_entities_that_want_to_move)
+                    .in_set(GameOrderSet::Game),
+            )
+            .add_systems(Update, (remove_logging_in_tags).in_set(GameOrderSet::Post))
+            .add_systems(
+                Update,
+                (
                     display_character_entering_room,
-                    display_character_logged_into_room,
-                    display_room_to_user,
+                    display_character_logged_into_room.before(display_character_entering_room),
+                    display_room_to_entity.after(display_character_entering_room),
                     prompt_for_character_name,
                     show_login_screen,
-                    send_prompt_to_user,
                 )
                     .in_set(GameOrderSet::Output),
+            )
+            .add_systems(
+                Last,
+                (process_gmcp_requests, send_prompt_to_user).in_set(GameOrderSet::Output),
             )
             .add_systems(
                 Last,

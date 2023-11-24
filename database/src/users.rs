@@ -30,7 +30,6 @@ impl DbUser {
             administrator: self.administrator,
             username: self.username.clone(),
             id: self.id,
-            current_character: None,
         }
     }
 }

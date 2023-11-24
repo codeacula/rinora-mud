@@ -1,6 +1,6 @@
 use std::{
     env,
-    io::{BufRead, BufReader, ErrorKind, Write},
+    io::{ErrorKind, Read, Write},
     net::TcpListener,
     sync::mpsc::*,
     thread,
@@ -8,7 +8,14 @@ use std::{
 
 use bevy::{prelude::*, utils::Uuid};
 
-use crate::{enums::*, events::*, models::*, resources::*};
+use crate::{
+    enums::*,
+    events::*,
+    gmcp::*,
+    models::*,
+    resources::*,
+    stream_processor::{self, *},
+};
 
 // All good MUDs have a banner!
 const GREETING: &str = "
@@ -83,9 +90,19 @@ pub fn start_listening(world: &mut World) {
                 break;
             };
 
+            if let Err(err) = connection.write_all(&[IAC, WILL, GMCP]) {
+                error!(
+                    "Failed to write GMCP negotiation, closing connection: {}",
+                    err
+                );
+                break;
+            };
+
             if let Err(err) = between_threads_tx.send(NetworkConnection {
                 id: Uuid::new_v4(),
                 conn: connection,
+                gmcp: false,
+                do_room: false,
             }) {
                 error!("Failed to send connection to managing thread: {}", err);
                 break;
@@ -202,21 +219,65 @@ pub fn start_listening(world: &mut World) {
                         continue;
                     }
                     Ok(_) => {
-                        let mut reader = BufReader::new(&network_connection.conn);
-                        let mut line = String::new();
+                        let mut buffer: Vec<u8> = Vec::new();
 
-                        if let Err(err) = reader.read_line(&mut line) {
-                            warn!("Error reading line: {}", err);
-                            continue;
+                        loop {
+                            let mut buf: [u8; 1024] = [0; 1024];
+                            let amount_read = match network_connection.conn.read(&mut buf) {
+                                Ok(amount) => amount,
+                                Err(e) if e.kind() == ErrorKind::WouldBlock => 0,
+                                Err(e) => panic!("Unexpected error: {}", e),
+                            };
+
+                            if amount_read == 0 {
+                                break;
+                            }
+                            buffer.extend_from_slice(&buf[..amount_read]);
                         }
 
-                        if let Err(err) = connection_event_tx.send(NetworkEvent {
-                            data: Some(line.into_bytes()),
-                            id: network_connection.id,
-                            event_type: NetworkEventType::InputReceived,
-                        }) {
-                            warn!("Failed to send network event to junction: {}", err);
-                            continue;
+                        let mut buffer_process = BufferProcessor::new();
+
+                        for byte in buffer {
+                            let command = buffer_process.next(byte);
+
+                            if let Some(command) = command {
+                                match command.command_type {
+                                    stream_processor::NetworkCommandType::TurnOnGmcp => {
+                                        network_connection.gmcp = true;
+                                        info!("GMCP enabled for {}", network_connection.id);
+                                    }
+                                    stream_processor::NetworkCommandType::UserCommand => {
+                                        let data = &command.data.unwrap();
+                                        let line = String::from_utf8_lossy(data);
+
+                                        if let Err(err) = connection_event_tx.send(NetworkEvent {
+                                            data: Some(line.as_bytes().to_vec()),
+                                            id: network_connection.id,
+                                            event_type: NetworkEventType::InputReceived,
+                                        }) {
+                                            warn!(
+                                                "Failed to send network event to junction: {}",
+                                                err
+                                            );
+                                            continue;
+                                        }
+                                    }
+                                    stream_processor::NetworkCommandType::GmcpCommand => {
+                                        let name = command.command_name.clone();
+                                        info!("{command:?}");
+
+                                        if name == "Core.Supports.Set" {
+                                            let data = &command.data.unwrap();
+                                            let line = String::from_utf8_lossy(data);
+
+                                            if line.contains("Room 1") {
+                                                network_connection.do_room = true;
+                                            }
+                                        }
+                                        continue;
+                                    }
+                                }
+                            };
                         }
                     }
                     Err(e) if e.kind() == ErrorKind::WouldBlock => {

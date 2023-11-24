@@ -27,7 +27,6 @@ pub struct User {
     pub id: i32,
     pub administrator: bool,
     pub username: String,
-    pub current_character: Option<Entity>,
 }
 
 #[derive(Component, Debug, Clone)]
@@ -53,5 +52,18 @@ impl UserSessionData {
     }
 }
 
-#[derive(Event)]
+impl Default for UserSessionData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug, Event)]
 pub struct ShowPromptEvent(pub Entity);
+
+#[derive(Debug, Clone, Event)]
+pub struct SendGmcpData {
+    pub command_name: String,
+    pub data: String,
+    pub entity: Entity,
+}

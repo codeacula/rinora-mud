@@ -8,8 +8,7 @@ pub fn create_new_character(
     mut commands: Commands,
     settings: Res<GameSettings>,
     mut character_created_tx: EventWriter<CharacterCreatedEvent>,
-    mut entity_enters_world_tx: EventWriter<EntityEnteredWorldEvent>,
-    mut entity_enters_room_tx: EventWriter<EntityEnteredRoomEvent>,
+    mut move_entity_to_room: EventWriter<MoveEntityToRoom>,
     room_map: Res<RoomMap>,
 ) {
     for ev in create_character_rx.read() {
@@ -42,16 +41,9 @@ pub fn create_new_character(
 
         character_created_tx.send(CharacterCreatedEvent(character_entity));
 
-        entity_enters_world_tx.send(EntityEnteredWorldEvent {
+        move_entity_to_room.send(MoveEntityToRoom {
             entity: character_entity,
-            room_entity_is_in: room,
-            triggered_by: MovementTriggeredBy::CharacterCreation,
-        });
-
-        entity_enters_room_tx.send(EntityEnteredRoomEvent {
-            entity: character_entity,
-            room_entity_is_in: room,
-            triggered_by: MovementTriggeredBy::CharacterCreation,
+            room,
         });
     }
 }

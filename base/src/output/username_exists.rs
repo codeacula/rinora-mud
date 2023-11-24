@@ -8,7 +8,7 @@ pub fn username_exists(
     for ev in username_exists_rx.read() {
         text_event_rx.send(TextEvent::from_str(
             ev.0,
-            "Account found! What's your password?",
+            "Account found! What's your password?\n",
         ));
 
         show_prompt_event_rx.send(ShowPromptEvent(ev.0));

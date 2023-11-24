@@ -8,7 +8,6 @@ pub mod command;
 pub mod content;
 pub mod display;
 pub mod helpers;
-pub mod network;
 pub mod settings;
 pub mod status;
 pub mod user;
@@ -31,7 +30,7 @@ pub enum GameOrderSet {
 
 fn set_schedules(app: &mut App, stage: impl ScheduleLabel + Clone) {
     // Configure system sets
-    let all_schedules = vec![
+    let all_schedules = [
         GameOrderSet::Network,
         GameOrderSet::Command,
         GameOrderSet::Account,
@@ -44,10 +43,26 @@ fn set_schedules(app: &mut App, stage: impl ScheduleLabel + Clone) {
     ];
 
     for (i, current_set) in all_schedules.iter().enumerate() {
-        if i != 0 {
-            let previous_set = &all_schedules[i - 1];
-            app.configure_sets(stage.clone(), previous_set.before(current_set.to_owned()));
+        let mut j = 0;
+
+        while j < i {
+            let previous_set = &all_schedules[j];
+            app.configure_sets(
+                stage.clone(),
+                current_set.to_owned().after(previous_set.to_owned()),
+            );
+            j += 1;
         }
+
+        while j > i && j <= all_schedules.len() {
+            let next_set = &all_schedules[j];
+            app.configure_sets(
+                stage.clone(),
+                next_set.to_owned().before(current_set.to_owned()),
+            );
+            j += 1;
+        }
+
         app.add_systems(stage.clone(), apply_deferred.in_set(current_set.to_owned()));
     }
 }
@@ -63,9 +78,10 @@ impl Plugin for SharedPlugin {
         // Account
         app.add_event::<CharacterCreatedEvent>()
             .add_event::<CharacterExistsEvent>()
+            .add_event::<CharacterLoggedInEvent>()
             .add_event::<CharacterNameInvalidEvent>()
             .add_event::<CharacterNotFoundEvent>()
-            .add_event::<CharacterSelectedEvent>()
+            .add_event::<LogCharacterInEvent>()
             .add_event::<ConfirmPasswordDoesNotMatchEvent>()
             .add_event::<CreateCharacterEvent>()
             .add_event::<CreateCharacterSelectedEvent>()
@@ -84,11 +100,21 @@ impl Plugin for SharedPlugin {
         // Entities
         app.add_event::<EntityEnteredRoomEvent>()
             .add_event::<EntityEnteredWorldEvent>()
+            .add_event::<EntityEnteredPlaneEvent>()
+            .add_event::<EntityEnteredContinentEvent>()
+            .add_event::<EntityEnteredAreaEvent>()
+            .add_event::<EntityLeftWorldEvent>()
+            .add_event::<EntityLeftPlaneEvent>()
+            .add_event::<EntityLeftContinentEvent>()
+            .add_event::<EntityLeftAreaEvent>()
             .add_event::<EntityLeftRoomEvent>()
-            .add_event::<EntityLeftWorldEvent>();
+            .add_event::<EntityLoggedIn>()
+            .add_event::<EntityMovedRooms>()
+            .add_event::<MoveEntityToRoom>();
 
         // Events
         app.add_event::<GenericErrorEvent>()
+            .add_event::<InvalidDirectionEvent>()
             .add_event::<ShowLoginScreenEvent>()
             .add_event::<ShowPromptEvent>()
             .add_event::<TextEvent>();
@@ -105,7 +131,6 @@ pub mod prelude {
     pub use crate::helpers::string::*;
     pub use crate::helpers::test::*;
     pub use crate::helpers::*;
-    pub use crate::network::*;
     pub use crate::settings::*;
     pub use crate::status::*;
     pub use crate::user::*;

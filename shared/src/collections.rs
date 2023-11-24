@@ -22,7 +22,7 @@ pub struct RoomMap(pub HashMap<i32, Entity>);
 
 impl RoomMap {
     pub fn get_room(&self, location: &Location) -> Option<Entity> {
-        let ent = self.0.get(&location.0);
+        let ent = self.0.get(&location.location_id);
 
         ent?;
 
