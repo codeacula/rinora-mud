@@ -8,7 +8,6 @@ pub fn transfer_from_server_to_game(
     mut ev_new_connection: EventWriter<NewConnectionEvent>,
     mut ev_dropped_connection: EventWriter<DisconnectionEvent>,
     mut ev_input_received_connection: EventWriter<InputReceivedEvent>,
-    mut ev_gmcp_received_connection: EventWriter<GmcpReceivedEvent>,
     mut network_info: ResMut<NetworkInfo>,
     mut commands: Commands,
 ) {
@@ -55,16 +54,6 @@ pub fn transfer_from_server_to_game(
                     .remove(&new_event.id)
                     .unwrap();
                 ev_dropped_connection.send(DisconnectionEvent { entity });
-            }
-            NetworkEventType::GmcpReceived => {
-                let entity = *network_info
-                    .connection_to_entity
-                    .get(&new_event.id)
-                    .unwrap();
-                ev_gmcp_received_connection.send(GmcpReceivedEvent {
-                    entity,
-                    data: new_event.data.unwrap(),
-                });
             }
         }
     }

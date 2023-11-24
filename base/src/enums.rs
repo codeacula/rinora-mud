@@ -4,5 +4,4 @@ pub enum NetworkEventType {
     NewConnection,
     InputReceived,
     ConnectionDropped,
-    GmcpReceived,
 }

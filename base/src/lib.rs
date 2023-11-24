@@ -65,7 +65,6 @@ impl Plugin for BaseRinoraPlugin {
             .add_event::<NewConnectionEvent>()
             .add_event::<InputReceivedEvent>()
             .add_event::<DisconnectionEvent>()
-            .add_event::<GmcpReceivedEvent>()
             // Systems
             .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
             .add_systems(
