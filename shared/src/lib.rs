@@ -115,6 +115,7 @@ impl Plugin for SharedPlugin {
         // Events
         app.add_event::<GenericErrorEvent>()
             .add_event::<InvalidDirectionEvent>()
+            .add_event::<SendGmcpData>()
             .add_event::<ShowLoginScreenEvent>()
             .add_event::<ShowPromptEvent>()
             .add_event::<TextEvent>();

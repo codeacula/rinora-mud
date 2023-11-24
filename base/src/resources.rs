@@ -19,6 +19,14 @@ impl OutgoingQueue {
         Self(Vec::new())
     }
 
+    pub fn send_gmcp(&mut self, id: Uuid, gmcp: Vec<u8>) {
+        self.0.push(OutgoingEvent {
+            id,
+            text: None,
+            gmcp: Some(gmcp),
+        });
+    }
+
     pub fn send_text(&mut self, id: Uuid, text: String) {
         self.0.push(OutgoingEvent {
             id,
