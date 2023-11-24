@@ -2,7 +2,7 @@ use shared::prelude::*;
 
 pub fn password_was_provided(
     mut password_provided_rx: EventReader<UserProvidedPasswordEvent>,
-    mut please_confirm_password_tx: EventWriter<PleaseConfirmPassword>,
+    mut please_confirm_password_tx: EventWriter<PleaseConfirmPasswordEvent>,
     mut query: Query<&mut UserSessionData>,
 ) {
     for ev in password_provided_rx.read() {
@@ -16,6 +16,6 @@ pub fn password_was_provided(
         user_session_data.status = UserStatus::ConfirmPassword;
         user_session_data.pwd = Some(ev.password.clone());
 
-        please_confirm_password_tx.send(PleaseConfirmPassword(ev.user_entity));
+        please_confirm_password_tx.send(PleaseConfirmPasswordEvent(ev.user_entity));
     }
 }

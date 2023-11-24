@@ -7,7 +7,10 @@ pub struct GenericErrorEvent(pub Entity);
 pub struct InvalidDirectionEvent(pub Entity);
 
 #[derive(Event)]
-pub struct PleaseConfirmPassword(pub Entity);
+pub struct PasswordsDoNotMatchEvent(pub Entity);
+
+#[derive(Event)]
+pub struct PleaseConfirmPasswordEvent(pub Entity);
 
 #[derive(Debug, Event)]
 pub struct ProvideUsernameEvent(pub Entity);

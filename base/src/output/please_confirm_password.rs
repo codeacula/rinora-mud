@@ -1,7 +1,7 @@
 use shared::prelude::*;
 
 pub fn please_confirm_password(
-    mut please_confirm_password_rx: EventReader<PleaseConfirmPassword>,
+    mut please_confirm_password_rx: EventReader<PleaseConfirmPasswordEvent>,
     mut text_event_rx: EventWriter<TextEvent>,
     mut show_prompt_event_rx: EventWriter<ShowPromptEvent>,
 ) {

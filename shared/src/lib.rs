@@ -124,7 +124,8 @@ impl Plugin for SharedPlugin {
         // Output
         app.add_event::<GenericErrorEvent>()
             .add_event::<InvalidDirectionEvent>()
-            .add_event::<PleaseConfirmPassword>()
+            .add_event::<PleaseConfirmPasswordEvent>()
+            .add_event::<PasswordsDoNotMatchEvent>()
             .add_event::<ProvideUsernameEvent>()
             .add_event::<UserAccountCreatedEvent>();
     }
