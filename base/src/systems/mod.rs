@@ -6,7 +6,6 @@ pub mod create_character_selected;
 pub mod create_new_character;
 pub mod create_new_user;
 pub mod handle_disconnect;
-pub mod handle_new_connections;
 pub mod handle_user_login;
 pub mod log_character_into_game;
 pub mod log_character_into_room;
@@ -33,7 +32,6 @@ pub mod prelude {
     pub use crate::systems::create_new_character::*;
     pub use crate::systems::create_new_user::*;
     pub use crate::systems::handle_disconnect::*;
-    pub use crate::systems::handle_new_connections::*;
     pub use crate::systems::handle_user_login::*;
     pub use crate::systems::log_character_into_game::*;
     pub use crate::systems::log_character_into_room::*;

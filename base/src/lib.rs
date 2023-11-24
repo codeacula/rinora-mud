@@ -1,10 +1,10 @@
+use crate::prelude::*;
 use bevy::log::{Level, LogPlugin};
 use bevy::utils::HashMap;
 use database::prelude::*;
 use events::*;
 use helper::*;
 use output::*;
-use prelude::*;
 use resources::*;
 use shared::prelude::*;
 use systems::prelude::*;
@@ -82,8 +82,7 @@ impl Plugin for BaseRinoraPlugin {
             )
             .add_systems(
                 Update,
-                (handle_user_login, handle_disconnect, handle_new_connections)
-                    .in_set(GameOrderSet::Command),
+                (handle_user_login, handle_disconnect).in_set(GameOrderSet::Command),
             )
             .add_systems(
                 Update,
@@ -135,6 +134,9 @@ impl Plugin for BaseRinoraPlugin {
                     display_room_to_entity.after(display_character_entering_room),
                     prompt_for_character_name,
                     show_login_screen,
+                    user_account_created,
+                    provide_username,
+                    please_confirm_password,
                 )
                     .in_set(GameOrderSet::Output),
             )

@@ -8,7 +8,7 @@ pub fn create_new_user(
     db_repo: Res<DbInterface>,
     mut commands: Commands,
     mut user_created_tx: EventWriter<UserCreatedEvent>,
-    mut text_event_tx: EventWriter<TextEvent>,
+    mut user_account_created_tx: EventWriter<UserAccountCreatedEvent>,
 ) {
     for ev in user_confirmed_password_rx.read() {
         let mut user_sesh = match query.get_mut(ev.0) {
@@ -45,10 +45,7 @@ pub fn create_new_user(
 
         user_sesh.status = UserStatus::LoggedIn;
 
-        text_event_tx.send(TextEvent::from_str(
-            ev.0,
-            "\nYour account was created. {{10}} Welcome to RinoraMUD!\n\n",
-        ));
+        user_account_created_tx.send(UserAccountCreatedEvent(ev.0));
         show_login_screen_event.send(ShowLoginScreenEvent(ev.0));
     }
 }
