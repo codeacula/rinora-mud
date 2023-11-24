@@ -135,6 +135,7 @@ impl Plugin for BaseRinoraPlugin {
                     prompt_for_character_name,
                     show_login_screen,
                     user_account_created,
+                    passwords_dont_match,
                     provide_username,
                     please_confirm_password,
                     unable_to_locate_account,

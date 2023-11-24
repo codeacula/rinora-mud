@@ -6,6 +6,7 @@ pub mod display_character_logged_into_room;
 pub mod display_room_to_user;
 pub mod handle_generic_error;
 pub mod invalid_direction;
+pub mod passwords_dont_match;
 pub mod please_confirm_password;
 pub mod prompt_for_character_name;
 pub mod provide_username;
@@ -26,6 +27,7 @@ pub mod prelude {
     pub use crate::output::display_room_to_user::*;
     pub use crate::output::handle_generic_error::*;
     pub use crate::output::invalid_direction::*;
+    pub use crate::output::passwords_dont_match::*;
     pub use crate::output::please_confirm_password::*;
     pub use crate::output::prompt_for_character_name::*;
     pub use crate::output::provide_username::*;
