@@ -87,13 +87,12 @@ pub fn send_room_description(
 }
 
 pub fn send_room_gmcp(
-    mut send_gmcp_data_tx: &EventWriter<SendGmcpData>,
+    send_gmcp_data_tx: &mut EventWriter<SendGmcpData>,
     controller: &IsControlledBy,
     room_id: i32,
     room_name: &String,
 ) {
     // Build the gmcp data
-
     send_gmcp_data_tx.send(SendGmcpData {
         command_name: "Room.Info".to_string(),
         data: format!(r#"{{"num":{},"name":"{}"}}"#, room_id, room_name),

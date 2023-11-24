@@ -152,15 +152,25 @@ pub fn start_listening(world: &mut World) {
                     None => break,
                 };
 
-                let outgoing_text = match outgoing_event.text {
-                    Some(text) => text,
-                    None => break,
-                };
+                if outgoing_event.text.is_some() {
+                    let outgoing_text = outgoing_event.text.unwrap();
+                    let write_res = outgoing_event_connection.conn.write_all(&outgoing_text);
 
-                let write_res = outgoing_event_connection.conn.write_all(&outgoing_text);
+                    if write_res.is_ok()
+                        && (!outgoing_event_connection.gmcp || outgoing_event.gmcp.is_none())
+                    {
+                        continue;
+                    }
+                }
 
-                if write_res.is_ok() {
-                    continue;
+                if outgoing_event.gmcp.is_some() {
+                    let data = outgoing_event.gmcp.unwrap();
+                    info!("Sending GMCP data to user: {data:?}");
+                    let gmcp_write_res = outgoing_event_connection.conn.write_all(&data);
+
+                    if gmcp_write_res.is_ok() {
+                        continue;
+                    }
                 }
 
                 // Connection closed
@@ -264,7 +274,6 @@ pub fn start_listening(world: &mut World) {
                                     }
                                     stream_processor::NetworkCommandType::GmcpCommand => {
                                         let name = command.command_name.clone();
-                                        info!("{command:?}");
 
                                         if name == "Core.Supports.Set" {
                                             let data = &command.data.unwrap();

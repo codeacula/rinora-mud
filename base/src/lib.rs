@@ -141,7 +141,7 @@ impl Plugin for BaseRinoraPlugin {
             )
             .add_systems(
                 Last,
-                (process_gmcp_requests, send_prompt_to_user).in_set(GameOrderSet::Output),
+                (process_gmcp_data, send_prompt_to_user).in_set(GameOrderSet::Output),
             )
             .add_systems(
                 Last,

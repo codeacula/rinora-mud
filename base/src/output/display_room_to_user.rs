@@ -21,16 +21,22 @@ pub fn display_room_to_entity(
             .get(event.room_entity_is_in)
             .expect("Unable to find room entity");
 
-        let text_event = send_room_description(
+        send_room_description(
             controller.0,
             &display_name.0,
             &description.0,
             exits,
             &exit_query,
+            &mut text_event_tx,
         );
 
         // Build the gmcp data
-        send_room_gmcp(&gmcp_data_tx, &controller, room.room_id, &display_name.0);
+        send_room_gmcp(
+            &mut gmcp_data_tx,
+            &controller,
+            room.room_id,
+            &display_name.0,
+        );
 
         send_prompt_tx.send(ShowPromptEvent(controller.0));
     }
