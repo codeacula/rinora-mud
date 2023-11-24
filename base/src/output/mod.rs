@@ -15,6 +15,7 @@ pub mod unable_to_locate_account;
 pub mod user_account_created;
 pub mod username_does_not_exist;
 pub mod username_exists;
+pub mod username_invalid;
 
 pub mod prelude {
     pub use crate::output::character_name_invalid::*;
@@ -34,4 +35,5 @@ pub mod prelude {
     pub use crate::output::user_account_created::*;
     pub use crate::output::username_does_not_exist::*;
     pub use crate::output::username_exists::*;
+    pub use crate::output::username_invalid::*;
 }

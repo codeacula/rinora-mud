@@ -21,7 +21,7 @@ pub mod remove_logging_in_tags;
 pub mod start_listening;
 pub mod transfer_from_server_to_game;
 pub mod unable_to_locate_account;
-pub mod username_invalid;
+pub mod username_invalid_move_user_to_needsusername;
 
 pub mod prelude {
     pub use crate::systems::add_character_commands::*;
@@ -47,5 +47,5 @@ pub mod prelude {
     pub use crate::systems::start_listening::*;
     pub use crate::systems::transfer_from_server_to_game::*;
     pub use crate::systems::unable_to_locate_account::*;
-    pub use crate::systems::username_invalid::*;
+    pub use crate::systems::username_invalid_move_user_to_needsusername::*;
 }
