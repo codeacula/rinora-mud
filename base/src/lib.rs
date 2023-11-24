@@ -7,7 +7,7 @@ use output::*;
 use prelude::*;
 use resources::*;
 use shared::prelude::*;
-use systems::{prelude::*, process_gmcp_requests};
+use systems::prelude::*;
 
 mod commands;
 mod enums;
@@ -141,7 +141,7 @@ impl Plugin for BaseRinoraPlugin {
             )
             .add_systems(
                 Last,
-                (send_prompt_to_user, process_gmcp_requests).in_set(GameOrderSet::Output),
+                (process_gmcp_requests, send_prompt_to_user).in_set(GameOrderSet::Output),
             )
             .add_systems(
                 Last,

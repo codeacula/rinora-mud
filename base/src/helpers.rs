@@ -90,7 +90,7 @@ pub fn send_room_gmcp(
     mut send_gmcp_data_tx: &EventWriter<SendGmcpData>,
     controller: &IsControlledBy,
     room_id: i32,
-    room_name: String,
+    room_name: &String,
 ) {
     // Build the gmcp data
 
