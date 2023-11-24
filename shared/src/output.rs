@@ -1,15 +1,15 @@
 use crate::prelude::*;
 
-#[derive(Event)]
+#[derive(Debug, Event)]
 pub struct GenericErrorEvent(pub Entity);
 
-#[derive(Event)]
+#[derive(Debug, Event)]
 pub struct InvalidDirectionEvent(pub Entity);
 
-#[derive(Event)]
+#[derive(Debug, Event)]
 pub struct PasswordsDoNotMatchEvent(pub Entity);
 
-#[derive(Event)]
+#[derive(Debug, Event)]
 pub struct PleaseConfirmPasswordEvent(pub Entity);
 
 #[derive(Debug, Event)]

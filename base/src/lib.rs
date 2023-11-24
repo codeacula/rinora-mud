@@ -104,7 +104,7 @@ impl Plugin for BaseRinoraPlugin {
                     handle_generic_error,
                     passwords_do_not_match,
                     password_was_provided,
-                    unable_to_locate_account,
+                    unable_to_locate_account_move_user,
                     username_exists,
                     username_does_not_exists,
                     username_invalid,
@@ -137,6 +137,7 @@ impl Plugin for BaseRinoraPlugin {
                     user_account_created,
                     provide_username,
                     please_confirm_password,
+                    unable_to_locate_account,
                 )
                     .in_set(GameOrderSet::Output),
             )

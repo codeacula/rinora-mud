@@ -11,6 +11,7 @@ pub mod prompt_for_character_name;
 pub mod provide_username;
 pub mod send_prompt_to_user;
 pub mod show_login_screen;
+pub mod unable_to_locate_account;
 pub mod user_account_created;
 pub mod username_does_not_exist;
 pub mod username_exists;
@@ -29,6 +30,7 @@ pub mod prelude {
     pub use crate::output::provide_username::*;
     pub use crate::output::send_prompt_to_user::*;
     pub use crate::output::show_login_screen::*;
+    pub use crate::output::unable_to_locate_account::*;
     pub use crate::output::user_account_created::*;
     pub use crate::output::username_does_not_exist::*;
     pub use crate::output::username_exists::*;
