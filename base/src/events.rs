@@ -23,9 +23,3 @@ pub struct InputReceivedEvent {
     pub entity: Entity,
     pub input: String,
 }
-
-#[derive(Event)]
-pub struct GmcpReceivedEvent {
-    pub entity: Entity,
-    pub data: Vec<u8>,
-}

@@ -165,7 +165,6 @@ pub fn start_listening(world: &mut World) {
 
                 if outgoing_event.gmcp.is_some() {
                     let data = outgoing_event.gmcp.unwrap();
-                    info!("Sending GMCP data to user: {data:?}");
                     let gmcp_write_res = outgoing_event_connection.conn.write_all(&data);
 
                     if gmcp_write_res.is_ok() {

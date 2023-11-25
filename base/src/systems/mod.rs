@@ -6,7 +6,6 @@ pub mod create_character_selected;
 pub mod create_new_character;
 pub mod create_new_user;
 pub mod handle_disconnect;
-pub mod handle_new_connections;
 pub mod handle_user_login;
 pub mod log_character_into_game;
 pub mod log_character_into_room;
@@ -22,7 +21,7 @@ pub mod remove_logging_in_tags;
 pub mod start_listening;
 pub mod transfer_from_server_to_game;
 pub mod unable_to_locate_account;
-pub mod username_invalid;
+pub mod username_invalid_move_user_to_needsusername;
 
 pub mod prelude {
     pub use crate::systems::add_character_commands::*;
@@ -33,7 +32,6 @@ pub mod prelude {
     pub use crate::systems::create_new_character::*;
     pub use crate::systems::create_new_user::*;
     pub use crate::systems::handle_disconnect::*;
-    pub use crate::systems::handle_new_connections::*;
     pub use crate::systems::handle_user_login::*;
     pub use crate::systems::log_character_into_game::*;
     pub use crate::systems::log_character_into_room::*;
@@ -49,5 +47,5 @@ pub mod prelude {
     pub use crate::systems::start_listening::*;
     pub use crate::systems::transfer_from_server_to_game::*;
     pub use crate::systems::unable_to_locate_account::*;
-    pub use crate::systems::username_invalid::*;
+    pub use crate::systems::username_invalid_move_user_to_needsusername::*;
 }

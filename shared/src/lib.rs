@@ -8,6 +8,7 @@ pub mod command;
 pub mod content;
 pub mod display;
 pub mod helpers;
+pub mod output;
 pub mod settings;
 pub mod status;
 pub mod user;
@@ -119,6 +120,14 @@ impl Plugin for SharedPlugin {
             .add_event::<ShowLoginScreenEvent>()
             .add_event::<ShowPromptEvent>()
             .add_event::<TextEvent>();
+
+        // Output
+        app.add_event::<GenericErrorEvent>()
+            .add_event::<InvalidDirectionEvent>()
+            .add_event::<PleaseConfirmPasswordEvent>()
+            .add_event::<PasswordsDoNotMatchEvent>()
+            .add_event::<ProvideUsernameEvent>()
+            .add_event::<UserAccountCreatedEvent>();
     }
 }
 
@@ -132,6 +141,7 @@ pub mod prelude {
     pub use crate::helpers::string::*;
     pub use crate::helpers::test::*;
     pub use crate::helpers::*;
+    pub use crate::output::*;
     pub use crate::settings::*;
     pub use crate::status::*;
     pub use crate::user::*;

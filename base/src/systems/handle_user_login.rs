@@ -3,7 +3,7 @@ use shared::prelude::*;
 
 pub fn handle_user_login(
     mut events: EventReader<UserLoggedInEvent>,
-    mut text_events_tx: EventWriter<TextEvent>,
+    mut generic_error_event_tx: EventWriter<GenericErrorEvent>,
     mut show_login_tx: EventWriter<ShowLoginScreenEvent>,
     db_repo: Res<DbInterface>,
     mut commands: Commands,
@@ -16,14 +16,14 @@ pub fn handle_user_login(
             Ok(user) => user,
             Err(e) => {
                 error!("Unable to fetch user after login: {:?}", e);
-                text_events_tx.send(TextEvent::send_generic_error(entity));
+                generic_error_event_tx.send(GenericErrorEvent(entity));
                 continue;
             }
         };
 
         let Some(user) = found_user else {
             error!("Unable to fetch user after login: No account returned!");
-            text_events_tx.send(TextEvent::send_generic_error(entity));
+            generic_error_event_tx.send(GenericErrorEvent(entity));
             continue;
         };
 
@@ -31,7 +31,7 @@ pub fn handle_user_login(
 
         let Ok(mut session_data) = query.get_mut(entity) else {
             error!("Unable to fetch session data after login!");
-            text_events_tx.send(TextEvent::send_generic_error(entity));
+            generic_error_event_tx.send(GenericErrorEvent(entity));
             continue;
         };
 

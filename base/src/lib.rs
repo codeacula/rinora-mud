@@ -1,10 +1,10 @@
+use crate::prelude::*;
 use bevy::log::{Level, LogPlugin};
 use bevy::utils::HashMap;
 use database::prelude::*;
 use events::*;
 use helper::*;
 use output::*;
-use prelude::*;
 use resources::*;
 use shared::prelude::*;
 use systems::prelude::*;
@@ -65,7 +65,6 @@ impl Plugin for BaseRinoraPlugin {
             .add_event::<NewConnectionEvent>()
             .add_event::<InputReceivedEvent>()
             .add_event::<DisconnectionEvent>()
-            .add_event::<GmcpReceivedEvent>()
             // Systems
             .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
             .add_systems(
@@ -83,8 +82,7 @@ impl Plugin for BaseRinoraPlugin {
             )
             .add_systems(
                 Update,
-                (handle_user_login, handle_disconnect, handle_new_connections)
-                    .in_set(GameOrderSet::Command),
+                (handle_user_login, handle_disconnect).in_set(GameOrderSet::Command),
             )
             .add_systems(
                 Update,
@@ -106,10 +104,10 @@ impl Plugin for BaseRinoraPlugin {
                     handle_generic_error,
                     passwords_do_not_match,
                     password_was_provided,
-                    unable_to_locate_account,
+                    unable_to_locate_account_move_user,
                     username_exists,
                     username_does_not_exists,
-                    username_invalid,
+                    username_invalid_move_user_to_needsusername,
                 )
                     .in_set(GameOrderSet::Account),
             )
@@ -136,6 +134,12 @@ impl Plugin for BaseRinoraPlugin {
                     display_room_to_entity.after(display_character_entering_room),
                     prompt_for_character_name,
                     show_login_screen,
+                    user_account_created,
+                    passwords_dont_match,
+                    provide_username,
+                    please_confirm_password,
+                    unable_to_locate_account,
+                    username_invalid,
                 )
                     .in_set(GameOrderSet::Output),
             )

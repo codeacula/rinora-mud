@@ -31,12 +31,7 @@ pub fn display_room_to_entity(
         );
 
         // Build the gmcp data
-        send_room_gmcp(
-            &mut gmcp_data_tx,
-            &controller,
-            room.room_id,
-            &display_name.0,
-        );
+        send_room_gmcp(&mut gmcp_data_tx, controller, room.room_id, &display_name.0);
 
         send_prompt_tx.send(ShowPromptEvent(controller.0));
     }

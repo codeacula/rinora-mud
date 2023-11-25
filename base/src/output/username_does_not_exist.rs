@@ -8,7 +8,7 @@ pub fn username_does_not_exists(
     for ev in username_not_exists_rx.read() {
         text_event_rx.send(TextEvent::from_str(
             ev.0,
-            "{{11}}It looks like this is your first time here! {{7}}What would you like your password to be?",
+            "{{11}}It looks like this is your first time here!\n{{7}}What would you like your password to be?\n",
         ));
 
         show_prompt_event_rx.send(ShowPromptEvent(ev.0));

@@ -43,9 +43,3 @@ impl<T: GameCommand + 'static> From<T> for GameCommandEvent {
 /// have to check the status each time
 #[derive(Resource)]
 pub struct GameCommands(pub HashMap<UserStatus, Vec<Box<dyn GameCommand>>>);
-
-#[derive(Event)]
-pub struct GenericErrorEvent(pub Entity);
-
-#[derive(Event)]
-pub struct InvalidDirectionEvent(pub Entity);
