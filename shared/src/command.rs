@@ -23,6 +23,23 @@ pub struct UserCommand {
     pub raw_command: String,
 }
 
+impl UserCommand {
+    pub fn new(raw_command: String) -> Self {
+        let mut parts = raw_command
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
+        let keyword = parts.remove(0);
+        UserCommand {
+            full_command: raw_command.trim().to_string(),
+            entity: Entity::PLACEHOLDER,
+            keyword,
+            parts,
+            raw_command,
+        }
+    }
+}
+
 pub trait GameCommand: Sync + Send {
     /// Executes the command. Returns false if the command applied, and true if it did
     /// Application doesn't just mean matches the right pattern. There are plenty of commands that may only work when

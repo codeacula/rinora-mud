@@ -2,7 +2,7 @@ use crate::events::*;
 use shared::prelude::*;
 
 /// Takes an InputReceivedEvent and converts it into a SentCommand
-fn create_sent_command(event: &InputReceivedEvent) -> UserCommand {
+pub fn create_sent_command(event: &InputReceivedEvent) -> UserCommand {
     let command_string = event.input.clone();
     let cleaned_string = command_string.trim().replace(|c: char| !c.is_ascii(), "");
 
@@ -30,7 +30,7 @@ fn get_user_input_events(world: &mut World) -> Vec<InputReceivedEvent> {
 
 /// Given a word, determines if its a special case for a keyword. Otherwise, just return the word. This will allow us to
 /// have commands like 'butts convert to "say butts"
-fn parse_keyword(command: &str) -> String {
+pub fn parse_keyword(command: &str) -> String {
     if command.starts_with('\'') {
         return "say".to_string();
     } else if command.starts_with(';') {
@@ -75,7 +75,7 @@ pub fn process_incoming_commands(world: &mut World) {
         }
 
         if !did_send_command {
-            world.send_event(TextEvent::send_command_not_found(sent_command.entity));
+            world.send_event(InvalidCommandEvent(sent_command.entity));
         }
     }
 
