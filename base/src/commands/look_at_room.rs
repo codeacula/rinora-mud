@@ -118,4 +118,27 @@ mod tests {
         let events = app.world.resource::<Events<ShowRoomToBeing>>();
         assert!(events.len() == 1);
     }
+
+    #[test]
+    fn sets_the_room_correctly() {
+        let mut app = build_test_app();
+        app.add_event::<ShowRoomToBeing>();
+
+        let command = LookAtRoomCommand {};
+
+        let mut entity_builder = EntityBuilder::new();
+        let mut user_sesh = UserSessionData::new();
+        user_sesh.controlling_entity = Some(Entity::PLACEHOLDER);
+        entity_builder.set_session_data(user_sesh);
+
+        let user_command =
+            build_user_command("look".to_string(), entity_builder.build(&mut app.world));
+
+        let result: Result<bool, String> = command.run(&user_command, &mut app.world);
+        assert!(result.is_ok_and(|is_valid| is_valid));
+
+        let events = app.world.resource::<Events<ShowRoomToBeing>>();
+        let (sent_event, _) = events.get_event(events.oldest_id()).unwrap();
+        assert!(sent_event.room == user_command.entity);
+    }
 }
