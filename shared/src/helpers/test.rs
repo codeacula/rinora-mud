@@ -37,6 +37,11 @@ impl EntityBuilder {
             new_entity.insert(user_sesh);
         }
 
+        if let Some(location) = self.location.clone() {
+            self.location = None;
+            new_entity.insert(location);
+        }
+
         new_entity.id()
     }
 

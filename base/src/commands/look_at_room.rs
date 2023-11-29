@@ -45,9 +45,19 @@ mod tests {
     use super::*;
 
     fn build_entity_and_get_command(app: &mut App, string_command: &str) -> UserCommand {
+        let mut room_buider = EntityBuilder::new();
+        let room_entity = room_buider.build(&mut app.world);
+
+        let mut character_builder = EntityBuilder::new();
+        character_builder.set_location(Location {
+            location_id: 1,
+            entity: room_entity,
+        });
+        let character_entity = character_builder.build(&mut app.world);
+
         let mut entity_builder = EntityBuilder::new();
         let mut user_sesh = UserSessionData::new();
-        user_sesh.controlling_entity = Some(Entity::PLACEHOLDER);
+        user_sesh.controlling_entity = Some(character_entity);
         entity_builder.set_session_data(user_sesh);
 
         let command = build_user_command(
@@ -132,14 +142,19 @@ mod tests {
 
         let mut entity_builder = EntityBuilder::new();
         let mut user_sesh = UserSessionData::new();
-        user_sesh.controlling_entity = Some(Entity::PLACEHOLDER);
-        entity_builder.set_session_data(user_sesh);
+
+        let mut room_buider = EntityBuilder::new();
+        let room_entity = room_buider.build(&mut app.world);
 
         let mut character_builder = EntityBuilder::new();
         character_builder.set_location(Location {
             location_id: 1,
-            entity: Entity::PLACEHOLDER,
+            entity: room_entity,
         });
+        let character_entity = character_builder.build(&mut app.world);
+
+        user_sesh.controlling_entity = Some(character_entity);
+        entity_builder.set_session_data(user_sesh);
 
         let user_command =
             build_user_command("look".to_string(), entity_builder.build(&mut app.world));
@@ -149,6 +164,6 @@ mod tests {
 
         let events = app.world.resource::<Events<ShowRoomToBeing>>();
         let (sent_event, _) = events.get_event(events.oldest_id()).unwrap();
-        assert!(sent_event.room == user_command.entity);
+        assert!(sent_event.room == room_entity);
     }
 }
