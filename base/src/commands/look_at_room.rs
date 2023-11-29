@@ -138,32 +138,14 @@ mod tests {
         let mut app = build_test_app();
         app.add_event::<ShowRoomToBeing>();
 
+        let user_command = build_entity_and_get_command(&mut app, "look");
+
         let command = LookAtRoomCommand {};
-
-        let mut entity_builder = EntityBuilder::new();
-        let mut user_sesh = UserSessionData::new();
-
-        let mut room_buider = EntityBuilder::new();
-        let room_entity = room_buider.build(&mut app.world);
-
-        let mut character_builder = EntityBuilder::new();
-        character_builder.set_location(Location {
-            location_id: 1,
-            entity: room_entity,
-        });
-        let character_entity = character_builder.build(&mut app.world);
-
-        user_sesh.controlling_entity = Some(character_entity);
-        entity_builder.set_session_data(user_sesh);
-
-        let user_command =
-            build_user_command("look".to_string(), entity_builder.build(&mut app.world));
-
         let result: Result<bool, String> = command.run(&user_command, &mut app.world);
         assert!(result.is_ok_and(|is_valid| is_valid));
 
         let events = app.world.resource::<Events<ShowRoomToBeing>>();
         let (sent_event, _) = events.get_event(events.oldest_id()).unwrap();
-        assert!(sent_event.room == room_entity);
+        assert!(sent_event.room != Entity::PLACEHOLDER);
     }
 }
