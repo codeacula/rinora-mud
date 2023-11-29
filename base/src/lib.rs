@@ -144,6 +144,7 @@ impl Plugin for BaseRinoraPlugin {
                     unable_to_locate_account,
                     username_invalid,
                     invalid_command,
+                    character_not_found,
                 )
                     .in_set(GameOrderSet::Output),
             )

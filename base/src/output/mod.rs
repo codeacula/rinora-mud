@@ -1,4 +1,5 @@
 pub mod character_name_invalid;
+pub mod character_not_found;
 pub mod character_was_created;
 pub mod display_character_entering_room;
 pub mod display_character_exists;
@@ -22,6 +23,7 @@ pub mod username_invalid;
 
 pub mod prelude {
     pub use crate::output::character_name_invalid::*;
+    pub use crate::output::character_not_found::*;
     pub use crate::output::character_was_created::*;
     pub use crate::output::display_character_entering_room::*;
     pub use crate::output::display_character_exists::*;

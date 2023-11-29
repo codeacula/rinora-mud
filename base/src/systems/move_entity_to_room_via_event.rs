@@ -6,7 +6,7 @@ use shared::prelude::*;
 /// - Fire an event to let the room know an entity arrived
 ///
 /// This runs in `Pre` because we want on-room events to fire in `Game`.
-pub fn move_entity_to_room_via_event(
+pub(crate) fn move_entity_to_room_via_event(
     mut move_entity_to_room_rx: EventReader<MoveEntityToRoom>,
     mut location_query: Query<&mut Location>,
     mut room_query: Query<(&Room, &mut EntityCollection)>,
@@ -20,31 +20,22 @@ pub fn move_entity_to_room_via_event(
         };
 
         // Update the old room's entity collection
-        let (_, mut old_room_collection) = match room_query.get_mut(entity_location.entity) {
-            Ok(collection) => collection,
-            Err(e) => {
-                error!(
-                    "Entity moved from a room that doesn't exist: {:?} - {e:?}",
-                    entity_location.entity
-                );
-                continue;
+        if let Ok((_, mut old_room_collection)) = room_query.get_mut(entity_location.entity) {
+            // Find and remove entity from old_room_collection
+            if let Some(index) = old_room_collection
+                .0
+                .iter()
+                .position(|&entity| entity == ev.entity)
+            {
+                old_room_collection.0.remove(index);
             }
+
+            entity_left_room_ev.send(EntityLeftRoomEvent {
+                entity: ev.entity,
+                room_entity_was_in: entity_location.entity,
+                message: String::from("Someone saunters away."),
+            });
         };
-
-        // Find and remove entity from old_room_collection
-        if let Some(index) = old_room_collection
-            .0
-            .iter()
-            .position(|&entity| entity == ev.entity)
-        {
-            old_room_collection.0.remove(index);
-        }
-
-        entity_left_room_ev.send(EntityLeftRoomEvent {
-            entity: ev.entity,
-            room_entity_was_in: entity_location.entity,
-            message: String::from("Someone saunters away."),
-        });
 
         // Get the new room
         let (new_room, mut new_entity_collection) = match room_query.get_mut(ev.room) {
