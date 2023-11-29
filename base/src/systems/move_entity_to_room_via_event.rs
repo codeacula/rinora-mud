@@ -6,7 +6,7 @@ use shared::prelude::*;
 /// - Fire an event to let the room know an entity arrived
 ///
 /// This runs in `Pre` because we want on-room events to fire in `Game`.
-pub(crate) fn move_entity_to_room_via_event(
+pub fn move_entity_to_room_via_event(
     mut move_entity_to_room_rx: EventReader<MoveEntityToRoom>,
     mut location_query: Query<&mut Location>,
     mut room_query: Query<(&Room, &mut EntityCollection)>,
