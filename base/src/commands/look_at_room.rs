@@ -135,6 +135,12 @@ mod tests {
         user_sesh.controlling_entity = Some(Entity::PLACEHOLDER);
         entity_builder.set_session_data(user_sesh);
 
+        let mut character_builder = EntityBuilder::new();
+        character_builder.set_location(Location {
+            location_id: 1,
+            entity: Entity::PLACEHOLDER,
+        });
+
         let user_command =
             build_user_command("look".to_string(), entity_builder.build(&mut app.world));
 
