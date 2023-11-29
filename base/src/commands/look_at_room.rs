@@ -26,9 +26,13 @@ impl GameCommand for LookAtRoomCommand {
                 return Err("Could not find user session data".to_string());
             };
 
+        let controlling_entity = user_sesh.controlling_entity.unwrap();
+        let room_entity = world.entity_mut(controlling_entity);
+        let room = room_entity.get::<Location>().unwrap().entity;
+
         world.send_event(ShowRoomToBeing {
-            entity: user_sesh.controlling_entity.unwrap(),
-            room: command.entity,
+            entity: controlling_entity,
+            room,
         });
         Ok(true)
     }
