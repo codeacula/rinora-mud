@@ -1,9 +1,9 @@
 use shared::prelude::*;
 
-use crate::helpers::*;
+use crate::{events::ShowRoomToBeing, helpers::*};
 
-pub fn display_room_to_entity(
-    mut entity_entered_room_rx: EventReader<EntityEnteredRoomEvent>,
+pub fn display_room_to_user(
+    mut show_room_to_being_rx: EventReader<ShowRoomToBeing>,
     mut text_event_tx: EventWriter<TextEvent>,
     is_controlled_by_query: Query<&IsControlledBy>,
     room_query: Query<(&DisplayName, &Description, &Exits, &Room)>,
@@ -11,14 +11,14 @@ pub fn display_room_to_entity(
     mut send_prompt_tx: EventWriter<ShowPromptEvent>,
     mut gmcp_data_tx: EventWriter<SendGmcpData>,
 ) {
-    for event in entity_entered_room_rx.read() {
+    for event in show_room_to_being_rx.read() {
         let Ok(controller) = is_controlled_by_query.get(event.entity) else {
             debug!("Couldn't locate a IsControlledByEntity");
             break;
         };
 
         let (display_name, description, exits, room) = room_query
-            .get(event.room_entity_is_in)
+            .get(event.room)
             .expect("Unable to find room entity");
 
         send_room_description(

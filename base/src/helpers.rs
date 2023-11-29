@@ -78,7 +78,7 @@ pub fn send_room_description(
 
     text_event.text.text_slices.push(TextSlice {
         foreground: 23,
-        text: ".".to_string(),
+        text: ".\n".to_string(),
         ..Default::default()
     });
 

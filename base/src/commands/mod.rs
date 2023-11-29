@@ -1,6 +1,7 @@
 pub mod confirm_account_password;
 pub mod create_account_password;
 pub mod create_character_command;
+pub mod look_at_room;
 pub mod move_to_room;
 pub mod provide_account_password;
 pub mod provide_create_character_name;
@@ -11,6 +12,7 @@ pub mod prelude {
     pub use crate::commands::confirm_account_password::*;
     pub use crate::commands::create_account_password::*;
     pub use crate::commands::create_character_command::*;
+    pub use crate::commands::look_at_room::*;
     pub use crate::commands::move_to_room::*;
     pub use crate::commands::provide_account_password::*;
     pub use crate::commands::provide_create_character_name::*;

@@ -9,18 +9,26 @@
       "request": "launch",
       "name": "Debug executable 'rinora_mud'",
       "cargo": {
-        "args": ["build", "--bin=rinora_mud", "--package=rinora_mud"],
+        "args": [
+          "build",
+          "--bin=rinora_mud",
+          "--package=rinora_mud"
+        ],
         "filter": {
           "name": "rinora_mud",
           "kind": "bin"
-        }
+        },
+        "problemMatcher": "$rustc",
       },
       "args": [],
       "cwd": "${workspaceFolder}",
       "env": {
         "CARGO_MANIFEST_DIR": "${workspaceFolder}",
-        "RUST_BACKTRACE": "1"
-      }
+        "RUST_BACKTRACE": "1",
+      },
+      "sourceLanguages": [
+        "rust"
+      ]
     },
     {
       "type": "lldb",
@@ -41,33 +49,5 @@
       "args": [],
       "cwd": "${workspaceFolder}"
     },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug unit tests in library 'server'",
-      "cargo": {
-        "args": ["test", "--no-run", "--lib", "--package=server"],
-        "filter": {
-          "name": "server",
-          "kind": "lib"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug unit tests in library 'shared'",
-      "cargo": {
-        "args": ["test", "--no-run", "--lib", "--package=shared"],
-        "filter": {
-          "name": "shared",
-          "kind": "lib"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    }
   ]
 }

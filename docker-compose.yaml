@@ -4,21 +4,19 @@ services:
     image: postgres
     restart: always
     environment:
-        POSTGRES_USER: dev
-        POSTGRES_PASSWORD: dev
-        POSTGRES_DB: rinoramud
-    volumes:
-      - type: bind
-        source: ./.private/pgsql
-        target: /var/lib/postgresql/data
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: rinoramud
     ports:
       - 5432:5432
   testdb:
     image: postgres
     restart: always
+    tmpfs:
+      - /var/lib/postgresql/data
     environment:
-        POSTGRES_USER: devtest
-        POSTGRES_PASSWORD: devtest
-        POSTGRES_DB: rinoratest
+      POSTGRES_USER: devtest
+      POSTGRES_PASSWORD: devtest
+      POSTGRES_DB: rinoratest
     ports:
       - 5433:5432

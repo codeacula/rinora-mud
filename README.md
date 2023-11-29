@@ -4,9 +4,18 @@ The RinoraMUD
 
 ## Contributing
 
+### Windows
+
+- You'll need to install WSL: `wsl --install`
 - Need to install PGSQL CLI Tools (and optionally pgAdmin 4)
 - Add the `bin` and `lib` folder of the new PGSQL installation to your system PATH
+  - I also needed to add `PQ_LIB_DIR` to my system environment. Set it to the `lib` folder for PGSQL
 - Follow the instructions to [install Diesel](https://diesel.rs/guides/getting-started)
+  - You likely only need PGSql bindings, so running `cargo install diesel_cli --no-default-features --features postgres` is likely
+
+### Other Platforms
+
+IDK man. Maybe someone else will come along without Windows.
 
 ## Workflow
 
@@ -47,7 +56,7 @@ which are scheduled to run in the following order, allowing all systems and comm
 
 It is important to highlight once more that **user commands should perform all validation, and issue commands appropriately.**
 For example, if the command is to cast a fireball, the command processor should verify the target it there, that the user
-can cast the fireball, that there's no mitigating circumstances, and so on. At the end it should issue an attack event,
+can cast the fireball, that there's no mitigating circumstances, and so on. At thde end it should issue an attack event,
 just as if a denizen did.
 
 ## Migrations

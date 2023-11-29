@@ -9,14 +9,17 @@ pub fn build_test_app() -> App {
 }
 
 pub fn build_user_command(command: String, entity: Entity) -> UserCommand {
-    let full_cmd = command.clone();
+    let raw = command.clone().replace(|c: char| !c.is_ascii(), "");
+    let full_command = raw.trim().to_string();
+    let parts: Vec<String> = full_command.split(' ').map(|f| f.to_string()).collect();
+    let keyword = parts.get(0).unwrap_or(&"".to_string()).trim().to_string();
 
     UserCommand {
         entity,
-        full_command: command.clone(),
-        keyword: command.clone(),
-        parts: command.split(' ').map(|f| f.to_string()).collect(),
-        raw_command: format!("{full_cmd}\n"),
+        full_command,
+        keyword,
+        parts,
+        raw_command: command.clone(),
     }
 }
 

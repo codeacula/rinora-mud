@@ -8,7 +8,7 @@ pub fn prompt_for_character_name(
     for ev in main_events.read() {
         text_event_tx.send(TextEvent::from_str(
             ev.0,
-            "Please provide a character name. Character names can only be 15 characters long and only contain letters.",
+            "Please provide a character name. Character names can only be 15 characters long and only contain letters.\n",
         ));
         prompt_tx.send(ShowPromptEvent(ev.0));
     }

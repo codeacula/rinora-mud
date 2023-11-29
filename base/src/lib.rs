@@ -62,9 +62,11 @@ impl Plugin for BaseRinoraPlugin {
                 connection_to_entity: connection_hashmap,
             })
             // Events
-            .add_event::<NewConnectionEvent>()
-            .add_event::<InputReceivedEvent>()
             .add_event::<DisconnectionEvent>()
+            .add_event::<InputReceivedEvent>()
+            .add_event::<InvalidCommandEvent>()
+            .add_event::<NewConnectionEvent>()
+            .add_event::<ShowRoomToBeing>()
             // Systems
             .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
             .add_systems(
@@ -131,15 +133,17 @@ impl Plugin for BaseRinoraPlugin {
                 (
                     display_character_entering_room,
                     display_character_logged_into_room.before(display_character_entering_room),
-                    display_room_to_entity.after(display_character_entering_room),
+                    display_room_on_entering.after(display_character_entering_room),
+                    display_room_to_user,
                     prompt_for_character_name,
-                    show_login_screen,
                     user_account_created,
+                    show_login_screen.after(user_account_created),
                     passwords_dont_match,
                     provide_username,
                     please_confirm_password,
                     unable_to_locate_account,
                     username_invalid,
+                    invalid_command,
                 )
                     .in_set(GameOrderSet::Output),
             )
