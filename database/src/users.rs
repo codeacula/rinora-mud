@@ -131,4 +131,9 @@ impl UserRepo {
             Some(found_user) => Ok(Some(found_user.to_game_user())),
         }
     }
+
+    /// Convenience method to get a connection
+    pub fn start_transaction(&self) {
+        self.pool.get().unwrap().begin_test_transaction().unwrap();
+    }
 }

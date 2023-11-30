@@ -45,7 +45,7 @@ impl GameCommand for SelectCharacterCommand {
     }
 }
 
-#[cfg(test)]
+#[cfg(dbtest)]
 mod tests {
     use database::{
         get_test_db_interface,
