@@ -5,9 +5,6 @@ use diesel::PgConnection;
 
 use crate::prelude::*;
 
-#[derive(Debug)]
-struct TestTransaction;
-
 fn get_connection_pool(conn_string: &str) -> Pool<ConnectionManager<PgConnection>> {
     let manager = ConnectionManager::<PgConnection>::new(conn_string);
     Pool::builder()

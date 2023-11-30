@@ -51,6 +51,7 @@ mod tests {
     #[test]
     fn account_cant_be_located() {
         let mut app = build_test_app();
+        let testname = Uuid::new_v4().to_string();
 
         app.add_event::<UnableToLocateAccountEvent>();
 
@@ -58,7 +59,7 @@ mod tests {
 
         db_handle
             .users
-            .create_user("test", "test")
+            .create_user(&testname, &testname)
             .expect("Could not create user");
 
         app.insert_resource(db_handle);
@@ -66,7 +67,7 @@ mod tests {
         let mut entity_builder = EntityBuilder::new();
 
         let mut user_sesh = UserSessionData::new();
-        user_sesh.username = String::from("test2");
+        user_sesh.username = String::from(testname);
         entity_builder.set_session_data(user_sesh);
 
         let command =
