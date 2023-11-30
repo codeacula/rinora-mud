@@ -20,13 +20,6 @@ pub struct NewConnectionEvent {
     pub id: Uuid,
 }
 
-#[derive(Event)]
-pub struct OutgoingEvent {
-    pub id: Uuid,
-    pub text: Option<Vec<u8>>,
-    pub gmcp: Option<Vec<u8>>,
-}
-
 #[derive(Event, Clone)]
 pub struct ShowRoomToBeing {
     pub entity: Entity,
