@@ -28,7 +28,10 @@ pub(crate) fn add_new_connections(
 
 #[cfg(test)]
 mod tests {
-    use std::net::{TcpListener, TcpStream};
+    use std::{
+        net::{TcpListener, TcpStream},
+        sync::mpsc::channel,
+    };
 
     use shared::prelude::*;
 
@@ -39,68 +42,38 @@ mod tests {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let addr = listener.local_addr().unwrap();
 
-        let (net_send, net_recv) = get_channels::<NetworkConnection>();
+        let (net_send, net_recv) = channel::<NetworkConnection>();
+        let (inc_send, inc_recv) = channel::<IncomingEvent>();
 
-        let (inc_send, inc_recv) = get_channels::<IncomingEvent>();
+        let conn1 = NetworkConnection {
+            id: Uuid::new_v4(),
+            conn: TcpStream::connect(addr).unwrap(),
+            gmcp: false,
+            do_room: false,
+        };
+        conn1.conn.set_nonblocking(true).unwrap();
+        net_send.send(conn1).unwrap();
 
-        net_send
-            .send(NetworkConnection {
-                id: Uuid::new_v4(),
-                conn: TcpStream::connect(addr).unwrap(),
-                gmcp: false,
-                do_room: false,
-            })
-            .unwrap();
+        let conn2 = NetworkConnection {
+            id: Uuid::new_v4(),
+            conn: TcpStream::connect(addr).unwrap(),
+            gmcp: false,
+            do_room: false,
+        };
+        conn2.conn.set_nonblocking(true).unwrap();
+        net_send.send(conn2).unwrap();
 
-        net_send
-            .send(NetworkConnection {
-                id: Uuid::new_v4(),
-                conn: TcpStream::connect(addr).unwrap(),
-                gmcp: false,
-                do_room: false,
-            })
-            .unwrap();
-
+        println!("Listening on {}", addr);
         let mut conn_vec = Vec::<NetworkConnection>::new();
 
         add_new_connections(&mut conn_vec, &net_recv, &inc_send);
+
+        drop(listener);
+        drop(inc_send);
 
         assert!(inc_recv.recv().is_ok());
         assert!(inc_recv.recv().is_ok());
         assert!(inc_recv.recv().is_err());
-    }
-
-    #[test]
-    fn it_add_the_new_connection_to_the_vec() {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let addr = listener.local_addr().unwrap();
-
-        let (net_send, net_recv) = get_channels::<NetworkConnection>();
-
-        let (inc_send, _inc_recv) = get_channels::<IncomingEvent>();
-
-        net_send
-            .send(NetworkConnection {
-                id: Uuid::new_v4(),
-                conn: TcpStream::connect(addr).unwrap(),
-                gmcp: false,
-                do_room: false,
-            })
-            .unwrap();
-
-        net_send
-            .send(NetworkConnection {
-                id: Uuid::new_v4(),
-                conn: TcpStream::connect(addr).unwrap(),
-                gmcp: false,
-                do_room: false,
-            })
-            .unwrap();
-
-        let mut conn_vec = Vec::<NetworkConnection>::new();
-
-        add_new_connections(&mut conn_vec, &net_recv, &inc_send);
-
         assert!(conn_vec.len() == 2);
     }
 }

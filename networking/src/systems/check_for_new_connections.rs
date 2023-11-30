@@ -34,16 +34,12 @@ mod tests {
 
     use super::*;
 
-    fn get_channels() -> (Sender<NetworkConnection>, Receiver<NetworkConnection>) {
-        channel::<NetworkConnection>()
-    }
-
     #[test]
     fn check_for_new_connections_returns_all_new_connections() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let addr = listener.local_addr().unwrap();
 
-        let (send, recv) = get_channels();
+        let (send, recv) = channel::<NetworkConnection>();
 
         send.send(NetworkConnection {
             id: Uuid::new_v4(),
