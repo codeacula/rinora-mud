@@ -1,9 +1,5 @@
-use crate::events::*;
-use crate::{enums::*, resources::*};
-use shared::prelude::*;
-
 /// Handles transferring new connections into the game world, and sending data from the game world to the client
-pub fn transfer_from_server_to_game(
+pub fn transfer_between_game_and_server(
     connection_event_rx: NonSend<NewConnectionListener>,
     mut ev_new_connection: EventWriter<NewConnectionEvent>,
     mut ev_dropped_connection: EventWriter<DisconnectionEvent>,

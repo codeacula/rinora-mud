@@ -8,8 +8,8 @@ use super::check_for_new_connections::*;
 /// Takes all new connections, adds them to the provided vector, and sends a connect event to the game.
 pub(crate) fn add_new_connections(
     all_connections: &mut Vec<NetworkConnection>,
-    between_threads_rx: Receiver<NetworkConnection>,
-    connection_event_tx: Sender<IncomingData>,
+    between_threads_rx: &Receiver<NetworkConnection>,
+    connection_event_tx: &Sender<IncomingEvent>,
 ) {
     let new_connections = check_for_new_connections(&between_threads_rx);
 
@@ -19,7 +19,7 @@ pub(crate) fn add_new_connections(
             data: None,
             event_type: NetworkEventType::Connect,
         }) {
-            error!("Failed to send network event to game: {}", err);
+            error!("Failed to send incoming event to game: {}", err);
             break;
         };
         all_connections.push(new_conn);
@@ -28,18 +28,11 @@ pub(crate) fn add_new_connections(
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        net::{TcpListener, TcpStream},
-        sync::mpsc::*,
-    };
+    use std::net::{TcpListener, TcpStream};
 
     use shared::prelude::*;
 
     use crate::{systems::add_new_connections::*, IncomingEvent, NetworkConnection};
-
-    fn get_channels<T>() -> (Sender<T>, Receiver<T>) {
-        channel::<T>()
-    }
 
     #[test]
     fn sends_the_events_to_the_channel() {
@@ -70,7 +63,7 @@ mod tests {
 
         let mut conn_vec = Vec::<NetworkConnection>::new();
 
-        add_new_connections(&mut conn_vec, net_recv, inc_send);
+        add_new_connections(&mut conn_vec, &net_recv, &inc_send);
 
         assert!(inc_recv.recv().is_ok());
         assert!(inc_recv.recv().is_ok());
@@ -106,7 +99,7 @@ mod tests {
 
         let mut conn_vec = Vec::<NetworkConnection>::new();
 
-        add_new_connections(&mut conn_vec, net_recv, inc_send);
+        add_new_connections(&mut conn_vec, &net_recv, &inc_send);
 
         assert!(conn_vec.len() == 2);
     }

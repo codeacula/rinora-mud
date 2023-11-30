@@ -1,3 +1,5 @@
+use std::sync::mpsc::*;
+
 use crate::prelude::*;
 use bevy::prelude::*;
 
@@ -68,4 +70,8 @@ impl Default for EntityBuilder {
     fn default() -> Self {
         Self::new()
     }
+}
+
+pub fn get_channels<T>() -> (Sender<T>, Receiver<T>) {
+    channel::<T>()
 }

@@ -1,10 +1,7 @@
-use std::{net::TcpStream, sync::mpsc::*, thread};
+use std::net::TcpStream;
 
 use shared::prelude::*;
-use systems::{
-    process_connections::{self},
-    start_listening::*,
-};
+use systems::start_server::start_server;
 
 mod constants;
 mod stream_processor;
@@ -20,6 +17,7 @@ pub enum NetworkEventType {
 }
 
 /// Holds everything we need to identify a network connection
+#[derive(Debug)]
 pub struct NetworkConnection {
     pub id: Uuid,        // We use a UUID so we don't have to worry about integer rollover
     pub conn: TcpStream, // The TCP stream we use to communicate
@@ -40,14 +38,10 @@ pub struct OutgoingEvent {
     pub event_type: NetworkEventType,
 }
 
-pub fn start_server(world: &mut World) {
-    let (connection_event_tx, connection_event_rx) = channel::<IncomingEvent>();
-    let (between_threads_tx, between_threads_rx) = channel::<NetworkConnection>();
-    let (outgoing_event_tx, outgoing_event_rx) = channel::<OutgoingEvent>();
+pub struct NetworkPlugin;
 
-    // Main thread for listening to new connections
-    thread::spawn(move || start_listening(between_threads_tx));
-
-    // Sends new connections to the game world, along with new commands or GMCP commands. Also disconnects.
-    //thread::spawn(move || process_connections(between_threads_rx));
+impl Plugin for NetworkPlugin {
+    fn build(&self, app: &mut App) {
+        let (outgoing_event_tx, incoming_event_rx) = start_server();
+    }
 }
