@@ -109,7 +109,7 @@ impl Plugin for BaseRinoraPlugin {
                     unable_to_locate_account_move_user,
                     username_exists,
                     username_does_not_exists,
-                    username_invalid_move_user_to_needsusername,
+                    username_invalid_move_user_to_needs_username,
                 )
                     .in_set(GameOrderSet::Account),
             )
@@ -144,6 +144,7 @@ impl Plugin for BaseRinoraPlugin {
                     unable_to_locate_account,
                     username_invalid,
                     invalid_command,
+                    character_not_found,
                 )
                     .in_set(GameOrderSet::Output),
             )

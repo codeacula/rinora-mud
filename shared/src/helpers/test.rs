@@ -24,7 +24,8 @@ pub fn build_user_command(command: String, entity: Entity) -> UserCommand {
 }
 
 pub struct EntityBuilder {
-    session_data: Option<UserSessionData>,
+    pub location: Option<Location>,
+    pub session_data: Option<UserSessionData>,
 }
 
 impl EntityBuilder {
@@ -36,11 +37,25 @@ impl EntityBuilder {
             new_entity.insert(user_sesh);
         }
 
+        if let Some(location) = self.location {
+            self.location = None;
+            new_entity.insert(location);
+        }
+
         new_entity.id()
     }
 
     pub fn new() -> Self {
-        Self { session_data: None }
+        Self {
+            location: None,
+            session_data: None,
+        }
+    }
+
+    pub fn set_location(&mut self, location: Location) -> &mut Self {
+        self.location = Some(location);
+
+        self
     }
 
     pub fn set_session_data(&mut self, session_data: UserSessionData) -> &mut Self {

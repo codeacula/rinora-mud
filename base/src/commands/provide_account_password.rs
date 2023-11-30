@@ -32,7 +32,7 @@ impl GameCommand for ProvideAccountPasswordCommand {
     }
 }
 
-#[cfg(test)]
+#[cfg(dbtest)]
 mod tests {
     use database::get_test_db_interface;
     use shared::prelude::*;
@@ -55,6 +55,7 @@ mod tests {
         app.add_event::<UnableToLocateAccountEvent>();
 
         let db_handle = get_test_db_interface();
+        db_handle.users.start_transaction();
 
         db_handle
             .users

@@ -1,7 +1,7 @@
 use bevy::ecs::system::SystemState;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use diesel::{Connection, PgConnection, RunQueryDsl};
+use diesel::{Connection, PgConnection};
 use diesel_migrations::MigrationHarness;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations};
 use shared::prelude::*;
@@ -291,15 +291,6 @@ pub fn get_test_db_interface() -> DbInterface {
     let host_string = "postgresql://devtest:devtest@localhost:5433/rinoratest";
 
     let mut pg_conn = PgConnection::establish(host_string).unwrap();
-
-    diesel::sql_query("DROP SCHEMA IF EXISTS public CASCADE;")
-        .execute(&mut pg_conn)
-        .expect("Issue dropping schema");
-
-    diesel::sql_query("CREATE SCHEMA public;")
-        .execute(&mut pg_conn)
-        .expect("Issue creating");
-
     pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
     DbInterface::new(String::from(host_string))

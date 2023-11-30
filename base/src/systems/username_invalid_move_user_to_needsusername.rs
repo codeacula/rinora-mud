@@ -1,6 +1,6 @@
 use shared::prelude::*;
 
-pub fn username_invalid_move_user_to_needsusername(
+pub fn username_invalid_move_user_to_needs_username(
     mut username_invalid_rx: EventReader<UsernameInvalidEvent>,
     mut query: Query<&mut UserSessionData>,
 ) {

@@ -100,7 +100,7 @@ pub struct ExitBundle {
 #[derive(Component, Debug)]
 pub struct ExitTo(pub Entity);
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy)]
 pub struct Location {
     pub location_id: i32,
     pub entity: Entity,

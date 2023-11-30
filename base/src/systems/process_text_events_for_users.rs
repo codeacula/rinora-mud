@@ -1,6 +1,6 @@
-use crate::OutgoingQueue;
-use bevy::prelude::*;
 use shared::prelude::*;
+
+use crate::resources::OutgoingQueue;
 
 fn build_color_code(slice: &TextSlice) -> String {
     //"\u{1b}[1;31mtest\u{1b}[0ming\n"

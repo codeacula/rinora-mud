@@ -180,4 +180,9 @@ impl CharacterRepo {
             .map(|character| character.to_game_character())
             .collect())
     }
+
+    /// Convenience method to get a connection
+    pub fn start_transaction(&self) {
+        self.pool.get().unwrap().begin_test_transaction().unwrap();
+    }
 }
