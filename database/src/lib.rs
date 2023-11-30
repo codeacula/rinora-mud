@@ -292,14 +292,6 @@ pub fn get_test_db_interface() -> DbInterface {
 
     let mut pg_conn = PgConnection::establish(host_string).unwrap();
 
-    diesel::sql_query("DROP SCHEMA IF EXISTS public CASCADE;")
-        .execute(&mut pg_conn)
-        .expect("Issue dropping schema");
-
-    diesel::sql_query("CREATE SCHEMA public;")
-        .execute(&mut pg_conn)
-        .expect("Issue creating");
-
     pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
     DbInterface::new(String::from(host_string))

@@ -32,6 +32,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install Dependencies
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      - name: Start Test Database
+        run: docker compose up --build -d
       - name: Run cargo test
         run: cargo test
 
