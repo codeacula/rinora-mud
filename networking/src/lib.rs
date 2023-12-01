@@ -28,6 +28,7 @@ pub struct NetworkConnection {
 #[derive(Debug, Clone)]
 pub struct IncomingEvent {
     pub id: Uuid,
+    pub command: Option<String>,
     pub data: Option<Vec<u8>>,
     pub event_type: NetworkEventType,
 }

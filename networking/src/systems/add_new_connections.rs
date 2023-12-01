@@ -16,6 +16,7 @@ pub(crate) fn add_new_connections(
     for new_conn in new_connections {
         if let Err(err) = connection_event_tx.send(IncomingEvent {
             id: new_conn.id,
+            command: None,
             data: None,
             event_type: NetworkEventType::Connect,
         }) {

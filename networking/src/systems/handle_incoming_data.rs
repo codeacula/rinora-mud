@@ -50,6 +50,7 @@ pub(crate) fn handle_incoming_data(
 
                     if let Err(err) = incoming_event_tx.send(IncomingEvent {
                         data: Some(line.as_bytes().to_vec()),
+                        command: None,
                         id: network_connection.id,
                         event_type: NetworkEventType::Text,
                     }) {
@@ -70,6 +71,7 @@ pub(crate) fn handle_incoming_data(
                     } else {
                         if let Err(err) = incoming_event_tx.send(IncomingEvent {
                             data: Some(command.data.unwrap()),
+                            command: Some(command.command_name),
                             id: network_connection.id,
                             event_type: NetworkEventType::Gmcp,
                         }) {
@@ -92,6 +94,10 @@ mod tests {
 
     use super::*;
 
+    fn setup() {
+
+    }
+
     #[test]
     fn it_turns_on_gmcp() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -99,18 +105,102 @@ mod tests {
 
         let (inc_send, _inc_recv) = get_channels::<IncomingEvent>();
 
+        let mut connection = TcpStream::connect(addr).unwrap();
+
+        // Tell the server to turn on GMCP
+        connection.set_nonblocking(true).unwrap();
+        connection.write_all(&[IAC, DO, GMCP]).unwrap();
+
+        // Get the connection from the listener
+        let (conn, _skaddr) = listener.accept().unwrap();
+        conn.set_nonblocking(true).unwrap();
+
         let mut test_connection = NetworkConnection {
             id: Uuid::new_v4(),
-            conn: TcpStream::connect(addr).unwrap(),
+            conn,
             gmcp: false,
             do_room: false,
         };
 
-        // Tell the server to turn on GMCP
-        test_connection.conn.write_all(&[IAC, DO, GMCP]).unwrap();
-
         handle_incoming_data(&mut test_connection, &inc_send);
         assert!(test_connection.gmcp);
         drop(listener);
+        drop(connection);
+    }
+
+    #[test]
+    fn it_returns_a_user_command() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        let (inc_send, inc_recv) = get_channels::<IncomingEvent>();
+
+        let mut connection = TcpStream::connect(addr).unwrap();
+
+        // Tell the server to turn on GMCP
+        connection.set_nonblocking(true).unwrap();
+        connection
+            .write_all(String::from("look here\r\n").as_bytes())
+            .unwrap();
+
+        // Get the connection from the listener
+        let (conn, _skaddr) = listener.accept().unwrap();
+        conn.set_nonblocking(true).unwrap();
+
+        let mut test_connection = NetworkConnection {
+            id: Uuid::new_v4(),
+            conn,
+            gmcp: false,
+            do_room: false,
+        };
+
+        handle_incoming_data(&mut test_connection, &inc_send);
+
+        let event = inc_recv.recv().unwrap();
+        assert_eq!(event.event_type, NetworkEventType::Text);
+        assert_eq!(String::from_utf8_lossy(&event.data.unwrap()), "look here\n");
+        drop(listener);
+        drop(connection);
+    }
+
+    #[test]
+    fn it_returns_a_gmcp_command() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        let (inc_send, inc_recv) = get_channels::<IncomingEvent>();
+
+        let mut connection = TcpStream::connect(addr).unwrap();
+
+        // Tell the server to turn on GMCP
+        connection.set_nonblocking(true).unwrap();
+        connection.write_all(&[IAC, SB, GMCP]).unwrap();
+        connection
+            .write_all(String::from("Char.Skills.Get {\"group\":\"Perception\"}").as_bytes())
+            .unwrap();
+        connection.write_all(&[IAC, SE]).unwrap();
+
+        // Get the connection from the listener
+        let (conn, _skaddr) = listener.accept().unwrap();
+        conn.set_nonblocking(true).unwrap();
+
+        let mut test_connection = NetworkConnection {
+            id: Uuid::new_v4(),
+            conn,
+            gmcp: false,
+            do_room: false,
+        };
+
+        handle_incoming_data(&mut test_connection, &inc_send);
+
+        let event = inc_recv.recv().unwrap();
+        assert_eq!(event.event_type, NetworkEventType::Gmcp);
+        assert_eq!(event.command, Some(String::from("Char.Skills.Get")));
+        assert_eq!(
+            String::from_utf8_lossy(&event.data.unwrap()),
+            "{\"group\":\"Perception\"}"
+        );
+        drop(listener);
+        drop(connection);
     }
 }

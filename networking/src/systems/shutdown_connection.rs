@@ -11,6 +11,7 @@ pub(crate) fn shutdown_connection(
     // Send the connection dropped event to the game because we can't write to them anymore
     if let Err(err) = incoming_event_tx.send(IncomingEvent {
         id: conn_id,
+        command: None,
         data: None,
         event_type: NetworkEventType::Disconnect,
     }) {
