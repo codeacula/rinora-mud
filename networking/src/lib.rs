@@ -1,11 +1,11 @@
 use std::net::TcpStream;
 
+use network_functions::start_server::start_server;
 use shared::prelude::*;
-use systems::start_server::start_server;
 
 mod constants;
+mod network_functions;
 mod stream_processor;
-mod systems;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 /// What type of events the server will issue the game

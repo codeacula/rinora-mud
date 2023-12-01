@@ -33,7 +33,7 @@ mod tests {
 
     use shared::prelude::*;
 
-    use crate::{systems::add_new_connections::*, IncomingEvent, NetworkConnection};
+    use crate::{network_functions::add_new_connections::*, IncomingEvent, NetworkConnection};
 
     #[test]
     fn sends_the_events_to_the_channel() {
