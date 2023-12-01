@@ -74,60 +74,8 @@ impl Plugin for SharedPlugin {
         set_schedules(app, First);
         set_schedules(app, PreUpdate);
         set_schedules(app, Update);
+        set_schedules(app, PostUpdate);
         set_schedules(app, Last);
-
-        // Account
-        app.add_event::<CharacterCreatedEvent>()
-            .add_event::<CharacterExistsEvent>()
-            .add_event::<CharacterLoggedInEvent>()
-            .add_event::<CharacterNameInvalidEvent>()
-            .add_event::<CharacterNotFoundEvent>()
-            .add_event::<LogCharacterInEvent>()
-            .add_event::<ConfirmPasswordDoesNotMatchEvent>()
-            .add_event::<CreateCharacterEvent>()
-            .add_event::<CreateCharacterSelectedEvent>()
-            .add_event::<PasswordNotLongEnoughEvent>()
-            .add_event::<PromptUserForCharacterName>()
-            .add_event::<UnableToLocateAccountEvent>()
-            .add_event::<UserConfirmedPasswordEvent>()
-            .add_event::<UserCreatedEvent>()
-            .add_event::<UserLoggedInEvent>()
-            .add_event::<UserProvidedPasswordEvent>()
-            .add_event::<UsernameDoesNotExistEvent>()
-            .add_event::<UsernameExistsEvent>()
-            .add_event::<UsernameInvalidEvent>()
-            .add_event::<UsernameProvidedEvent>();
-
-        // Entities
-        app.add_event::<EntityEnteredRoomEvent>()
-            .add_event::<EntityEnteredWorldEvent>()
-            .add_event::<EntityEnteredPlaneEvent>()
-            .add_event::<EntityEnteredContinentEvent>()
-            .add_event::<EntityEnteredAreaEvent>()
-            .add_event::<EntityLeftWorldEvent>()
-            .add_event::<EntityLeftPlaneEvent>()
-            .add_event::<EntityLeftContinentEvent>()
-            .add_event::<EntityLeftAreaEvent>()
-            .add_event::<EntityLeftRoomEvent>()
-            .add_event::<EntityLoggedIn>()
-            .add_event::<EntityMovedRooms>()
-            .add_event::<MoveEntityToRoom>();
-
-        // Events
-        app.add_event::<GenericErrorEvent>()
-            .add_event::<InvalidDirectionEvent>()
-            .add_event::<SendGmcpData>()
-            .add_event::<ShowLoginScreenEvent>()
-            .add_event::<ShowPromptEvent>()
-            .add_event::<TextEvent>();
-
-        // Output
-        app.add_event::<GenericErrorEvent>()
-            .add_event::<InvalidDirectionEvent>()
-            .add_event::<PleaseConfirmPasswordEvent>()
-            .add_event::<PasswordsDoNotMatchEvent>()
-            .add_event::<ProvideUsernameEvent>()
-            .add_event::<UserAccountCreatedEvent>();
     }
 }
 

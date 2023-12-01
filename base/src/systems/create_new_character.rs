@@ -34,7 +34,7 @@ pub fn create_new_character(
 
         ent_commands.insert(IsControlledBy(user_entity));
 
-        user_session_data.controlling_entity = Some(character_entity);
+        user_session_data.entity_they_are_controlling = Some(character_entity);
         user_session_data.status = UserStatus::InGame;
 
         let room = *room_map.0.get(&settings.default_room).unwrap();

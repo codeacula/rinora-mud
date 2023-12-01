@@ -4,6 +4,7 @@ use bevy::utils::HashMap;
 use database::prelude::*;
 use events::*;
 use helper::*;
+use networking::NetworkPlugin;
 use output::*;
 use shared::prelude::*;
 use systems::prelude::*;
@@ -51,7 +52,13 @@ impl Plugin for BaseRinoraPlugin {
                 filter: "debug,rinora_mud=debug".into(),
             })
             // Plugins
-            .add_plugins((MinimalPlugins, SharedPlugin, DatabasePlugin, HelperPlugin))
+            .add_plugins((
+                MinimalPlugins,
+                SharedPlugin,
+                DatabasePlugin,
+                HelperPlugin,
+                NetworkPlugin,
+            ))
             // Resources
             .insert_resource(character_map)
             .insert_resource(command_list)
