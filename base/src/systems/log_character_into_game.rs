@@ -40,7 +40,7 @@ pub fn log_character_into_game(
 
         let mut user_sesh = query.get_mut(ev.user_entity).unwrap();
         user_sesh.status = UserStatus::InGame;
-        user_sesh.controlling_entity = Some(character_ent.id());
+        user_sesh.entity_they_are_controlling = Some(character_ent.id());
 
         character_logged_in_tx.send(CharacterLoggedInEvent(character_ent.id()));
     }

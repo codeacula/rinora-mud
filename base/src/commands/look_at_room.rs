@@ -26,7 +26,7 @@ impl GameCommand for LookAtRoomCommand {
                 return Err("Could not find user session data".to_string());
             };
 
-        let controlling_entity = user_sesh.controlling_entity.unwrap();
+        let controlling_entity = user_sesh.entity_they_are_controlling.unwrap();
         let room_entity = world.entity_mut(controlling_entity);
         let room = room_entity.get::<Location>().unwrap().entity;
 
@@ -57,7 +57,7 @@ mod tests {
 
         let mut entity_builder = EntityBuilder::new();
         let mut user_sesh = UserSessionData::new();
-        user_sesh.controlling_entity = Some(character_entity);
+        user_sesh.entity_they_are_controlling = Some(character_entity);
         entity_builder.set_session_data(user_sesh);
 
         let command = build_user_command(

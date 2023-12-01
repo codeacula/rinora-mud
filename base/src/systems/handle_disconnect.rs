@@ -20,8 +20,8 @@ pub fn handle_disconnect(
 
         // If they were controlling an entity (probably a character), we need to make sure we either remove the
         // IsControlledBy tag, or we need to remove the entity from the world and store it.
-        if user.controlling_entity.is_some() {
-            let controlled_entity = user.controlling_entity.unwrap();
+        if user.entity_they_are_controlling.is_some() {
+            let controlled_entity = user.entity_they_are_controlling.unwrap();
             let found_location = character_info_query.get(controlled_entity);
 
             let Ok(location) = found_location else {

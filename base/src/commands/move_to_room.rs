@@ -17,7 +17,11 @@ impl GameCommand for MoveToRoomCommand {
         let user_sesh = user_query.get(command.entity).expect("No user found");
 
         let location = location_query
-            .get(user_sesh.controlling_entity.expect("No current character"))
+            .get(
+                user_sesh
+                    .entity_they_are_controlling
+                    .expect("No current character"),
+            )
             .expect("No location found");
         let room_num = location.location_id;
 
@@ -50,7 +54,9 @@ impl GameCommand for MoveToRoomCommand {
         }
 
         // Let's get who they're controlling and add the tag that they're trying to move
-        let current_character = user_sesh.controlling_entity.expect("No current character");
+        let current_character = user_sesh
+            .entity_they_are_controlling
+            .expect("No current character");
 
         // Get the destination location to add to the EntityWantsToMove event
 

@@ -4,8 +4,8 @@ use bevy::utils::HashMap;
 use database::prelude::*;
 use events::*;
 use helper::*;
+use networking::NetworkPlugin;
 use output::*;
-use resources::*;
 use shared::prelude::*;
 use systems::prelude::*;
 
@@ -16,7 +16,6 @@ mod gmcp;
 mod helpers;
 mod models;
 mod output;
-mod resources;
 mod stream_processor;
 mod systems;
 
@@ -26,7 +25,6 @@ impl Plugin for BaseRinoraPlugin {
     fn build(&self, app: &mut App) {
         // Resources
         let mut command_list = GameCommands(HashMap::new());
-        let connection_hashmap = HashMap::<Uuid, Entity>::new();
         let character_map = CharacterMap(HashMap::new());
 
         // Go ahead and make the vectors for all the statuses
@@ -54,13 +52,16 @@ impl Plugin for BaseRinoraPlugin {
                 filter: "debug,rinora_mud=debug".into(),
             })
             // Plugins
-            .add_plugins((MinimalPlugins, SharedPlugin, DatabasePlugin, HelperPlugin))
+            .add_plugins((
+                MinimalPlugins,
+                SharedPlugin,
+                DatabasePlugin,
+                HelperPlugin,
+                NetworkPlugin,
+            ))
             // Resources
             .insert_resource(character_map)
             .insert_resource(command_list)
-            .insert_resource(NetworkInfo {
-                connection_to_entity: connection_hashmap,
-            })
             // Events
             .add_event::<DisconnectionEvent>()
             .add_event::<InputReceivedEvent>()
@@ -68,15 +69,10 @@ impl Plugin for BaseRinoraPlugin {
             .add_event::<NewConnectionEvent>()
             .add_event::<ShowRoomToBeing>()
             // Systems
-            .add_systems(Startup, start_listening.in_set(GameOrderSet::Network))
             .add_systems(
                 Startup,
                 (add_expected_account_commands, add_character_commands)
                     .in_set(GameOrderSet::Command),
-            )
-            .add_systems(
-                First,
-                transfer_from_server_to_game.in_set(GameOrderSet::Network),
             )
             .add_systems(
                 PreUpdate,
@@ -147,15 +143,6 @@ impl Plugin for BaseRinoraPlugin {
                     character_not_found,
                 )
                     .in_set(GameOrderSet::Output),
-            )
-            .add_systems(
-                Last,
-                (process_gmcp_data, send_prompt_to_user).in_set(GameOrderSet::Output),
-            )
-            .add_systems(
-                Last,
-                (process_text_events_for_users, process_outgoing_data)
-                    .in_set(GameOrderSet::Network),
             );
     }
 }

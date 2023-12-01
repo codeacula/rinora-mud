@@ -1,7 +1,5 @@
 use bevy::{prelude::*, utils::HashMap};
 
-use crate::prelude::UserStatus;
-
 /// UserCommand contains the information from the text command that was sent in. This gets converted into the actual
 /// command that will run
 #[derive(Debug, Clone)]
@@ -59,4 +57,4 @@ impl<T: GameCommand + 'static> From<T> for GameCommandEvent {
 /// GameCommands are only ran when the user is logged into a character. They're sorted by the user status so we don't
 /// have to check the status each time
 #[derive(Resource)]
-pub struct GameCommands(pub HashMap<UserStatus, Vec<Box<dyn GameCommand>>>);
+pub struct GameCommands(pub Vec<Box<dyn GameCommand>>);

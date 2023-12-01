@@ -1,5 +1,18 @@
 use bevy::{prelude::*, utils::Uuid};
 
+#[derive(Component, Debug)]
+pub struct LogOutUser {}
+
+#[derive(Component, Debug)]
+pub struct NeedsUsername {}
+
+#[derive(Component, Debug, Clone)]
+pub struct UserSessionData {
+    pub entity_they_are_controlling: Option<Entity>,
+    pub connection: Uuid,
+}
+
+/*
 #[derive(Event)]
 pub struct UserLoggedInEvent {
     pub entity: Entity,
@@ -31,23 +44,15 @@ pub struct User {
 
 #[derive(Component, Debug, Clone)]
 pub struct UserSessionData {
-    pub controlling_entity: Option<Entity>,
-    pub char_to_delete: Option<String>,
+    pub entity_they_are_controlling: Option<Entity>,
     pub connection: Uuid,
-    pub pwd: Option<String>,
-    pub status: UserStatus,
-    pub username: String,
 }
 
 impl UserSessionData {
     pub fn new() -> Self {
         Self {
-            controlling_entity: None,
-            char_to_delete: None,
+            entity_they_are_controlling: None,
             connection: Uuid::nil(),
-            pwd: None,
-            status: UserStatus::NeedUsername,
-            username: String::new(),
         }
     }
 }
@@ -67,3 +72,4 @@ pub struct SendGmcpData {
     pub data: String,
     pub entity: Entity,
 }
+ */
