@@ -39,7 +39,7 @@ mod tests {
     fn it_removes_the_connection_from_the_vec() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let addr = listener.local_addr().unwrap();
-        let (inc_send, inc_recv) = get_channels::<IncomingEvent>();
+        let (inc_send, inc_recv) = channel::<IncomingEvent>();
 
         let conn1id = Uuid::new_v4();
         let conn1 = NetworkConnection {

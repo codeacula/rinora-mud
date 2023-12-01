@@ -1,4 +1,4 @@
-use std::sync::mpsc::*;
+use std::net::{TcpListener, TcpStream};
 
 use crate::prelude::*;
 use bevy::prelude::*;
@@ -72,6 +72,15 @@ impl Default for EntityBuilder {
     }
 }
 
-pub fn get_channels<T>() -> (Sender<T>, Receiver<T>) {
-    channel::<T>()
+pub fn build_server_and_listener() -> (TcpListener, TcpStream, TcpStream) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let addr = listener.local_addr().unwrap();
+
+    let write_handle = TcpStream::connect(addr).unwrap();
+    write_handle.set_nonblocking(true).unwrap();
+
+    let read_handle = listener.accept().unwrap().0;
+    read_handle.set_nonblocking(true).unwrap();
+
+    (listener, read_handle, write_handle)
 }

@@ -30,20 +30,17 @@ pub(crate) fn check_for_new_connections(
 
 #[cfg(test)]
 mod tests {
-    use std::net::TcpListener;
-
     use super::*;
 
     #[test]
     fn check_for_new_connections_returns_all_new_connections() {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let addr = listener.local_addr().unwrap();
+        let (server, read_handle, _write_handle) = build_server_and_listener();
 
         let (send, recv) = channel::<NetworkConnection>();
 
         send.send(NetworkConnection {
             id: Uuid::new_v4(),
-            conn: TcpStream::connect(addr).unwrap(),
+            conn: read_handle.try_clone().unwrap(),
             gmcp: false,
             do_room: false,
         })
@@ -51,7 +48,7 @@ mod tests {
 
         send.send(NetworkConnection {
             id: Uuid::new_v4(),
-            conn: TcpStream::connect(addr).unwrap(),
+            conn: read_handle,
             gmcp: false,
             do_room: false,
         })
@@ -59,6 +56,7 @@ mod tests {
 
         let new_connections = check_for_new_connections(&recv);
 
+        drop(server);
         assert_eq!(new_connections.len(), 2);
     }
 }

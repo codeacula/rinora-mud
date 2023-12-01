@@ -29,10 +29,7 @@ pub(crate) fn add_new_connections(
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        net::{TcpListener, TcpStream},
-        sync::mpsc::channel,
-    };
+    use std::sync::mpsc::channel;
 
     use shared::prelude::*;
 
@@ -40,36 +37,32 @@ mod tests {
 
     #[test]
     fn sends_the_events_to_the_channel() {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let addr = listener.local_addr().unwrap();
+        let (server, read_handle, _write_handle) = build_server_and_listener();
 
         let (net_send, net_recv) = channel::<NetworkConnection>();
         let (inc_send, inc_recv) = channel::<IncomingEvent>();
 
         let conn1 = NetworkConnection {
             id: Uuid::new_v4(),
-            conn: TcpStream::connect(addr).unwrap(),
+            conn: read_handle.try_clone().unwrap(),
             gmcp: false,
             do_room: false,
         };
-        conn1.conn.set_nonblocking(true).unwrap();
         net_send.send(conn1).unwrap();
 
         let conn2 = NetworkConnection {
             id: Uuid::new_v4(),
-            conn: TcpStream::connect(addr).unwrap(),
+            conn: read_handle,
             gmcp: false,
             do_room: false,
         };
-        conn2.conn.set_nonblocking(true).unwrap();
         net_send.send(conn2).unwrap();
 
-        println!("Listening on {}", addr);
         let mut conn_vec = Vec::<NetworkConnection>::new();
 
         add_new_connections(&mut conn_vec, &net_recv, &inc_send);
 
-        drop(listener);
+        drop(server);
         drop(inc_send);
 
         assert!(inc_recv.recv().is_ok());
