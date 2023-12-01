@@ -2,7 +2,9 @@ use std::net::TcpStream;
 
 use network_functions::start_server::start_server;
 use shared::prelude::*;
-use systems::process_incoming_requests::*;
+use systems::{
+    handle_new_connections::*, handle_user_disconnected::*, process_incoming_requests::*,
+};
 
 mod constants;
 mod events;
@@ -43,18 +45,28 @@ pub struct OutgoingEvent {
     pub event_type: NetworkEventType,
 }
 
+#[derive(Resource)]
+pub struct ConnectionToEntityMap(pub HashMap<Uuid, Entity>);
+
 pub struct NetworkPlugin;
 
 impl Plugin for NetworkPlugin {
     fn build(&self, app: &mut App) {
         let (outgoing_event_tx, incoming_event_rx) = start_server();
 
+        let connection_to_entity_map = ConnectionToEntityMap(HashMap::new());
+
         app.insert_non_send_resource(outgoing_event_tx)
-            .insert_non_send_resource(incoming_event_rx);
+            .insert_non_send_resource(incoming_event_rx)
+            .insert_resource(connection_to_entity_map);
 
         app.add_systems(
             First,
             (process_incoming_requests).in_set(GameOrderSet::Network),
+        )
+        .add_systems(
+            PreUpdate,
+            (handle_new_connections, handle_user_disconnected).in_set(GameOrderSet::Network),
         );
     }
 }
