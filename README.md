@@ -28,8 +28,9 @@ which are scheduled to run in the following order, allowing all systems and comm
 
 - `Command` - Processes incoming commands from the network layer. This is both the typical text input from the user,
   and GMCP commands from the client. Commands have a structure where they check if the command can run and, if it can, it
-  runs the command, which should at most validate state and get the information needed for the game world to execute the
-  rest of the command, then issue events for the next step to process. **Commands are responsible for all of their validation.**
+  runs the command. A command should resolve as much of its actions as it can at the time its ran. 
+  **Commands are responsible for all of their validation.**
+
 
 - `Account` - The account commands systems are checked separately from all the game commands in order to better support
   how many of the account-based commands aren't keyword based. Also, this allows us to log a character in here, and in

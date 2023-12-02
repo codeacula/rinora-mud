@@ -3,12 +3,14 @@ use bevy::log::{Level, LogPlugin};
 use database::prelude::*;
 use helper::*;
 use networking::NetworkPlugin;
+use output::display_prompt::*;
 use shared::prelude::*;
-use systems::{display_prompt::*, run_user_commands::*};
+use systems::run_user_commands::*;
 
 mod enums;
 mod events;
 mod helpers;
+mod output;
 mod systems;
 
 pub struct BaseRinoraPlugin;

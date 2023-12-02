@@ -25,9 +25,12 @@ impl GameCommand for ProvidesLoginPassword {
         let logging_in = match query.get(command.entity) {
             Ok(logging_in) => logging_in,
             Err(_) => {
+                debug!("User {:?} not logging in", command.entity);
                 return Ok(false);
             }
         };
+
+        info!("Here");
 
         let user = match db_interface
             .users
@@ -36,6 +39,7 @@ impl GameCommand for ProvidesLoginPassword {
             Ok(user_option) => match user_option {
                 Some(user) => user,
                 None => {
+                    debug!("User {:?} not found", command.entity);
                     return send_not_found(world, command.entity);
                 }
             },
@@ -45,7 +49,13 @@ impl GameCommand for ProvidesLoginPassword {
             }
         };
 
-        world.entity_mut(command.entity).insert(user);
+        info!("User {} logged in", logging_in.username);
+        world
+            .entity_mut(command.entity)
+            .remove::<LoggingIn>()
+            .insert(user);
+
+        world.send_event(WelcomeUserEvent(command.entity));
 
         return Ok(true);
     }

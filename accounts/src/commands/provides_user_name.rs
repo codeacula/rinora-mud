@@ -7,6 +7,7 @@ pub struct ProvidesUserNameCommand;
 
 impl GameCommand for ProvidesUserNameCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
+        debug!("Running ProvidesUserNameCommand");
         let mut system_state: SystemState<(
             Query<Entity, (With<UserSessionData>, With<NeedsUsername>)>,
             Res<DbInterface>,
@@ -15,10 +16,12 @@ impl GameCommand for ProvidesUserNameCommand {
         let (query, db_interface) = system_state.get(world);
 
         if !query.contains(command.entity) {
+            debug!("Entity {:?} wasn't found in the query", command.entity);
             return Ok(false);
         }
 
         if command.parts.len() != 0 {
+            debug!("Entity {:?} provided too many words.", command.entity);
             world.send_event(InvalidUsernameFormatEvent(command.entity));
             return Ok(true);
         }
@@ -36,6 +39,7 @@ impl GameCommand for ProvidesUserNameCommand {
         entity.remove::<NeedsUsername>();
 
         if !user_exists {
+            debug!("Tagging {:?} with CreatingAccount", command.entity);
             entity.insert(CreatingAccount {
                 username: command.keyword.clone(),
                 password: None,
@@ -44,6 +48,7 @@ impl GameCommand for ProvidesUserNameCommand {
             return Ok(true);
         }
 
+        debug!("Tagging {:?} with LoggingIn", command.entity);
         entity.insert(LoggingIn {
             username: command.keyword.clone(),
         });
