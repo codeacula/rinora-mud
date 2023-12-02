@@ -8,11 +8,11 @@ pub struct ProvidesUserNameCommand;
 impl GameCommand for ProvidesUserNameCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let mut system_state: SystemState<(
-            Query<(&mut UserSessionData, &NeedsUsername)>,
+            Query<Entity, (With<UserSessionData>, With<NeedsUsername>)>,
             Res<DbInterface>,
         )> = SystemState::new(world);
 
-        let (mut query, db_interface) = system_state.get_mut(world);
+        let (query, db_interface) = system_state.get(world);
 
         if !query.contains(command.entity) {
             return Ok(false);
@@ -31,8 +31,6 @@ impl GameCommand for ProvidesUserNameCommand {
             }
         };
 
-        let (mut user_sesh, _) = query.get_mut(command.entity).unwrap();
-        user_sesh.username = Some(command.keyword.clone());
         let mut entity = world.entity_mut(command.entity);
         entity.remove::<NeedsUsername>();
 
@@ -42,7 +40,9 @@ impl GameCommand for ProvidesUserNameCommand {
             return Ok(true);
         }
 
-        entity.insert(NeedsAccountPassword {});
+        entity.insert(LoggingIn {
+            username: command.keyword.clone(),
+        });
         world.send_event(ConfirmingPasswordEvent(command.entity));
         Ok(true)
     }

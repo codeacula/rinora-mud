@@ -17,7 +17,7 @@ pub(crate) fn ask_for_username(
             }
         };
 
-        text_event_tx.send(TextEvent::from_str(*entity, "Please provide a username."));
+        text_event_tx.send(TextEvent::from_str(*entity, "What is your username?"));
         prompt_event_tx.send(ShowPromptEvent(*entity));
     }
 }

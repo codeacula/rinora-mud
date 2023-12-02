@@ -11,7 +11,6 @@ pub(crate) fn handle_new_connections(
         let user_sesh = UserSessionData {
             connection: *id,
             entity_they_are_controlling: None,
-            username: None,
         };
 
         let needs_username = NeedsUsername {};
