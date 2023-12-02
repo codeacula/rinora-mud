@@ -5,10 +5,11 @@ use std::{
 
 use shared::prelude::*;
 
-use crate::{events::*, IncomingEvent, NetworkEventType};
+use crate::{events::*, ConnectionToEntityMap, IncomingEvent, NetworkEventType};
 
 pub(crate) fn process_incoming_requests(
     incoming_event_rx: NonSend<Receiver<IncomingEvent>>,
+    connection_map: Res<ConnectionToEntityMap>,
     mut user_connected_tx: EventWriter<UserConnectedEvent>,
     mut user_disconnected_tx: EventWriter<UserDisconnectedEvent>,
     mut user_provided_command_tx: EventWriter<UserProvidedCommandEvent>,
@@ -35,6 +36,17 @@ pub(crate) fn process_incoming_requests(
                 user_disconnected_tx.send(UserDisconnectedEvent(incoming_event.id));
             }
             NetworkEventType::Text => {
+                let entity = match connection_map.0.get(&incoming_event.id) {
+                    Some(entity) => *entity,
+                    None => {
+                        error!(
+                            "No entity found for connection {}, skipping.",
+                            incoming_event.id
+                        );
+                        continue;
+                    }
+                };
+
                 let command = match incoming_event.data {
                     Some(data) => String::from_utf8(data).unwrap(),
                     None => String::new(),
@@ -43,13 +55,28 @@ pub(crate) fn process_incoming_requests(
                 user_provided_command_tx.send(UserProvidedCommandEvent {
                     id: incoming_event.id,
                     command,
+                    entity,
                 })
             }
-            NetworkEventType::Gmcp => user_provided_gmcp_tx.send(UserProvidedGmcpEvent {
-                id: incoming_event.id,
-                command: incoming_event.command.unwrap(),
-                data: String::from_utf8_lossy(&incoming_event.data.unwrap()).to_string(),
-            }),
+            NetworkEventType::Gmcp => {
+                let entity = match connection_map.0.get(&incoming_event.id) {
+                    Some(entity) => *entity,
+                    None => {
+                        error!(
+                            "No entity found for connection {}, skipping.",
+                            incoming_event.id
+                        );
+                        continue;
+                    }
+                };
+
+                user_provided_gmcp_tx.send(UserProvidedGmcpEvent {
+                    id: incoming_event.id,
+                    command: incoming_event.command.unwrap(),
+                    data: String::from_utf8_lossy(&incoming_event.data.unwrap()).to_string(),
+                    entity,
+                })
+            }
         }
     }
 }
@@ -64,16 +91,22 @@ mod tests {
     fn test_event_was_emitted<T: Event>(event_type: NetworkEventType) {
         let (incoming_event_tx, incoming_event_channel_rx) = channel::<IncomingEvent>();
 
+        let mut map = ConnectionToEntityMap(HashMap::new());
+        let uuid = Uuid::new_v4();
+        map.0.insert(uuid, Entity::PLACEHOLDER);
+
         let mut app = App::new();
         app.add_event::<UserConnectedEvent>()
             .add_event::<UserDisconnectedEvent>()
             .add_event::<UserProvidedCommandEvent>()
             .add_event::<UserProvidedGmcpEvent>();
 
-        app.insert_non_send_resource(incoming_event_channel_rx);
+        app.insert_non_send_resource(incoming_event_channel_rx)
+            .insert_resource(map);
 
         let mut system_state: SystemState<(
             NonSend<Receiver<IncomingEvent>>,
+            Res<ConnectionToEntityMap>,
             EventWriter<UserConnectedEvent>,
             EventWriter<UserDisconnectedEvent>,
             EventWriter<UserProvidedCommandEvent>,
@@ -82,6 +115,7 @@ mod tests {
 
         let (
             incoming_event_rx,
+            user_map,
             user_connected_tx,
             user_disconnected_tx,
             user_provided_command_tx,
@@ -90,7 +124,7 @@ mod tests {
 
         incoming_event_tx
             .send(IncomingEvent {
-                id: Uuid::new_v4(),
+                id: uuid,
                 command: None,
                 data: None,
                 event_type,
@@ -99,6 +133,7 @@ mod tests {
 
         process_incoming_requests(
             incoming_event_rx,
+            user_map,
             user_connected_tx,
             user_disconnected_tx,
             user_provided_command_tx,
@@ -123,16 +158,22 @@ mod tests {
     fn it_emits_text_event() {
         let (incoming_event_tx, incoming_event_channel_rx) = channel::<IncomingEvent>();
 
+        let mut map = ConnectionToEntityMap(HashMap::new());
+        let uuid = Uuid::new_v4();
+        map.0.insert(uuid, Entity::PLACEHOLDER);
+
         let mut app = App::new();
         app.add_event::<UserConnectedEvent>()
             .add_event::<UserDisconnectedEvent>()
             .add_event::<UserProvidedCommandEvent>()
             .add_event::<UserProvidedGmcpEvent>();
 
-        app.insert_non_send_resource(incoming_event_channel_rx);
+        app.insert_non_send_resource(incoming_event_channel_rx)
+            .insert_resource(map);
 
         let mut system_state: SystemState<(
             NonSend<Receiver<IncomingEvent>>,
+            Res<ConnectionToEntityMap>,
             EventWriter<UserConnectedEvent>,
             EventWriter<UserDisconnectedEvent>,
             EventWriter<UserProvidedCommandEvent>,
@@ -141,6 +182,7 @@ mod tests {
 
         let (
             incoming_event_rx,
+            user_map,
             user_connected_tx,
             user_disconnected_tx,
             user_provided_command_tx,
@@ -149,7 +191,7 @@ mod tests {
 
         incoming_event_tx
             .send(IncomingEvent {
-                id: Uuid::new_v4(),
+                id: uuid,
                 command: None,
                 data: Some(String::from("This is a test\r\n").into_bytes()),
                 event_type: NetworkEventType::Text,
@@ -158,6 +200,7 @@ mod tests {
 
         process_incoming_requests(
             incoming_event_rx,
+            user_map,
             user_connected_tx,
             user_disconnected_tx,
             user_provided_command_tx,
@@ -184,10 +227,16 @@ mod tests {
             .add_event::<UserProvidedCommandEvent>()
             .add_event::<UserProvidedGmcpEvent>();
 
-        app.insert_non_send_resource(incoming_event_channel_rx);
+        let mut map = ConnectionToEntityMap(HashMap::new());
+        let uuid = Uuid::new_v4();
+        map.0.insert(uuid, Entity::PLACEHOLDER);
+
+        app.insert_non_send_resource(incoming_event_channel_rx)
+            .insert_resource(map);
 
         let mut system_state: SystemState<(
             NonSend<Receiver<IncomingEvent>>,
+            Res<ConnectionToEntityMap>,
             EventWriter<UserConnectedEvent>,
             EventWriter<UserDisconnectedEvent>,
             EventWriter<UserProvidedCommandEvent>,
@@ -196,6 +245,7 @@ mod tests {
 
         let (
             incoming_event_rx,
+            user_map,
             user_connected_tx,
             user_disconnected_tx,
             user_provided_command_tx,
@@ -207,7 +257,7 @@ mod tests {
 
         incoming_event_tx
             .send(IncomingEvent {
-                id: Uuid::new_v4(),
+                id: uuid,
                 command: Some(command_name.clone()),
                 data: Some(command_data.clone().into_bytes()),
                 event_type: NetworkEventType::Gmcp,
@@ -216,6 +266,7 @@ mod tests {
 
         process_incoming_requests(
             incoming_event_rx,
+            user_map,
             user_connected_tx,
             user_disconnected_tx,
             user_provided_command_tx,

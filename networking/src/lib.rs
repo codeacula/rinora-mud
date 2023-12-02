@@ -68,11 +68,11 @@ impl Plugin for NetworkPlugin {
 
         app.add_systems(
             First,
-            (process_incoming_requests).in_set(GameOrderSet::Network),
+            (handle_new_connections, handle_user_disconnected).in_set(GameOrderSet::Network),
         )
         .add_systems(
             PreUpdate,
-            (handle_new_connections, handle_user_disconnected).in_set(GameOrderSet::Network),
+            (process_incoming_requests).in_set(GameOrderSet::Network),
         );
     }
 }
