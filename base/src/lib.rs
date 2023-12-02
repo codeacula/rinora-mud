@@ -4,7 +4,7 @@ use database::prelude::*;
 use helper::*;
 use networking::NetworkPlugin;
 use shared::prelude::*;
-use systems::run_user_commands::*;
+use systems::{display_prompt::*, run_user_commands::*};
 
 mod enums;
 mod events;
@@ -33,6 +33,7 @@ impl Plugin for BaseRinoraPlugin {
                 NetworkPlugin,
                 AccountPlugin,
             ))
-            .add_systems(First, (run_user_commands).in_set(GameOrderSet::Command));
+            .add_systems(First, (run_user_commands).in_set(GameOrderSet::Command))
+            .add_systems(Update, (display_prompt).in_set(GameOrderSet::Output));
     }
 }

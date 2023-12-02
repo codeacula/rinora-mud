@@ -2,10 +2,7 @@ use std::sync::mpsc::Sender;
 
 use shared::prelude::*;
 
-use crate::{
-    constants::{GA, IAC},
-    NetworkEventType, OutgoingEvent,
-};
+use crate::{NetworkEventType, OutgoingEvent};
 
 fn build_color_code(slice: &TextSlice) -> String {
     //"\u{1b}[1;31mtest\u{1b}[0ming\n"
@@ -45,7 +42,7 @@ pub(crate) fn process_text_events(
         outgoing_string.push_str("\u{1b}[0m");
         outgoing_string = outgoing_string.trim().to_string();
 
-        let mut outgoing_bytes = outgoing_string.into_bytes();
+        let outgoing_bytes = outgoing_string.into_bytes();
 
         outgoing_event_tx
             .send(OutgoingEvent {

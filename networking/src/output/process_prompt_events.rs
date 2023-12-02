@@ -21,7 +21,7 @@ pub(crate) fn process_prompt_events(
             }
         };
 
-        // We only send the GA because other things should handle displaying the actual prompt
+        // We only send the ICA GA because other things should handle displaying the actual prompt
         outgoing_event_tx
             .send(OutgoingEvent {
                 id: user_sesh.connection,
