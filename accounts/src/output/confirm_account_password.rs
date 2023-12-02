@@ -1,9 +1,9 @@
 use shared::prelude::*;
 
-use crate::events::ConfirmingPasswordEvent;
+use crate::events::LoggingInEvent;
 
 pub(crate) fn confirm_account_password(
-    mut new_acct_pwd_rx: EventReader<ConfirmingPasswordEvent>,
+    mut new_acct_pwd_rx: EventReader<LoggingInEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
     mut show_prompt_tx: EventWriter<ShowPromptEvent>,
 ) {

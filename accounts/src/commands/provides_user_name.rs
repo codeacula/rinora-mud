@@ -27,6 +27,7 @@ impl GameCommand for ProvidesUserNameCommand {
             Ok(user_exists) => user_exists,
             Err(err) => {
                 error!("Error checking if user exists: {}", err);
+                world.send_event(TextEvent::send_generic_error(command.entity));
                 return Ok(true);
             }
         };
@@ -35,7 +36,10 @@ impl GameCommand for ProvidesUserNameCommand {
         entity.remove::<NeedsUsername>();
 
         if !user_exists {
-            entity.insert(NeedsToProvideNewPassword {});
+            entity.insert(CreatingAccount {
+                username: command.keyword.clone(),
+                password: None,
+            });
             world.send_event(CreatingNewAccountEvent(command.entity));
             return Ok(true);
         }
@@ -43,7 +47,7 @@ impl GameCommand for ProvidesUserNameCommand {
         entity.insert(LoggingIn {
             username: command.keyword.clone(),
         });
-        world.send_event(ConfirmingPasswordEvent(command.entity));
+        world.send_event(LoggingInEvent(command.entity));
         Ok(true)
     }
 }

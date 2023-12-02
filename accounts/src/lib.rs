@@ -21,7 +21,7 @@ impl Plugin for AccountPlugin {
 
         app.add_event::<InvalidUsernameFormatEvent>()
             .add_event::<CreatingNewAccountEvent>()
-            .add_event::<ConfirmingPasswordEvent>();
+            .add_event::<LoggingInEvent>();
 
         app.add_systems(
             Update,
