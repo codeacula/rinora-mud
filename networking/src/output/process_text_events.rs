@@ -34,13 +34,10 @@ pub(crate) fn process_text_events(
             outgoing_string.push_str(&format!("{}{}", build_color_code(slice), slice.text))
         }
 
-        if !outgoing_string.ends_with("\n") {
-            outgoing_string.push_str("\n");
-        }
-
         // Reset formatting and add a newline
         outgoing_string.push_str("\u{1b}[0m");
         outgoing_string = outgoing_string.trim().to_string();
+        outgoing_string.push_str("\n");
 
         let outgoing_bytes = outgoing_string.into_bytes();
 

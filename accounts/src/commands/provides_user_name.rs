@@ -37,12 +37,13 @@ impl GameCommand for ProvidesUserNameCommand {
         entity.remove::<NeedsUsername>();
 
         if !user_exists {
-            entity.insert(NeedsToProvidePassword {});
+            entity.insert(NeedsToProvideNewPassword {});
+            world.send_event(CreatingNewAccountEvent(command.entity));
             return Ok(true);
         }
 
         entity.insert(NeedsAccountPassword {});
-
+        world.send_event(ConfirmingPasswordEvent(command.entity));
         Ok(true)
     }
 }
