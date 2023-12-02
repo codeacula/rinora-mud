@@ -17,6 +17,7 @@ pub struct User {
 pub struct UserSessionData {
     pub entity_they_are_controlling: Option<Entity>,
     pub connection: Uuid,
+    pub username: Option<String>,
 }
 
 /*
@@ -56,9 +57,6 @@ impl Default for UserSessionData {
         Self::new()
     }
 }
-
-#[derive(Debug, Event)]
-pub struct ShowPromptEvent(pub Entity);
 
 #[derive(Debug, Clone, Event)]
 pub struct SendGmcpData {

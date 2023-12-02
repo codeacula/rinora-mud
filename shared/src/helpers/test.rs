@@ -4,8 +4,7 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 pub fn build_test_app() -> App {
-    let mut app = App::new();
-    app.add_event::<GenericErrorEvent>();
+    let app = App::new();
 
     app
 }

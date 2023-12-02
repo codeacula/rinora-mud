@@ -11,6 +11,7 @@ pub(crate) fn handle_new_connections(
         let user_sesh = UserSessionData {
             connection: *id,
             entity_they_are_controlling: None,
+            username: None,
         };
 
         let needs_username = NeedsUsername {};
@@ -18,5 +19,6 @@ pub(crate) fn handle_new_connections(
         let entity = commands.spawn((user_sesh, needs_username));
 
         connection_to_user_entity.0.insert(*id, entity.id());
+        info!("Added new connection: {:?}", id);
     }
 }

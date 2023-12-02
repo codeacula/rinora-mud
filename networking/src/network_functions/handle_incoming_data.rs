@@ -119,6 +119,7 @@ mod tests {
 
         // Tell the server to turn on GMCP
         write_handle.write_all(&[IAC, DO, GMCP]).unwrap();
+        write_handle.write_all(&[IAC, WILL, GA]).unwrap();
 
         // Get the connection from the listener
 

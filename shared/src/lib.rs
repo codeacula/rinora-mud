@@ -1,4 +1,5 @@
 use bevy::{ecs::schedule::ScheduleLabel, prelude::*};
+use prelude::*;
 
 pub mod account;
 pub mod being;
@@ -7,7 +8,6 @@ pub mod command;
 pub mod content;
 pub mod display;
 pub mod helpers;
-pub mod output;
 pub mod settings;
 pub mod status;
 pub mod user;
@@ -75,6 +75,8 @@ impl Plugin for SharedPlugin {
         set_schedules(app, Update);
         set_schedules(app, PostUpdate);
         set_schedules(app, Last);
+
+        app.add_event::<TextEvent>().add_event::<ShowPromptEvent>();
     }
 }
 
@@ -88,7 +90,6 @@ pub mod prelude {
     pub use crate::helpers::string::*;
     pub use crate::helpers::test::*;
     pub use crate::helpers::*;
-    pub use crate::output::*;
     pub use crate::settings::*;
     pub use crate::status::*;
     pub use crate::user::*;

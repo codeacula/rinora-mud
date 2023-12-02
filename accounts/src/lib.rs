@@ -1,7 +1,11 @@
+use events::*;
 use shared::prelude::*;
+
 pub struct AccountPlugin;
 
 mod commands;
+mod components;
+mod events;
 
 impl Plugin for AccountPlugin {
     fn build(&self, app: &mut App) {
@@ -10,5 +14,7 @@ impl Plugin for AccountPlugin {
         resource.0.push(Box::new(
             commands::provides_user_name::ProvidesUserNameCommand,
         ));
+
+        app.add_event::<InvalidUsernameFormatEvent>();
     }
 }

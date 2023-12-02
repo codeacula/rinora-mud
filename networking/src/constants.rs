@@ -1,4 +1,4 @@
-//pub(crate) const GA: u8 = 249; // Go Ahead
+pub(crate) const GA: u8 = 249; // Go Ahead
 pub(crate) const IAC: u8 = 255; // Byte to signal subchannel negotiation
 pub(crate) const WILL: u8 = 251; // Client WILL do something. Mostly GMCP
 

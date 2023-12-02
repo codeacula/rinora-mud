@@ -2,6 +2,9 @@ use std::{fmt, str::FromStr};
 
 use bevy::prelude::*;
 
+#[derive(Debug, Event)]
+pub struct ShowPromptEvent(pub Entity);
+
 /// Represents a slice of text in a text block. Can be colored.
 #[derive(Clone, Debug)]
 pub struct TextSlice {

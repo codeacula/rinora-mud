@@ -41,6 +41,7 @@ pub(crate) fn process_outgoing_events(
         };
 
         if outgoing_event.data.is_some() {
+            info!("Sending outgoing event: {:?}", outgoing_event);
             let write_res = outgoing_event_connection
                 .conn
                 .write_all(&outgoing_event.data.unwrap());
