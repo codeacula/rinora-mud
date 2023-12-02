@@ -1,7 +1,7 @@
 use database::prelude::*;
 use shared::prelude::*;
 
-use crate::{components::*, events::*};
+use crate::components::*;
 
 pub struct ProvidesUserNameCommand;
 
@@ -22,7 +22,24 @@ impl GameCommand for ProvidesUserNameCommand {
 
         if command.parts.len() != 0 {
             debug!("Entity {:?} provided too many words.", command.entity);
-            world.send_event(InvalidUsernameFormatEvent(command.entity));
+            world.send_event(TextEvent::from_str(
+                command.entity,
+                "Account names can't have spaces in them.",
+            ));
+            world.send_event(ShowPromptEvent(command.entity));
+            return Ok(true);
+        }
+
+        if !command.full_command.chars().all(|c| c.is_alphabetic()) {
+            debug!(
+                "Entity {:?} provided a non-alphabetic username",
+                command.entity
+            );
+            world.send_event(TextEvent::from_str(
+                command.entity,
+                "Account names can only contain letters.",
+            ));
+            world.send_event(ShowPromptEvent(command.entity));
             return Ok(true);
         }
 
@@ -44,7 +61,13 @@ impl GameCommand for ProvidesUserNameCommand {
                 username: command.keyword.clone(),
                 password: None,
             });
-            world.send_event(CreatingNewAccountEvent(command.entity));
+
+            world.send_event(TextEvent::from_str(
+                command.entity ,
+                "It looks like you're new here. What would you like your password to be? It needs to be at least three characters long."
+            ));
+
+            world.send_event(ShowPromptEvent(command.entity));
             return Ok(true);
         }
 
@@ -52,7 +75,12 @@ impl GameCommand for ProvidesUserNameCommand {
         entity.insert(LoggingIn {
             username: command.keyword.clone(),
         });
-        world.send_event(LoggingInEvent(command.entity));
+
+        world.send_event(TextEvent::from_str(
+            command.entity,
+            "Welcome back! What's your password?",
+        ));
+        world.send_event(ShowPromptEvent(command.entity));
         Ok(true)
     }
 }

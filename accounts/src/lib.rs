@@ -1,8 +1,5 @@
-use events::*;
-use output::{
-    ask_user_for_new_account_password::*, confirm_account_password::confirm_account_password,
-    welcome_user_on_login::welcome_user_on_login,
-};
+use events::WelcomeUserEvent;
+use output::show_welcome_menu::show_welcome_menu;
 use shared::prelude::*;
 
 pub struct AccountPlugin;
@@ -24,20 +21,12 @@ impl Plugin for AccountPlugin {
             commands::provides_login_password::ProvidesLoginPassword,
         ));
 
-        app.add_event::<AccountNotFoundEvent>()
-            .add_event::<CreatingNewAccountEvent>()
-            .add_event::<InvalidUsernameFormatEvent>()
-            .add_event::<LoggingInEvent>()
-            .add_event::<WelcomeUserEvent>();
+        resource
+            .0
+            .push(Box::new(commands::new_account_password::NewAccountPassword));
 
-        app.add_systems(
-            Update,
-            (
-                ask_user_for_new_account_password,
-                confirm_account_password,
-                welcome_user_on_login,
-            )
-                .in_set(GameOrderSet::Output),
-        );
+        app.add_event::<WelcomeUserEvent>();
+
+        app.add_systems(Update, (show_welcome_menu).in_set(GameOrderSet::Output));
     }
 }

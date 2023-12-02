@@ -1,12 +1,17 @@
 use database::prelude::*;
 use shared::prelude::*;
 
-use crate::{components::*, events::*};
+use crate::{components::*, events::WelcomeUserEvent};
 
 pub struct ProvidesLoginPassword;
 
 fn send_not_found(world: &mut World, entity: Entity) -> Result<bool, String> {
-    world.send_event(AccountNotFoundEvent(entity));
+    world.send_event(TextEvent::from_str(
+        entity,
+        "I'm sorry, it looks like that's the wrong password. Let's start over. What's your username?",
+    ));
+    world.send_event(ShowPromptEvent(entity));
+
     world
         .entity_mut(entity)
         .remove::<LoggingIn>()
@@ -29,8 +34,6 @@ impl GameCommand for ProvidesLoginPassword {
                 return Ok(false);
             }
         };
-
-        info!("Here");
 
         let user = match db_interface
             .users
