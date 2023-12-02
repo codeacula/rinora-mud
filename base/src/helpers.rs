@@ -86,6 +86,7 @@ pub fn send_room_description(
     text_event_tx.send(text_event);
 }
 
+/*
 pub fn send_room_gmcp(
     send_gmcp_data_tx: &mut EventWriter<SendGmcpData>,
     controller: &IsControlledBy,
@@ -99,3 +100,4 @@ pub fn send_room_gmcp(
         entity: controller.0,
     });
 }
+ */

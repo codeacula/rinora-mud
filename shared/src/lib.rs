@@ -1,5 +1,4 @@
 use bevy::{ecs::schedule::ScheduleLabel, prelude::*};
-use prelude::*;
 
 pub mod account;
 pub mod being;

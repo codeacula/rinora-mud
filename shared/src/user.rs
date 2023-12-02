@@ -6,6 +6,13 @@ pub struct LogOutUser {}
 #[derive(Component, Debug)]
 pub struct NeedsUsername {}
 
+#[derive(Component, Debug)]
+pub struct User {
+    pub id: i32,
+    pub administrator: bool,
+    pub username: String,
+}
+
 #[derive(Component, Debug, Clone)]
 pub struct UserSessionData {
     pub entity_they_are_controlling: Option<Entity>,
@@ -33,19 +40,6 @@ pub enum UserStatus {
     NeedUsername,
     NeedPassword,
     ToggleAutologin,
-}
-
-#[derive(Component, Debug)]
-pub struct User {
-    pub id: i32,
-    pub administrator: bool,
-    pub username: String,
-}
-
-#[derive(Component, Debug, Clone)]
-pub struct UserSessionData {
-    pub entity_they_are_controlling: Option<Entity>,
-    pub connection: Uuid,
 }
 
 impl UserSessionData {

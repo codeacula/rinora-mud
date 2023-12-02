@@ -7,14 +7,14 @@ pub(crate) struct UserConnectedEvent(pub(crate) Uuid);
 pub(crate) struct UserDisconnectedEvent(pub(crate) Uuid);
 
 #[derive(Debug, Event)]
-pub(crate) struct UserProvidedCommandEvent {
-    pub(crate) id: Uuid,
-    pub(crate) command: String,
+pub struct UserProvidedCommandEvent {
+    pub id: Uuid,
+    pub command: String,
 }
 
 #[derive(Debug, Event)]
-pub(crate) struct UserProvidedGmcpEvent {
-    pub(crate) id: Uuid,
-    pub(crate) command: String,
-    pub(crate) data: String,
+pub struct UserProvidedGmcpEvent {
+    pub id: Uuid,
+    pub command: String,
+    pub data: String,
 }

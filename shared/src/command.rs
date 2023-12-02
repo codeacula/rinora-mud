@@ -1,4 +1,4 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::prelude::*;
 
 /// UserCommand contains the information from the text command that was sent in. This gets converted into the actual
 /// command that will run

@@ -1,5 +1,6 @@
 use std::net::TcpStream;
 
+use events::*;
 use network_functions::start_server::start_server;
 use shared::prelude::*;
 use systems::{
@@ -59,6 +60,11 @@ impl Plugin for NetworkPlugin {
         app.insert_non_send_resource(outgoing_event_tx)
             .insert_non_send_resource(incoming_event_rx)
             .insert_resource(connection_to_entity_map);
+
+        app.add_event::<UserConnectedEvent>()
+            .add_event::<UserDisconnectedEvent>()
+            .add_event::<UserProvidedCommandEvent>()
+            .add_event::<UserProvidedGmcpEvent>();
 
         app.add_systems(
             First,
