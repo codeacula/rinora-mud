@@ -27,6 +27,7 @@ pub struct NewDbCharacter {
     pub name: String,
     pub description: String,
     pub current_room_id: i32,
+    pub pronouns: i16,
 }
 
 impl DbCharacter {
@@ -81,6 +82,7 @@ impl CharacterRepo {
     pub fn create_character(
         &self,
         charactername: &str,
+        pronouns: i16,
         current_room: i32,
         user: &User,
     ) -> Result<CharacterBundle, String> {
@@ -88,6 +90,7 @@ impl CharacterRepo {
 
         let new_character = NewDbCharacter {
             name,
+            pronouns,
             user_id: user.id,
             description: "A vaguely distinguishable humanoid.".to_string(),
             current_room_id: current_room,
