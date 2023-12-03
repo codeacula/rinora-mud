@@ -23,9 +23,8 @@ pub(crate) fn show_welcome_menu(
         let mut output = String::new();
 
         output.push_str(
-            "{{15}}Welcome to RinoraMUD!
-        {{7}}Either provide the character you want to play, or select an option from below:
-          1. Create a new character",
+            "{{15}}Welcome to RinoraMUD!\n
+{{7}}Either enter the character name you wish to play, or would like to create.",
         );
 
         let characters = match db_interface.characters.get_all_by_user(user.id) {
