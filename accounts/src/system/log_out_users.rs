@@ -13,9 +13,18 @@ pub(crate) fn log_out_users(
                 .get(user_sesh.entity_they_are_controlling.unwrap())
                 .unwrap();
 
-            db_interface
+            match db_interface
                 .characters
-                .update_location(character.character_id, location.location_id);
+                .update_location(character.character_id, location.location_id)
+            {
+                Ok(_) => {}
+                Err(err) => {
+                    error!(
+                        "Error updating character {} location: {}",
+                        character.character_id, err
+                    );
+                }
+            };
 
             commands.entity(character_entity).despawn_recursive();
             debug!("Despawned character {:?}", character_entity);

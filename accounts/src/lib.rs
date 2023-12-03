@@ -16,7 +16,7 @@ impl Plugin for AccountPlugin {
         let mut resource = app.world.get_resource_mut::<GameCommands>().unwrap();
 
         resource.0.push(Box::new(
-            commands::create_new_character::CreateNewCharacterCommand,
+            commands::selected_create_new_character::SelectedCreateNewCharacterCommand,
         ));
 
         resource.0.push(Box::new(
@@ -29,6 +29,10 @@ impl Plugin for AccountPlugin {
 
         resource.0.push(Box::new(
             commands::new_account_password::NewAccountPasswordCommand,
+        ));
+
+        resource.0.push(Box::new(
+            commands::new_character_name_provided::NewCharacterNameProvidedCommand,
         ));
 
         app.add_event::<WelcomeUserEvent>();

@@ -16,7 +16,6 @@ impl GameCommand for ProvidesUserNameCommand {
         let (query, db_interface) = system_state.get(world);
 
         if !query.contains(command.entity) {
-            debug!("Entity {:?} wasn't found in the query", command.entity);
             return Ok(false);
         }
 
@@ -30,14 +29,14 @@ impl GameCommand for ProvidesUserNameCommand {
             return Ok(true);
         }
 
-        if !command.full_command.chars().all(|c| c.is_alphabetic()) {
+        if !is_valid_username(&command.keyword) {
             debug!(
                 "Entity {:?} provided a non-alphabetic username",
                 command.entity
             );
             world.send_event(TextEvent::from_str(
                 command.entity,
-                "Account names can only contain letters.",
+                "That's in invalid username. Usernames must start with a letter, be between 3 and 15 characters long, and must only have letters, numbers, or underscores. Please try again.",
             ));
             world.send_event(ShowPromptEvent(command.entity));
             return Ok(true);

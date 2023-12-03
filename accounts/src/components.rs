@@ -7,6 +7,17 @@ pub(crate) struct CreatingAccount {
 }
 
 #[derive(Component, Debug)]
+pub(crate) struct InCharacterCreation;
+
+#[derive(Component, Debug)]
+pub(crate) struct InLoginMenu;
+
+#[derive(Component, Debug)]
 pub(crate) struct LoggingIn {
     pub(crate) username: String,
+}
+
+#[derive(Component, Debug)]
+pub(crate) struct ProvidedCharacterName {
+    pub(crate) name: String,
 }

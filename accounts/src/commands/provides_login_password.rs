@@ -56,7 +56,7 @@ impl GameCommand for ProvidesLoginPasswordCommand {
         world
             .entity_mut(command.entity)
             .remove::<LoggingIn>()
-            .insert(user);
+            .insert((user, InLoginMenu {}));
 
         world.send_event(WelcomeUserEvent(command.entity));
 
