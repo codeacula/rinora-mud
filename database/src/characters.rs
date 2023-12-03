@@ -185,4 +185,16 @@ impl CharacterRepo {
     pub fn start_transaction(&self) {
         self.pool.get().unwrap().begin_test_transaction().unwrap();
     }
+
+    pub fn update_location(&self, character_id: i32, location_id: i32) -> Result<bool, String> {
+        use crate::schema::characters::dsl::*;
+
+        let result = diesel::update(characters)
+            .filter(id.eq(character_id))
+            .set(current_room_id.eq(location_id))
+            .execute(&mut self.conn())
+            .expect("Unable to update character location");
+
+        Ok(result == 1)
+    }
 }

@@ -3,7 +3,7 @@ use shared::prelude::*;
 
 use crate::{components::*, events::WelcomeUserEvent};
 
-pub struct ProvidesLoginPassword;
+pub struct ProvidesLoginPasswordCommand;
 
 fn send_not_found(world: &mut World, entity: Entity) -> Result<bool, String> {
     world.send_event(TextEvent::from_str(
@@ -20,7 +20,7 @@ fn send_not_found(world: &mut World, entity: Entity) -> Result<bool, String> {
     return Ok(true);
 }
 
-impl GameCommand for ProvidesLoginPassword {
+impl GameCommand for ProvidesLoginPasswordCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let mut system_state: SystemState<(Query<&LoggingIn>, Res<DbInterface>)> =
             SystemState::new(world);

@@ -3,9 +3,9 @@ use shared::prelude::*;
 
 use crate::{components::*, events::WelcomeUserEvent};
 
-pub struct NewAccountPassword;
+pub struct NewAccountPasswordCommand;
 
-impl GameCommand for NewAccountPassword {
+impl GameCommand for NewAccountPasswordCommand {
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String> {
         let mut system_state: SystemState<(Query<&mut CreatingAccount>, Res<DbInterface>)> =
             SystemState::new(world);
