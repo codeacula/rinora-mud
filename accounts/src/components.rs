@@ -21,3 +21,9 @@ pub(crate) struct LoggingIn {
 pub(crate) struct ProvidedCharacterName {
     pub(crate) name: String,
 }
+
+#[derive(Component, Debug)]
+pub(crate) struct SelectedPronouns {
+    pub(crate) name: String,
+    pub(crate) pronouns: i16,
+}

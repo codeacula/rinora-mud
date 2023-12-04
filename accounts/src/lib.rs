@@ -35,6 +35,14 @@ impl Plugin for AccountPlugin {
             commands::new_character_name_provided::NewCharacterNameProvidedCommand,
         ));
 
+        resource.0.push(Box::new(
+            commands::pronouns_provided::PronounsProvidedCommand,
+        ));
+
+        resource.0.push(Box::new(
+            commands::confirm_character_creation::ConfirmCharacterCreationCommand,
+        ));
+
         app.add_event::<WelcomeUserEvent>();
 
         app.add_systems(Update, (log_out_users).in_set(GameOrderSet::Cleanup))
