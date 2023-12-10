@@ -4,6 +4,7 @@ pub(crate) fn display_prompt(
     mut send_prompt_rx: EventReader<ShowPromptEvent>,
     mut text_event_tx: EventWriter<TextEvent>,
     query: Query<&UserSessionData>,
+    mut send_ga_tx: EventWriter<SendGoAheadEvent>,
 ) {
     let mut processed_ids = HashMap::<Entity, bool>::new();
     for ev in send_prompt_rx.read() {
@@ -22,10 +23,12 @@ pub(crate) fn display_prompt(
 
         if user_sesh.entity_they_are_controlling.is_none() {
             text_event_tx.send(TextEvent::from_str(ev.0, ">"));
+            send_ga_tx.send(SendGoAheadEvent(ev.0));
             continue;
         }
 
         // Do prompt stuff here
         text_event_tx.send(TextEvent::from_str(ev.0, "H:100 M:100 -"));
+        send_ga_tx.send(SendGoAheadEvent(ev.0));
     }
 }

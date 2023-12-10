@@ -60,7 +60,7 @@ impl GameCommand for NewCharacterNameProvidedCommand {
         world.send_event(TextEvent::from_str(
             command.entity,
             &format!(
-                "Alright. Your character will be known as {{{{15}}}}{}{{{{7}}}}.\n\nWhat are your characters pronous?\n  1. She/her\n  2. He/him\n  3. They/them\n\n(Pronouns have no mechanical effect on the game.)",
+                "Alright. Your character will be known as <<15>>{}<<7>>.\n\nWhat are your characters pronous?\n  1. She/her\n  2. He/him\n  3. They/them\n\n(Pronouns have no mechanical effect on the game.)",
                 name
             ),
         ));

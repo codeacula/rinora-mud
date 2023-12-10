@@ -18,15 +18,14 @@ impl GameCommand for ConfirmCharacterCreationCommand {
         };
 
         if command.keyword == "no" || command.keyword == "n" {
-            world.send_event(TextEvent::from_str(
+            world.send_event(SendTextToEntityEvent::new(
                 command.entity,
                 "Alright, let's try again.",
             ));
-            world.send_event(TextEvent::from_str(
+            world.send_event(SendTextToEntityEvent::new(
                 command.entity,
                 "What would you like to name your character? It must be between 3 and 15 letters long, and can only contain the letters A-Z.",
             ));
-            world.send_event(ShowPromptEvent(command.entity));
             return Ok(true);
         }
 
@@ -40,7 +39,7 @@ impl GameCommand for ConfirmCharacterCreationCommand {
                 user,
             ) {
                 Ok(_) => {
-                    world.send_event(TextEvent::from_str(
+                    world.send_event(SendTextToEntityEvent::new(
                         command.entity,
                         "Your character has been created! You can now log in with your new character.",
                     ));
@@ -51,12 +50,10 @@ impl GameCommand for ConfirmCharacterCreationCommand {
                         .insert(InLoginMenu {});
 
                     world.send_event(WelcomeUserEvent(command.entity));
-                    world.send_event(ShowPromptEvent(command.entity));
                     return Ok(true);
                 }
                 Err(_) => {
-                    world.send_event(TextEvent::send_generic_error(command.entity));
-                    world.send_event(ShowPromptEvent(command.entity));
+                    world.send_event(SendTextToEntityEvent::send_generic_error(command.entity));
                     return Ok(true);
                 }
             };

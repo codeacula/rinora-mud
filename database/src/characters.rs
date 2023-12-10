@@ -135,7 +135,7 @@ impl CharacterRepo {
         Ok(result.is_some())
     }
 
-    pub fn does_user_own_character(&self, character_name: &str, provided_user_id: i32) -> bool {
+    pub fn does_user_own_character(&self, character_name: &str, provided_user_id: &i32) -> bool {
         use crate::schema::characters::dsl::*;
 
         let result: i64 = characters

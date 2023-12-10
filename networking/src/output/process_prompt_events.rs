@@ -8,22 +8,15 @@ use crate::{
 };
 
 pub(crate) fn process_prompt_events(
-    mut show_prompt_rx: EventReader<ShowPromptEvent>,
+    mut send_ga_rx: EventReader<SendGoAheadEvent>,
     query: Query<&UserSessionData>,
     outgoing_event_tx: NonSend<Sender<OutgoingEvent>>,
 ) {
-    let mut processed_ids = HashMap::<Entity, bool>::new();
-    for prompt_event in show_prompt_rx.read() {
-        if processed_ids.contains_key(&prompt_event.0) {
-            continue;
-        }
-
-        processed_ids.insert(prompt_event.0, true);
-
-        let user_sesh = match query.get(prompt_event.0) {
+    for event in send_ga_rx.read() {
+        let user_sesh = match query.get(event.0) {
             Ok(user_sesh) => user_sesh,
             Err(_) => {
-                error!("No user session found for entity! {:?}", prompt_event.0);
+                error!("No user session found for entity! {:?}", event.0);
                 continue;
             }
         };

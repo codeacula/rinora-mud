@@ -49,7 +49,7 @@ impl GameCommand for PronounsProvidedCommand {
         };
 
         let msg: String = format!("Alright, your character will be referred to as '{}'. This can be changed at any time by looking at CONFIG.\n", was_selected);
-        let confirm = format!("Your character's name is '{}', and they'll be addressed as '{}'. If that's correct, send {{{{15}}}}yes{{{{7}}}} to confirm, or {{{{15}}}}no{{{{7}}}} to restart.", character_name.name, was_selected);
+        let confirm = format!("Your character's name is '{}', and they'll be addressed as '{}'. If that's correct, send <<15>>yes<<7>> to confirm, or <<15>>no<<7>> to restart.", character_name.name, was_selected);
 
         world.send_event(TextEvent::from_str(command.entity, &msg));
         world.send_event(TextEvent::from_str(command.entity, &confirm));
