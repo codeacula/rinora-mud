@@ -2,6 +2,9 @@ use std::{fmt, str::FromStr};
 
 use bevy::prelude::*;
 
+#[derive(Debug, Event)]
+pub struct ShowPromptEvent(pub Entity);
+
 /// Represents a slice of text in a text block. Can be colored.
 #[derive(Clone, Debug)]
 pub struct TextSlice {
@@ -33,7 +36,7 @@ pub struct TextBlock {
 }
 
 impl TextBlock {
-    /// Takes a &String with {{3:2}} color formats and converts them to a TextBlock
+    /// Takes a &String with <<3:2>> color formats and converts them to a TextBlock
     /// with the appropriate number of TextSlices.
     pub fn from_string(string: &String) -> Self {
         let parser = TextBlockParser::new();
@@ -43,14 +46,13 @@ impl TextBlock {
 }
 
 impl fmt::Display for TextBlock {
-    /// Converts the TextSlices in a TextBlock into a string with {{3:2}} color.
+    /// Converts the TextSlices in a TextBlock into a string with <<3:2>> color.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = String::from("");
 
         for slice in self.text_slices.iter() {
-            // You use a { to escape a {, and we need {{}}
             result.push_str(&format!(
-                "{{{{{}:{}}}}}{}",
+                "<<{}:{}>>{}",
                 slice.foreground, slice.background, slice.text
             ));
         }
@@ -65,7 +67,7 @@ pub struct ParseTextBlockError;
 impl FromStr for TextBlock {
     type Err = ParseTextBlockError;
 
-    /// Takes a &str with {{3:2}} color formats and converts them to a TextBlock
+    /// Takes a &str with <<3:2>> color formats and converts them to a TextBlock
     /// with the appropriate number of TextSlices.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parser = TextBlockParser::new();
@@ -96,7 +98,25 @@ impl TextEvent {
     }
 
     pub fn send_generic_error(entity: Entity) -> Self {
-        TextEvent { entity, text: TextBlock::from_str("{{9:0}}There was an error processing your command. Please email codeacula@codeacula.com",).unwrap() }
+        TextEvent { entity, text: TextBlock::from_str("<<9:0>>There was an error processing your command. Please email codeacula@codeacula.com",).unwrap() }
+    }
+}
+
+#[derive(Event, Debug)]
+pub struct SendTextToEntityEvent {
+    pub entity: Entity,
+    pub text: String,
+}
+
+impl SendTextToEntityEvent {
+    pub fn new(entity: Entity, text: &str) -> Self {
+        SendTextToEntityEvent {
+            entity,
+            text: String::from_str(text).unwrap(),
+        }
+    }
+    pub fn send_generic_error(entity: Entity) -> Self {
+        SendTextToEntityEvent { entity, text: String::from_str("<<9:0>>There was an error processing your command. Please email codeacula@codeacula.com").unwrap() }
     }
 }
 
@@ -117,8 +137,8 @@ struct TextBlockParser {
     status: ParseStatus,
 }
 
-const START_COLOR_CONTROL: char = '{';
-const END_COLOR: char = '}';
+const START_COLOR_CONTROL: char = '<';
+const END_COLOR: char = '>';
 
 impl TextBlockParser {
     pub fn new() -> Self {
@@ -148,8 +168,8 @@ impl TextBlockParser {
         self.buffer.clear();
     }
 
-    /// We've reached the second }. Instead of keeping a buffer to allow {{4:3},
-    /// I decided to make it an error if you don't have {{4:3}}
+    /// We've reached the second }. Instead of keeping a buffer to allow <<4:3},
+    /// I decided to make it an error if you don't have <<4:3>>
     fn finish_color_status(&mut self, c: char) -> Result<(), String> {
         if c == END_COLOR {
             self.status = ParseStatus::Text;
@@ -224,7 +244,7 @@ impl TextBlockParser {
     fn start_parsing(&mut self, c: char) -> Result<(), String> {
         if c == START_COLOR_CONTROL {
             self.buffer.clear();
-            self.buffer.push('{');
+            self.buffer.push(START_COLOR_CONTROL);
             self.status = ParseStatus::StartColorBlock;
             Ok(())
         } else {
@@ -299,7 +319,7 @@ mod tests {
 
     #[test]
     fn it_processes_a_str() {
-        let test_string = "{{15:8}}Warning, you're in {{2:0}}hot {{15:8}}danger!";
+        let test_string = "<<15:8>>Warning, you're in <<2:0>>hot <<15:8>>danger!";
         let text_block = TextBlock::from_str(test_string).unwrap();
 
         assert_eq!(text_block.text_slices.len(), 3);
@@ -322,7 +342,7 @@ mod tests {
 
     #[test]
     fn it_processes_a_string() {
-        let test_string = String::from("{{15:8}}Warning, you're in {{2:0}}hot {{15:8}}danger!");
+        let test_string = String::from("<<15:8>>Warning, you're in <<2:0>>hot <<15:8>>danger!");
         let text_block = TextBlock::from_string(&test_string);
 
         assert_eq!(text_block.text_slices.len(), 3);
@@ -350,12 +370,12 @@ mod tests {
         test_block.text_slices[0].background = 4;
         test_block.text_slices[0].text = String::from("Butts");
 
-        assert_eq!("{{32:4}}Butts", test_block.to_string());
+        assert_eq!("<<32:4>>Butts", test_block.to_string());
     }
 
     #[test]
     fn can_parse_not_quite_color_blocks() {
-        let strn = "{5:0}What would you like your character's name to be?";
+        let strn = "<5:0>What would you like your character's name to be?";
         let test_block: TextBlock = strn.parse().unwrap();
 
         assert_eq!(test_block.text_slices[0].background, 0);

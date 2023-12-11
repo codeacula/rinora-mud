@@ -7,8 +7,8 @@ pub mod collections;
 pub mod command;
 pub mod content;
 pub mod display;
+pub mod events;
 pub mod helpers;
-pub mod output;
 pub mod settings;
 pub mod status;
 pub mod user;
@@ -76,6 +76,12 @@ impl Plugin for SharedPlugin {
         set_schedules(app, Update);
         set_schedules(app, PostUpdate);
         set_schedules(app, Last);
+
+        app.add_event::<CharacterLoggedInEvent>()
+            .add_event::<TextEvent>()
+            .add_event::<SendGoAheadEvent>()
+            .add_event::<ShowPromptEvent>()
+            .add_event::<SendTextToEntityEvent>();
     }
 }
 
@@ -86,10 +92,10 @@ pub mod prelude {
     pub use crate::command::*;
     pub use crate::content::*;
     pub use crate::display::*;
+    pub use crate::events::*;
     pub use crate::helpers::string::*;
     pub use crate::helpers::test::*;
     pub use crate::helpers::*;
-    pub use crate::output::*;
     pub use crate::settings::*;
     pub use crate::status::*;
     pub use crate::user::*;

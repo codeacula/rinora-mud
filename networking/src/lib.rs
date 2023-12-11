@@ -1,6 +1,8 @@
 use std::net::TcpStream;
 
+use events::*;
 use network_functions::start_server::start_server;
+use output::{ask_for_username::*, process_prompt_events::*, process_text_events::*};
 use shared::prelude::*;
 use systems::{
     handle_new_connections::*, handle_user_disconnected::*, process_incoming_requests::*,
@@ -9,6 +11,7 @@ use systems::{
 mod constants;
 mod events;
 mod network_functions;
+mod output;
 mod stream_processor;
 mod systems;
 
@@ -60,13 +63,28 @@ impl Plugin for NetworkPlugin {
             .insert_non_send_resource(incoming_event_rx)
             .insert_resource(connection_to_entity_map);
 
+        app.add_event::<UserConnectedEvent>()
+            .add_event::<UserDisconnectedEvent>()
+            .add_event::<UserProvidedCommandEvent>()
+            .add_event::<UserProvidedGmcpEvent>();
+
         app.add_systems(
             First,
-            (process_incoming_requests).in_set(GameOrderSet::Network),
+            (
+                process_incoming_requests,
+                handle_new_connections.after(process_incoming_requests),
+                handle_user_disconnected.after(process_incoming_requests),
+            )
+                .in_set(GameOrderSet::Network),
         )
+        .add_systems(Update, (ask_for_username).in_set(GameOrderSet::Output))
         .add_systems(
-            PreUpdate,
-            (handle_new_connections, handle_user_disconnected).in_set(GameOrderSet::Network),
+            Last,
+            (
+                process_text_events,
+                process_prompt_events.after(process_text_events),
+            )
+                .in_set(GameOrderSet::Output),
         );
     }
 }

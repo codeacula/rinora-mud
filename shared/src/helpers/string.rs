@@ -39,6 +39,20 @@ pub fn to_title_case(inc_str: &str) -> String {
     copy.to_string()
 }
 
+/// Given a name, cleans it of all invalid characters and returns it in title case.
+pub fn clean_name(name: &str) -> String {
+    let mut cleanedup_name: Vec<char> = name
+        .to_lowercase()
+        .chars()
+        .filter(|c| c.is_ascii_alphabetic())
+        .map(|c| c.to_ascii_lowercase())
+        .collect();
+
+    cleanedup_name[0] = cleanedup_name[0].to_ascii_uppercase();
+
+    cleanedup_name.iter().collect::<String>()
+}
+
 const DIRECTION_MAP: [(&str, &str); 12] = [
     ("n", "north"),
     ("s", "south"),

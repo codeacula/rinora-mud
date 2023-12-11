@@ -245,9 +245,17 @@ mod tests {
         let mut processor = BufferProcessor::new();
         let mut network_command: Option<NetworkCommand> = None;
 
+        let mut commands: Vec<NetworkCommand> = Vec::new();
+
         for byte in test.bytes() {
             network_command = processor.next(byte);
+
+            if network_command.is_some() {
+                commands.push(network_command.clone().unwrap());
+            }
         }
+
+        assert_eq!(commands.len(), 1);
 
         match network_command {
             Some(cmd) => assert_eq!(
@@ -297,5 +305,35 @@ mod tests {
             ),
             None => panic!("Expected a command, but got None"),
         }
+    }
+
+    #[test]
+    fn returns_two_network_commands_when_back_to_back() {
+        let test = String::from("This is a test.\r\nAnd so is this.\r\n");
+
+        let mut processor = BufferProcessor::new();
+        let mut commands: Vec<NetworkCommand> = Vec::new();
+
+        for byte in test.bytes() {
+            let network_command = processor.next(byte);
+
+            if network_command.is_some() {
+                commands.push(network_command.clone().unwrap());
+            }
+        }
+
+        assert_eq!(commands.len(), 2);
+
+        assert_eq!(commands[0].command_type, NetworkCommandType::UserCommand);
+        assert_eq!(commands[1].command_type, NetworkCommandType::UserCommand);
+
+        assert_eq!(
+            commands[0].data,
+            Some(String::from("This is a test.\n").bytes().collect())
+        );
+        assert_eq!(
+            commands[1].data,
+            Some(String::from("And so is this.\n").bytes().collect())
+        );
     }
 }

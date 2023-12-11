@@ -16,7 +16,6 @@ mod db_interface;
 mod locations;
 mod schema;
 mod settings;
-mod testing;
 mod users;
 
 pub struct DatabasePlugin;
@@ -335,7 +334,6 @@ pub mod prelude {
     pub use crate::db_interface::*;
     pub use crate::locations::*;
     pub use crate::settings::*;
-    pub use crate::testing::*;
     pub use crate::users::*;
 
     pub use crate::DatabasePlugin;

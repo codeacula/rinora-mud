@@ -61,7 +61,9 @@ pub(crate) fn handle_incoming_data(
                 NetworkCommandType::GmcpCommand => {
                     let name = command.command_name.clone();
 
-                    if name == "Core.Supports.Set" {
+                    if name == "Core.Hello" {
+                        continue;
+                    } else if name == "Core.Supports.Set" {
                         let data = &command.data.unwrap();
                         let line = String::from_utf8_lossy(data);
 
@@ -117,6 +119,7 @@ mod tests {
 
         // Tell the server to turn on GMCP
         write_handle.write_all(&[IAC, DO, GMCP]).unwrap();
+        write_handle.write_all(&[IAC, WILL, GA]).unwrap();
 
         // Get the connection from the listener
 

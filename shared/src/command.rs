@@ -1,4 +1,19 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{prelude::*, utils::Uuid};
+
+#[derive(Debug, Event)]
+pub struct UserProvidedCommandEvent {
+    pub id: Uuid,
+    pub entity: Entity,
+    pub command: String,
+}
+
+#[derive(Debug, Event)]
+pub struct UserProvidedGmcpEvent {
+    pub id: Uuid,
+    pub entity: Entity,
+    pub command: String,
+    pub data: String,
+}
 
 /// UserCommand contains the information from the text command that was sent in. This gets converted into the actual
 /// command that will run
@@ -39,9 +54,9 @@ impl UserCommand {
 }
 
 pub trait GameCommand: Sync + Send {
-    /// Executes the command. Returns false if the command applied, and true if it did
-    /// Application doesn't just mean matches the right pattern. There are plenty of commands that may only work when
-    /// a user is there, but then we want to fall back if they aren't.
+    /// Executes the command. Returns false if the command wasn't applied, and true if it were
+    /// Application means that the command was valid, the user was in a valid state to run the command, and its effects
+    /// were applied.
     fn run(&self, command: &UserCommand, world: &mut World) -> Result<bool, String>;
 }
 
@@ -54,7 +69,6 @@ impl<T: GameCommand + 'static> From<T> for GameCommandEvent {
     }
 }
 
-/// GameCommands are only ran when the user is logged into a character. They're sorted by the user status so we don't
-/// have to check the status each time
+/// GameCommands are all the commands a user can run
 #[derive(Resource)]
 pub struct GameCommands(pub Vec<Box<dyn GameCommand>>);

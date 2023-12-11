@@ -41,9 +41,8 @@ pub(crate) fn process_outgoing_events(
         };
 
         if outgoing_event.data.is_some() {
-            let write_res = outgoing_event_connection
-                .conn
-                .write_all(&outgoing_event.data.unwrap());
+            let outgoing_data = &outgoing_event.data.unwrap();
+            let write_res = outgoing_event_connection.conn.write_all(&outgoing_data);
 
             if write_res.is_ok() {
                 continue;

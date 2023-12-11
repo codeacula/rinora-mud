@@ -27,6 +27,7 @@ pub struct NewDbCharacter {
     pub name: String,
     pub description: String,
     pub current_room_id: i32,
+    pub pronouns: i16,
 }
 
 impl DbCharacter {
@@ -81,6 +82,7 @@ impl CharacterRepo {
     pub fn create_character(
         &self,
         charactername: &str,
+        pronouns: i16,
         current_room: i32,
         user: &User,
     ) -> Result<CharacterBundle, String> {
@@ -88,6 +90,7 @@ impl CharacterRepo {
 
         let new_character = NewDbCharacter {
             name,
+            pronouns,
             user_id: user.id,
             description: "A vaguely distinguishable humanoid.".to_string(),
             current_room_id: current_room,
@@ -132,7 +135,7 @@ impl CharacterRepo {
         Ok(result.is_some())
     }
 
-    pub fn does_user_own_character(&self, character_name: &str, provided_user_id: i32) -> bool {
+    pub fn does_user_own_character(&self, character_name: &str, provided_user_id: &i32) -> bool {
         use crate::schema::characters::dsl::*;
 
         let result: i64 = characters
@@ -184,5 +187,17 @@ impl CharacterRepo {
     /// Convenience method to get a connection
     pub fn start_transaction(&self) {
         self.pool.get().unwrap().begin_test_transaction().unwrap();
+    }
+
+    pub fn update_location(&self, character_id: i32, location_id: i32) -> Result<bool, String> {
+        use crate::schema::characters::dsl::*;
+
+        let result = diesel::update(characters)
+            .filter(id.eq(character_id))
+            .set(current_room_id.eq(location_id))
+            .execute(&mut self.conn())
+            .expect("Unable to update character location");
+
+        Ok(result == 1)
     }
 }

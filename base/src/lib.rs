@@ -1,49 +1,28 @@
-use crate::prelude::*;
+use accounts::AccountPlugin;
 use bevy::log::{Level, LogPlugin};
-use bevy::utils::HashMap;
 use database::prelude::*;
-use events::*;
 use helper::*;
 use networking::NetworkPlugin;
-use output::*;
+use output::{
+    display_prompt::*, send_text_to_entity::send_text_to_entity,
+    show_character_logging_in::show_character_logging_in,
+};
 use shared::prelude::*;
-use systems::prelude::*;
+use systems::{
+    run_user_commands::run_user_commands, spawn_character_in_room::spawn_character_in_room,
+};
 
-mod commands;
 mod enums;
 mod events;
-mod gmcp;
 mod helpers;
-mod models;
 mod output;
-mod stream_processor;
 mod systems;
 
 pub struct BaseRinoraPlugin;
 
 impl Plugin for BaseRinoraPlugin {
     fn build(&self, app: &mut App) {
-        // Resources
-        let mut command_list = GameCommands(HashMap::new());
-        let character_map = CharacterMap(HashMap::new());
-
-        // Go ahead and make the vectors for all the statuses
-        let statuses_to_add = vec![
-            UserStatus::CreateCharacter,
-            UserStatus::CreatePassword,
-            UserStatus::ConfirmDelete,
-            UserStatus::ConfirmPassword,
-            UserStatus::DeleteCharacter,
-            UserStatus::InGame,
-            UserStatus::LoggedIn,
-            UserStatus::NeedUsername,
-            UserStatus::NeedPassword,
-            UserStatus::ToggleAutologin,
-        ];
-
-        for status in statuses_to_add {
-            command_list.0.insert(status, Vec::new());
-        }
+        let game_commands: GameCommands = GameCommands(Vec::new());
 
         app
             // System Plugins
@@ -51,6 +30,7 @@ impl Plugin for BaseRinoraPlugin {
                 level: Level::DEBUG,
                 filter: "debug,rinora_mud=debug".into(),
             })
+            .insert_resource(game_commands)
             // Plugins
             .add_plugins((
                 MinimalPlugins,
@@ -58,91 +38,15 @@ impl Plugin for BaseRinoraPlugin {
                 DatabasePlugin,
                 HelperPlugin,
                 NetworkPlugin,
+                AccountPlugin,
             ))
-            // Resources
-            .insert_resource(character_map)
-            .insert_resource(command_list)
-            // Events
-            .add_event::<DisconnectionEvent>()
-            .add_event::<InputReceivedEvent>()
-            .add_event::<InvalidCommandEvent>()
-            .add_event::<NewConnectionEvent>()
-            .add_event::<ShowRoomToBeing>()
-            // Systems
-            .add_systems(
-                Startup,
-                (add_expected_account_commands, add_character_commands)
-                    .in_set(GameOrderSet::Command),
-            )
-            .add_systems(
-                PreUpdate,
-                process_incoming_commands.in_set(GameOrderSet::Command),
-            )
+            .add_systems(First, (run_user_commands).in_set(GameOrderSet::Command))
+            .add_systems(Update, (spawn_character_in_room).in_set(GameOrderSet::Game))
             .add_systems(
                 Update,
-                (handle_user_login, handle_disconnect).in_set(GameOrderSet::Command),
+                (show_character_logging_in).in_set(GameOrderSet::Post),
             )
-            .add_systems(
-                Update,
-                (
-                    create_character_selected,
-                    check_username_and_transition_user,
-                )
-                    .in_set(GameOrderSet::Account),
-            )
-            .add_systems(Update, add_character_to_room.in_set(GameOrderSet::Game))
-            .add_systems(
-                Update,
-                (
-                    create_new_character,
-                    create_new_user,
-                    character_name_invalid,
-                    character_was_created,
-                    display_character_exists,
-                    handle_generic_error,
-                    passwords_do_not_match,
-                    password_was_provided,
-                    unable_to_locate_account_move_user,
-                    username_exists,
-                    username_does_not_exists,
-                    username_invalid_move_user_to_needs_username,
-                )
-                    .in_set(GameOrderSet::Account),
-            )
-            .add_systems(
-                Update,
-                (
-                    log_character_into_game,
-                    invalid_direction,
-                    move_entity_to_room_via_event,
-                )
-                    .in_set(GameOrderSet::Pre),
-            )
-            .add_systems(
-                Update,
-                (log_character_into_room, process_entities_that_want_to_move)
-                    .in_set(GameOrderSet::Game),
-            )
-            .add_systems(Update, (remove_logging_in_tags).in_set(GameOrderSet::Post))
-            .add_systems(
-                Update,
-                (
-                    display_character_entering_room,
-                    display_character_logged_into_room.before(display_character_entering_room),
-                    display_room_on_entering.after(display_character_entering_room),
-                    display_room_to_user,
-                    prompt_for_character_name,
-                    user_account_created,
-                    show_login_screen.after(user_account_created),
-                    passwords_dont_match,
-                    provide_username,
-                    please_confirm_password,
-                    unable_to_locate_account,
-                    username_invalid,
-                    invalid_command,
-                    character_not_found,
-                )
-                    .in_set(GameOrderSet::Output),
-            );
+            .add_systems(First, (send_text_to_entity).in_set(GameOrderSet::Output))
+            .add_systems(Update, (display_prompt).in_set(GameOrderSet::Output));
     }
 }

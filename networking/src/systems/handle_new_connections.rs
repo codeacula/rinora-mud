@@ -18,5 +18,6 @@ pub(crate) fn handle_new_connections(
         let entity = commands.spawn((user_sesh, needs_username));
 
         connection_to_user_entity.0.insert(*id, entity.id());
+        info!("Added new connection: {:?}", id);
     }
 }
