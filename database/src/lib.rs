@@ -12,7 +12,10 @@ use crate::db_interface::DbInterface;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 mod characters;
+mod client;
+mod datastore;
 mod db_interface;
+mod game;
 mod locations;
 mod schema;
 mod settings;
