@@ -132,6 +132,38 @@ impl UserRepo {
         }
     }
 
+    /// Fetch a user by its name
+    pub fn get_by_name(&self, provided_username: &str) -> Result<Option<User>, String> {
+        use crate::schema::users::dsl::*;
+        let result: Option<DbUser> = users
+            .select(DbUser::as_select())
+            .filter(username.eq(provided_username))
+            .get_result::<DbUser>(&mut self.conn())
+            .optional()
+            .expect("Unabled to find user by username.");
+
+        match result {
+            None => Ok(None),
+            Some(found_user) => Ok(Some(found_user.to_game_user())),
+        }
+    }
+
+    /// Fetch a user by its name
+    pub fn get_dbuser_by_name(&self, provided_username: &str) -> Result<Option<DbUser>, String> {
+        use crate::schema::users::dsl::*;
+        let result: Option<DbUser> = users
+            .select(DbUser::as_select())
+            .filter(username.eq(provided_username))
+            .get_result::<DbUser>(&mut self.conn())
+            .optional()
+            .expect("Unabled to find user by username.");
+
+        match result {
+            None => Ok(None),
+            Some(found_user) => Ok(Some(found_user)),
+        }
+    }
+
     /// Convenience method to get a connection
     pub fn start_transaction(&self) {
         self.pool.get().unwrap().begin_test_transaction().unwrap();

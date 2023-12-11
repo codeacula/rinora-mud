@@ -292,7 +292,7 @@ pub fn get_test_db_interface() -> DbInterface {
     let mut pg_conn = PgConnection::establish(host_string).unwrap();
     pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
-    DbInterface::new(String::from(host_string))
+    DbInterface::new(host_string)
 }
 
 impl Plugin for DatabasePlugin {
@@ -305,7 +305,7 @@ impl Plugin for DatabasePlugin {
         info!("Running migrations: {host_string}");
         pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
-        let repo = DbInterface::new(host_string);
+        let repo = DbInterface::new(&host_string);
 
         let settings = repo.settings.get_settings().unwrap();
 

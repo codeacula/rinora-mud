@@ -22,12 +22,12 @@ pub struct DbInterface {
 }
 
 impl DbInterface {
-    pub fn new(connection_string: String) -> Self {
+    pub fn new(connection_string: &str) -> Self {
         DbInterface {
-            characters: CharacterRepo::new(get_connection_pool(&connection_string)),
-            locations: LocationRepo::new(get_connection_pool(&connection_string)),
-            settings: SettingsRepo::new(get_connection_pool(&connection_string)),
-            users: UserRepo::new(get_connection_pool(&connection_string)),
+            characters: CharacterRepo::new(get_connection_pool(connection_string)),
+            locations: LocationRepo::new(get_connection_pool(connection_string)),
+            settings: SettingsRepo::new(get_connection_pool(connection_string)),
+            users: UserRepo::new(get_connection_pool(connection_string)),
         }
     }
 }
