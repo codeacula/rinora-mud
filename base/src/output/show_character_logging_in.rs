@@ -40,7 +40,7 @@ pub(crate) fn show_character_logging_in(
 
         send_text_tx.send(SendTextToEntityEvent::new(
             entity,
-            &format!("<<15>>The light from the Heart of Ero'ghal fills your vision with white momentarily, before you are wrenched away in an instant. You suddenly take a deep breath and open your eyes, safe upon the {plane_name}."),
+            &format!("<<15>>The light from the Heart of Ero'ghal fills your vision with white momentarily, before you are wrenched away in an instant. You suddenly take a deep breath and open your eyes, safe upon {plane_name}."),
         ));
 
         // Show the character logging in to everyone else
