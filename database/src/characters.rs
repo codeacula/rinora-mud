@@ -6,6 +6,58 @@ use shared::prelude::*;
 
 use crate::schema::characters;
 
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = crate::schema::characters)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub(crate) struct DbCharacter {
+    pub id: i32,
+    pub user_id: i32,
+    pub name: String,
+    pub description: String,
+    pub current_room_id: i32,
+    pub current_hp: i32,
+    pub current_mp: i32,
+    pub pronouns: i16,
+}
+
+impl DbCharacter {
+    pub fn to_game_character(&self) -> CharacterBundle {
+        CharacterBundle {
+            being: Being {
+                pronouns: Pronouns(self.pronouns),
+            },
+            description: Description(self.description.clone()),
+            display_name: DisplayName(self.name.clone()),
+            health: Health {
+                current: self.current_hp,
+                max: 0,
+            },
+            mana: Mana {
+                current: self.current_mp,
+                max: 0,
+            },
+            info: Character {
+                character_id: self.id,
+                user_id: self.user_id,
+            },
+            location: Location {
+                entity: Entity::PLACEHOLDER,
+                location_id: self.current_room_id,
+            },
+        }
+    }
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = crate::schema::characters)]
+pub(crate) struct NewDbCharacter {
+    pub user_id: i32,
+    pub name: String,
+    pub description: String,
+    pub current_room_id: i32,
+    pub pronouns: i16,
+}
+
 fn clean_character_name(inc_name: &str) -> String {
     to_title_case(inc_name)
 }
