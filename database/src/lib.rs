@@ -1,6 +1,7 @@
 use bevy::ecs::system::SystemState;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{Connection, PgConnection};
 use diesel_migrations::MigrationHarness;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations};
@@ -19,6 +20,14 @@ mod settings;
 mod users;
 
 pub struct DatabasePlugin;
+
+pub fn get_connection_pool(conn_string: &str) -> Pool<ConnectionManager<PgConnection>> {
+    let manager = ConnectionManager::<PgConnection>::new(conn_string);
+    Pool::builder()
+        .test_on_check_out(true)
+        .build(manager)
+        .expect("Could not build connection pool")
+}
 
 fn get_env(key: &str, default: &str) -> String {
     env::var(key).unwrap_or(String::from(default))
@@ -292,7 +301,9 @@ pub fn get_test_db_interface() -> DbInterface {
     let mut pg_conn = PgConnection::establish(host_string).unwrap();
     pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
-    DbInterface::new(host_string)
+    let pool = get_connection_pool(host_string);
+
+    DbInterface::new(pool)
 }
 
 impl Plugin for DatabasePlugin {
@@ -305,7 +316,9 @@ impl Plugin for DatabasePlugin {
         info!("Running migrations: {host_string}");
         pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
 
-        let repo = DbInterface::new(&host_string);
+        let pool = get_connection_pool(&host_string);
+
+        let repo = DbInterface::new(pool);
 
         let settings = repo.settings.get_settings().unwrap();
 
