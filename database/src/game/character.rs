@@ -1,3 +1,5 @@
+use shared::prelude::*;
+
 impl DbCharacter {
     pub fn to_game_character(&self) -> CharacterBundle {
         CharacterBundle {
