@@ -31,6 +31,14 @@ pub(crate) fn start_listening(between_threads_tx: Sender<NetworkConnection>) {
             break;
         }
 
+        let err = connection.write_all(GREETING.as_bytes());
+
+        if err.is_err() {
+            let message = err.unwrap_err().to_string();
+            error!("Failed to write greeting, closing connection: {}", message);
+            break;
+        }
+
         if let Err(err) = connection.write_all(GREETING.as_bytes()) {
             error!("Failed to write greeting, closing connection: {}", err);
             break;

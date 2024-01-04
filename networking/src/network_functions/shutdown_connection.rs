@@ -21,7 +21,7 @@ pub(crate) fn shutdown_connection(
 
     // Connection closed
     let item_pos = all_connections
-        .into_iter()
+        .iter()
         .position(|c| c.id == conn_id)
         .unwrap();
     let network_connection = all_connections.remove(item_pos);
