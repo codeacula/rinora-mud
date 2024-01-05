@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function Sidebar() {
   return (
-    <div className="sidebar">
+    <div className="sidebar flex-none w-14">
       Sidebar
       <nav>
         <ul>
@@ -11,9 +11,6 @@ export default function Sidebar() {
           </li>
           <li>
             <Link to="/rooms">Rooms</Link>
-          </li>
-          <li>
-            <Link to="/butts">Butts</Link>
           </li>
         </ul>
       </nav>
