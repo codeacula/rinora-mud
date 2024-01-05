@@ -1,22 +1,34 @@
-import "tailwindcss/tailwind.css";
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
+import 'tailwindcss/tailwind.css';
+import {
+  MemoryRouter as Router,
+  Routes,
+  Route,
+  Outlet,
+} from 'react-router-dom';
 import './App.css';
-import { Sidebar } from "./Sidebar";
+import Sidebar from './Sidebar';
+import NotFound from './NotFound';
+import Rooms from './pages/Rooms';
 
 function Main() {
   return (
     <div>
       <Sidebar />
-      <h1>Main</h1>
+      <div className="content">
+        <Outlet />
+      </div>
     </div>
   );
 }
 
 export default function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true }}>
       <Routes>
-        <Route path="/" element={<Main />} />
+        <Route path="/" element={<Main />}>
+          <Route path="/rooms" element={<Rooms />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

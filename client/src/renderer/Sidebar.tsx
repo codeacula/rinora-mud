@@ -1,14 +1,19 @@
-export function Sidebar() {
+import { Link } from 'react-router-dom';
+
+export default function Sidebar() {
   return (
     <div className="sidebar">
       Sidebar
       <nav>
         <ul>
           <li>
-            <a href={`/`}>Home</a>
+            <Link to="/">Home</Link>
           </li>
           <li>
-          <a href={`/rooms`}>Rooms</a>
+            <Link to="/rooms">Rooms</Link>
+          </li>
+          <li>
+            <Link to="/butts">Butts</Link>
           </li>
         </ul>
       </nav>
