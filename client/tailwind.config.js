@@ -1,9 +1,12 @@
-/** @type {import('tailwindcss').Config} */
+const colors = require('tailwindcss/colors');
+
 module.exports = {
-  content: [],
-  theme: {
+  content: ['./src/renderer/**/*.{js,jsx,ts,tsx,ejs}'],
+  daisyui: {
+    themes: ["light", "dark", "night"],
+  },
+  variants: {
     extend: {},
   },
-  plugins: [],
-}
-
+  plugins: [require("daisyui")],
+};

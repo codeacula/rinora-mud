@@ -1,14 +1,15 @@
-## Install
+# RinoraMUD Client
 
-Clone the repo and install dependencies:
+This is the client you can use to manage your RinoraMUD database.
 
-```bash
-git clone --depth 1 --branch main https://github.com/electron-react-boilerplate/electron-react-boilerplate.git your-project-name
-cd your-project-name
-npm install
-```
+## Setup
 
-**Having issues installing? See our [debugging guide](https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues/400)**
+Make sure you have the following installed:
+
+* [Node.js](https://nodejs.org/en/download/current)
+* [Yarn](https://yarnpkg.com/)
+
+Once you have Node.js and Yarn installed, run `yarn install` in the `/client` folder.
 
 ## Starting Development
 
@@ -33,3 +34,9 @@ See our [docs and guides here](https://electron-react-boilerplate.js.org/docs/in
 ## Community
 
 Join our Discord: https://discord.gg/Fjy3vfgy5q
+
+## Frameworks
+
+* [Electron React Boilerplate](https://electron-react-boilerplate.js.org) - Electron/React Boilerplate
+* [tailwindcss](https://tailwindcss.com/) - CSS Framework
+* [daisyUI](https://daisyui.com/) - UI Themeing
