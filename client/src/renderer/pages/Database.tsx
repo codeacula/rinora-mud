@@ -13,7 +13,7 @@ export default function Database() {
     console.log('Sending message to main process', request);
     const result = await window.electron.ipcRenderer.invoke(
       'connect-to-database',
-      formData,
+      request,
     );
     console.log('Got result from main process', result);
   }
@@ -22,13 +22,13 @@ export default function Database() {
       <form onSubmit={connectToDatabase}>
         <h2>Connect To The Database</h2>
         <div>
-          <label htmlFor="host">
+          <label htmlFor="host" defaultValue="localhost">
             Host <input name="host" />
           </label>
           <label htmlFor="port">
             Port <input name="port" defaultValue={5432} type="number" />
           </label>
-          <label htmlFor="username">
+          <label htmlFor="username" defaultValue="dev">
             Username <input name="username" />
           </label>
           <label htmlFor="password">
