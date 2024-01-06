@@ -1,34 +1,35 @@
+/* eslint-disable no-console */
 import { ipcMain } from 'electron';
-import { DataSource } from 'typeorm';
-import Room from './database/room';
+import knex, { Knex } from 'knex';
 
 export default function useDatabase() {
-  let datastore: DataSource | null = null;
-  let counter = 0;
+  let datastore: Knex | null = null;
 
   ipcMain.handle('connect-to-database', async (event, arg) => {
-    console.log(arg);
-    datastore = new DataSource({
-      type: 'postgres',
-      host: arg.host,
-      port: arg.port,
-      username: arg.username,
-      password: arg.password,
-      database: 'rinoramud',
-      synchronize: true,
-      logging: true,
-      entities: [Room],
-      subscribers: [],
-      migrations: [],
-    });
-
     try {
-      await datastore.initialize();
+      if (datastore) {
+        console.log('Already connected, ignoring request.');
+        return true;
+      }
+      datastore = knex({
+        client: 'pg',
+        connection: {
+          host: arg.host,
+          port: arg.port,
+          user: arg.username,
+          database: 'rinoramud',
+          password: arg.password,
+          ssl: false,
+        },
+      });
+
+      // Check the connection
+      await datastore.raw('SELECT * FROM users');
+      return true;
     } catch (error) {
       console.log(error);
+      datastore = null;
       return false;
     }
-
-    return true;
   });
 }

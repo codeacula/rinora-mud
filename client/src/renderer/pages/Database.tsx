@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { redirectDocument } from 'react-router-dom';
 
 export default function Database() {
+  const [authenticated, setAuthenticated] = useState(false);
+
   async function connectToDatabase(event: React.FormEvent) {
     event.preventDefault();
+
     const formData = new FormData(event.target as HTMLFormElement);
     const request = {
       host: formData.get('host'),
@@ -10,13 +14,16 @@ export default function Database() {
       username: formData.get('username'),
       password: formData.get('password'),
     };
-    console.log('Sending message to main process', request);
+
     const result = await window.electron.ipcRenderer.invoke(
       'connect-to-database',
       request,
     );
-    console.log('Got result from main process', result);
+    setAuthenticated(result);
+    redirectDocument('/dashboard');
+    console.log('Should direct to dashboard');
   }
+
   return (
     <div>
       <form onSubmit={connectToDatabase}>
