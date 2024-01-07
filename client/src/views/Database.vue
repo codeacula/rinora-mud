@@ -51,22 +51,45 @@ const connect = async (event: Event) => {
 <template>
   <div class="database">
     <h1>Database</h1>
+    <p>Please connect to the database first.</p>
+    <div v-if="connectionError" role="alert" class="alert alert-error">
+      {{ connectionError }}
+    </div>
     <form @submit="connect">
-      <p v-if="connectionError">{{ connectionError }}</p>
-      <p>
-        <label>Host: <input type="text" v-model="host" /></label>
+      <p class="col-span-full">
+        <label class="label">Host:</label>
+        <input
+          type="text"
+          v-model="host"
+          class="input input-bordered input-primary w-full max-w-xs"
+        />
       </p>
       <p>
-        <label>Port: <input type="text" v-model="port" /></label>
+        <label class="label">Port:</label>
+        <input
+          type="text"
+          v-model="port"
+          class="input input-bordered input-primary w-full max-w-xs"
+        />
       </p>
       <p>
-        <label>Username: <input type="text" v-model="username" /></label>
+        <label class="label">Username:</label
+        ><input
+          type="text"
+          v-model="username"
+          class="input input-bordered input-primary w-full max-w-xs"
+        />
       </p>
       <p>
-        <label>Password: <input type="password" v-model="password" /></label>
+        <label class="label">Password:</label>
+        <input
+          type="password"
+          v-model="password"
+          class="input input-bordered input-primary w-full max-w-xs"
+        />
       </p>
       <p>
-        <button type="submit">Connect</button>
+        <button class="btn btn-primary" type="submit">Connect</button>
       </p>
     </form>
   </div>
