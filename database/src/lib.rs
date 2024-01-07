@@ -295,6 +295,30 @@ fn add_exits_to_rooms(world: &mut World) {
     }
 }
 
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct ConnectionSettings {
+    pub host: String,
+    pub port: String,
+    pub username: String,
+    pub password: String,
+}
+
+pub fn get_db_interface(
+    conn_settings: ConnectionSettings,
+) -> Result<DbInterface, diesel::ConnectionError> {
+    let host_string = format!(
+        "postgresql://{}:{}@{}:{}/rinoramud",
+        conn_settings.username, conn_settings.password, conn_settings.host, conn_settings.port
+    );
+
+    let mut pg_conn = PgConnection::establish(&host_string)?;
+    pg_conn.run_pending_migrations(MIGRATIONS).unwrap();
+
+    let pool = get_connection_pool(&host_string);
+
+    Ok(DbInterface::new(pool))
+}
+
 pub fn get_test_db_interface() -> DbInterface {
     let host_string = "postgresql://devtest:devtest@localhost:5433/rinoratest";
 
@@ -349,5 +373,6 @@ pub mod prelude {
     pub use crate::settings::*;
     pub use crate::users::*;
 
+    pub use crate::ConnectionSettings;
     pub use crate::DatabasePlugin;
 }
