@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { appWindow } from "@tauri-apps/api/window";
 import Sidebar from "./components/Sidebar.vue";
+
+appWindow.toggleMaximize();
 </script>
 
 <template>

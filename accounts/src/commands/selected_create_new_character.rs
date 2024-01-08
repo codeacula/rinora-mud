@@ -11,6 +11,10 @@ impl GameCommand for SelectedCreateNewCharacterCommand {
         let query = system_state.get(world);
 
         if query.get(command.entity).is_err() {
+            info!(
+                "User {:?} tried to create a new character, but they are not in the login menu.",
+                command.entity
+            );
             return Ok(false);
         }
 

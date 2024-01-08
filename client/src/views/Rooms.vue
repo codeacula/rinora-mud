@@ -11,7 +11,6 @@ let rooms: Ref<Room[]> = ref([]);
 onMounted(async () => {
   try {
     rooms.value = await invoke<Room[]>("get_rooms");
-    console.log("Here", rooms);
   } catch (error: any) {
     console.log(error);
   }
