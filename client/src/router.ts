@@ -18,6 +18,11 @@ const routes = [
     name: "Login",
     component: () => import("./views/Database.vue"),
   },
+  {
+    path: "/rooms",
+    name: "Rooms",
+    component: () => import("./views/Rooms.vue"),
+  },
 ];
 
 const router = createRouter({

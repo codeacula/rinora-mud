@@ -148,6 +148,20 @@ impl CharacterRepo {
         result == 1
     }
 
+    pub fn get_all_characters(&self) -> Result<Vec<CharacterBundle>, String> {
+        use crate::schema::characters::dsl::*;
+
+        let result: Vec<CharacterBundle> = characters
+            .select(DbCharacter::as_select())
+            .get_results::<DbCharacter>(&mut self.conn())
+            .expect("Unable to fetch all characters")
+            .into_iter()
+            .map(|character| character.to_game_character())
+            .collect();
+
+        Ok(result)
+    }
+
     /// Returns a charater matching the provided character_name if it exists
     pub fn get_character_by_name(
         &self,

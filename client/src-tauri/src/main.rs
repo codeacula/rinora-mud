@@ -5,6 +5,9 @@ use std::sync::Mutex;
 
 use database::{get_db_interface, prelude::*, ConnectionSettings};
 
+mod characters;
+mod rooms;
+
 #[derive(serde::Serialize, Debug, Clone)]
 struct ConnectionResult {
     success: bool,
@@ -49,7 +52,11 @@ fn main() {
 
     tauri::Builder::default()
         .manage(db_interface)
-        .invoke_handler(tauri::generate_handler![connect_to_database])
+        .invoke_handler(tauri::generate_handler![
+            characters::get_characters,
+            connect_to_database,
+            rooms::get_rooms,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
