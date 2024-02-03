@@ -1,14 +1,23 @@
 use shared::prelude::*;
 
+use crate::helpers::send_room_descriptions::send_room_description;
+
 pub(crate) fn show_character_logging_in(
     mut character_logged_in_rx: EventReader<CharacterLoggedInEvent>,
     mut send_text_tx: EventWriter<SendTextToEntityEvent>,
+    mut text_event_tx: EventWriter<TextEvent>,
     character_query: Query<(&DisplayName, &Location), With<Character>>,
-    room_query: Query<(&EntityCollection, &Room)>,
+    mut room_query: Query<(
+        &mut EntityCollection,
+        &Room,
+        &DisplayName,
+        &Description,
+        &Exits,
+    )>,
     area_query: Query<&Area>,
     continent_query: Query<&Continent>,
     plane_query: Query<&DisplayName, With<Plane>>,
-    room_map: Res<RoomMap>,
+    exit_query: Query<&Exit>,
 ) {
     for CharacterLoggedInEvent(character_entity) in character_logged_in_rx.read() {
         let entity = *character_entity;
@@ -18,10 +27,14 @@ pub(crate) fn show_character_logging_in(
             Err(_) => continue,
         };
 
-        let (entity_collection, room) = match room_query.get(location.entity) {
-            Ok(room) => room,
-            Err(_) => continue,
-        };
+        let (mut entity_collection, room, room_display_name, room_description, exits) =
+            match room_query.get_mut(location.entity) {
+                Ok(room) => room,
+                Err(_) => continue,
+            };
+
+        // Add the player to the room's entity_collection
+        entity_collection.0.push(entity);
 
         let mut plane_name = "Unknown";
 
@@ -54,5 +67,14 @@ pub(crate) fn show_character_logging_in(
                 &format!("<<15>>{} appears in a flash of light.", display_name.0),
             ));
         }
+
+        send_room_description(
+            entity,
+            &room_display_name.0,
+            &room_description.0,
+            exits,
+            &exit_query,
+            &mut text_event_tx,
+        )
     }
 }

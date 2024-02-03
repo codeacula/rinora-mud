@@ -38,7 +38,7 @@ pub(crate) fn show_welcome_menu(
             }
         };
 
-        if characters.len() > 0 {
+        if !characters.is_empty() {
             output.push_str("\nYour characters:<<15>>\n");
 
             for character in characters {

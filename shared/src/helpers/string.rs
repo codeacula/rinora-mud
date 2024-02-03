@@ -110,22 +110,19 @@ mod tests {
 
     #[test]
     fn is_valid_username_returns_true_for_valid_names() {
-        assert_eq!(true, super::is_valid_username("leroy"));
-        assert_eq!(true, super::is_valid_username("LEROY"));
-        assert_eq!(true, super::is_valid_username("lErOy"));
-        assert_eq!(true, super::is_valid_username("leroy123"));
-        assert_eq!(true, super::is_valid_username("leroy_123"));
-        assert_eq!(true, super::is_valid_username("leroy_123_456"));
+        assert!(super::is_valid_username("leroy"));
+        assert!(super::is_valid_username("LEROY"));
+        assert!(super::is_valid_username("lErOy"));
+        assert!(super::is_valid_username("leroy123"));
+        assert!(super::is_valid_username("leroy_123"));
+        assert!(super::is_valid_username("leroy_123_456"));
 
-        assert_eq!(false, super::is_valid_username("123leroy"));
-        assert_eq!(false, super::is_valid_username("123"));
-        assert_eq!(false, super::is_valid_username("_diggle"));
-        assert_eq!(false, super::is_valid_username("de"));
-        assert_eq!(
-            false,
-            super::is_valid_username(
-                "deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-            )
-        );
+        assert!(!super::is_valid_username("123leroy"));
+        assert!(!super::is_valid_username("123"));
+        assert!(!super::is_valid_username("_diggle"));
+        assert!(!super::is_valid_username("de"));
+        assert!(!super::is_valid_username(
+            "deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        ));
     }
 }

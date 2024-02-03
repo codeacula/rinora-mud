@@ -37,7 +37,7 @@ pub(crate) fn process_text_events(
         // Reset formatting and add a newline
         outgoing_string.push_str("\u{1b}[0m");
         outgoing_string = outgoing_string.trim().to_string();
-        outgoing_string.push_str("\n");
+        outgoing_string.push('\n');
 
         let outgoing_bytes = outgoing_string.into_bytes();
 

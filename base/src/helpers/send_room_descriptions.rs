@@ -82,7 +82,6 @@ pub fn send_room_description(
         ..Default::default()
     });
 
-    // You see exits leading.
     text_event_tx.send(text_event);
 }
 

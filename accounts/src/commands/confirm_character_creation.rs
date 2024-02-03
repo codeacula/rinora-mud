@@ -59,6 +59,6 @@ impl GameCommand for ConfirmCharacterCreationCommand {
             };
         }
 
-        return Ok(false);
+        Ok(false)
     }
 }

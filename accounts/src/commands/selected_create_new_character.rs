@@ -33,6 +33,6 @@ impl GameCommand for SelectedCreateNewCharacterCommand {
         ));
         world.send_event(ShowPromptEvent(command.entity));
 
-        return Ok(true);
+        Ok(true)
     }
 }

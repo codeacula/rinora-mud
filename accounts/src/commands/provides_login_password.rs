@@ -17,7 +17,7 @@ fn send_not_found(world: &mut World, entity: Entity) -> Result<bool, String> {
         .remove::<LoggingIn>()
         .insert(NeedsUsername {});
 
-    return Ok(true);
+    Ok(true)
 }
 
 impl GameCommand for ProvidesLoginPasswordCommand {
@@ -60,6 +60,6 @@ impl GameCommand for ProvidesLoginPasswordCommand {
 
         world.send_event(WelcomeUserEvent(command.entity));
 
-        return Ok(true);
+        Ok(true)
     }
 }

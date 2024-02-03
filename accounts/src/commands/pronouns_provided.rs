@@ -60,6 +60,6 @@ impl GameCommand for PronounsProvidedCommand {
             .remove::<ProvidedCharacterName>()
             .insert(selected_pronouns);
 
-        return Ok(true);
+        Ok(true)
     }
 }

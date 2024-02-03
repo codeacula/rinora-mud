@@ -19,7 +19,7 @@ impl GameCommand for ProvidesUserNameCommand {
             return Ok(false);
         }
 
-        if command.parts.len() != 0 {
+        if !command.parts.is_empty() {
             debug!("Entity {:?} provided too many words.", command.entity);
             world.send_event(TextEvent::from_str(
                 command.entity,

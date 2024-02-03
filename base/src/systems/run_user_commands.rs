@@ -1,6 +1,6 @@
 use shared::prelude::*;
 
-pub(crate) fn run_user_commands(mut world: &mut World) {
+pub(crate) fn run_user_commands(world: &mut World) {
     // Go ahead and take these out now so we don't have to deal with borrower issues
     let game_commands = world.remove_resource::<GameCommands>().unwrap();
     let mut user_provided_command_rx = world
@@ -12,7 +12,7 @@ pub(crate) fn run_user_commands(mut world: &mut World) {
         user_command.entity = ev.entity;
 
         for command in game_commands.0.iter() {
-            match command.run(&user_command, &mut world) {
+            match command.run(&user_command, world) {
                 Ok(result) => {
                     if result {
                         break;

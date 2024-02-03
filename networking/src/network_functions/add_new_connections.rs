@@ -11,7 +11,7 @@ pub(crate) fn add_new_connections(
     between_threads_rx: &Receiver<NetworkConnection>,
     connection_event_tx: &Sender<IncomingEvent>,
 ) {
-    let new_connections = check_for_new_connections(&between_threads_rx);
+    let new_connections = check_for_new_connections(between_threads_rx);
 
     for new_conn in new_connections {
         if let Err(err) = connection_event_tx.send(IncomingEvent {

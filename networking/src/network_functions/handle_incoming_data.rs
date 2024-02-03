@@ -70,16 +70,14 @@ pub(crate) fn handle_incoming_data(
                         if line.contains("Room 1") {
                             network_connection.do_room = true;
                         }
-                    } else {
-                        if let Err(err) = incoming_event_tx.send(IncomingEvent {
-                            data: Some(command.data.unwrap()),
-                            command: Some(command.command_name),
-                            id: network_connection.id,
-                            event_type: NetworkEventType::Gmcp,
-                        }) {
-                            warn!("Failed to send network event to junction: {}", err);
-                            continue;
-                        }
+                    } else if let Err(err) = incoming_event_tx.send(IncomingEvent {
+                        data: Some(command.data.unwrap()),
+                        command: Some(command.command_name),
+                        id: network_connection.id,
+                        event_type: NetworkEventType::Gmcp,
+                    }) {
+                        warn!("Failed to send network event to junction: {}", err);
+                        continue;
                     }
                     continue;
                 }

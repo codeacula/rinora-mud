@@ -14,7 +14,7 @@ impl GameCommand for NewCharacterNameProvidedCommand {
             return Ok(false);
         }
 
-        if command.parts.len() != 0 {
+        if !command.parts.is_empty() {
             world.send_event(TextEvent::from_str(
                 command.entity,
                 "Your character name can't have spaces in it.",
@@ -66,6 +66,6 @@ impl GameCommand for NewCharacterNameProvidedCommand {
         ));
         world.send_event(ShowPromptEvent(command.entity));
 
-        return Ok(true);
+        Ok(true)
     }
 }

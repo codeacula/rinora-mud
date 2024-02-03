@@ -57,7 +57,7 @@ impl GameCommand for NewAccountPasswordCommand {
             world
                 .entity_mut(command.entity)
                 .remove::<CreatingAccount>()
-                .insert(user);
+                .insert((user, InLoginMenu {}));
 
             world.send_event(WelcomeUserEvent(command.entity));
             return Ok(true);
@@ -69,6 +69,6 @@ impl GameCommand for NewAccountPasswordCommand {
             "Your passwords didn't match. Please try again.",
         ));
         world.send_event(ShowPromptEvent(command.entity));
-        return Ok(true);
+        Ok(true)
     }
 }
