@@ -4,9 +4,7 @@ use crate::prelude::*;
 use bevy::prelude::*;
 
 pub fn build_test_app() -> App {
-    let app = App::new();
-
-    app
+    App::new()
 }
 
 pub fn build_user_command(command: String, entity: Entity) -> UserCommand {
@@ -20,7 +18,7 @@ pub fn build_user_command(command: String, entity: Entity) -> UserCommand {
         full_command,
         keyword,
         parts,
-        raw_command: command.clone(),
+        raw_command: command,
     }
 }
 

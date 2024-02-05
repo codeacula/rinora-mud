@@ -2,6 +2,7 @@ use shared::prelude::*;
 
 pub(crate) fn run_user_commands(world: &mut World) {
     // Go ahead and take these out now so we don't have to deal with borrower issues
+    let account_commands = world.remove_resource::<AccountCommands>().unwrap();
     let game_commands = world.remove_resource::<GameCommands>().unwrap();
     let mut user_provided_command_rx = world
         .remove_resource::<Events<UserProvidedCommandEvent>>()
@@ -11,7 +12,12 @@ pub(crate) fn run_user_commands(world: &mut World) {
         let mut user_command = UserCommand::new(ev.command.clone());
         user_command.entity = ev.entity;
 
-        for command in game_commands.0.iter() {
+        let iterable = match world.entity(ev.entity).get::<InGame>() {
+            Some(_) => game_commands.0.iter(),
+            None => account_commands.0.iter(),
+        };
+
+        for command in iterable {
             match command.run(&user_command, world) {
                 Ok(result) => {
                     if result {
@@ -26,6 +32,7 @@ pub(crate) fn run_user_commands(world: &mut World) {
     }
 
     // We need to put the resources back when done
+    world.insert_resource(account_commands);
     world.insert_resource(game_commands);
     world.insert_resource(user_provided_command_rx);
 }

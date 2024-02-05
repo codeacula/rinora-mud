@@ -1,5 +1,7 @@
-use rinora_mud::start_game;
+use base::BaseRinoraPlugin;
+use bevy::prelude::*;
 
 fn main() {
-    start_game();
+    let mut app = App::new();
+    app.add_plugins(BaseRinoraPlugin).run()
 }

@@ -22,6 +22,7 @@ pub struct BaseRinoraPlugin;
 
 impl Plugin for BaseRinoraPlugin {
     fn build(&self, app: &mut App) {
+        let account_comands: AccountCommands = AccountCommands(Vec::new());
         let game_commands: GameCommands = GameCommands(Vec::new());
 
         app
@@ -30,6 +31,7 @@ impl Plugin for BaseRinoraPlugin {
                 level: Level::DEBUG,
                 filter: "debug,rinora_mud=debug".into(),
             })
+            .insert_resource(account_comands)
             .insert_resource(game_commands)
             // Plugins
             .add_plugins((

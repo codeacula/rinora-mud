@@ -7,6 +7,9 @@ pub struct LogOutUser {}
 pub struct NeedsUsername {}
 
 #[derive(Component, Debug)]
+pub struct InGame {}
+
+#[derive(Component, Debug)]
 pub struct User {
     pub id: i32,
     pub administrator: bool,

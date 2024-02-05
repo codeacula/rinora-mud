@@ -78,7 +78,11 @@ impl GameCommand for SelectCharacterCommand {
         let character_entity_id = character_entity.id();
 
         world.send_event(CharacterLoggedInEvent(character_entity_id));
-        debug!("Sent CharacterLoggedInEvent");
+
+        world
+            .entity_mut(command.entity)
+            .remove::<InLoginMenu>()
+            .insert(InGame {});
 
         Ok(true)
     }

@@ -26,6 +26,11 @@ impl GameCommand for ConfirmCharacterCreationCommand {
                 command.entity,
                 "What would you like to name your character? It must be between 3 and 15 letters long, and can only contain the letters A-Z.",
             ));
+
+            world
+                .entity_mut(command.entity)
+                .remove::<SelectedPronouns>()
+                .insert(InCharacterCreation {});
             return Ok(true);
         }
 

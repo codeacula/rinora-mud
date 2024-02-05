@@ -68,6 +68,9 @@ impl<T: GameCommand + 'static> From<T> for GameCommandEvent {
         GameCommandEvent(command)
     }
 }
+/// AccountCommands are all the commands a user can run before logging in
+#[derive(Resource)]
+pub struct AccountCommands(pub Vec<Box<dyn GameCommand>>);
 
 /// GameCommands are all the commands a user can run
 #[derive(Resource)]
