@@ -17,13 +17,20 @@ fn build_color_code(slice: &TextSlice) -> String {
 pub(crate) fn process_text_events(
     mut text_event_rx: EventReader<TextEvent>,
     query: Query<&UserSessionData>,
+    controlled_query: Query<&IsControlledBy>,
     outgoing_event_tx: NonSend<Sender<OutgoingEvent>>,
 ) {
     for text_event in text_event_rx.read() {
-        let user_sesh = match query.get(text_event.entity) {
+        // We might be sending to an entity that is controlled by someone. If so, we need to get their entity instead
+        let target_entity = match controlled_query.get(text_event.entity) {
+            Ok(controlling_entity) => controlling_entity.0,
+            Err(_) => text_event.entity,
+        };
+
+        // Try to grab that entity's session data. If there isn't any we're not worried about sending it
+        let user_sesh = match query.get(target_entity) {
             Ok(user_sesh) => user_sesh,
             Err(_) => {
-                error!("No user session found for entity! {:?}", text_event.entity);
                 continue;
             }
         };

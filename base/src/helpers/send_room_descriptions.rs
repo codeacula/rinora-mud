@@ -6,14 +6,9 @@ pub fn send_room_description(
     description: &str,
     exits: &Exits,
     query: &Query<&Exit>,
-    text_event_tx: &mut EventWriter<TextEvent>,
+    text_event_tx: &mut EventWriter<SendTextToEntityEvent>,
 ) {
-    let mut text_event = TextEvent {
-        entity: target,
-        text: TextBlock {
-            text_slices: Vec::new(),
-        },
-    };
+    let mut text_to_send = String::new();
 
     let mut display_name = name.to_owned();
 
@@ -23,17 +18,8 @@ pub fn send_room_description(
         }
     }
 
-    text_event.text.text_slices.push(TextSlice {
-        foreground: 94,
-        text: display_name.clone() + "\n",
-        ..Default::default()
-    });
-
-    text_event.text.text_slices.push(TextSlice {
-        foreground: 7,
-        text: description.to_owned() + "\n",
-        ..Default::default()
-    });
+    text_to_send.push_str(format!("<<94>>{}\n", display_name).as_str());
+    text_to_send.push_str(format!("<<7>>{}\n", description).as_str());
 
     let exit_phrase = if exits.0.len() == 1 {
         "an exit"
@@ -41,46 +27,27 @@ pub fn send_room_description(
         "exits"
     };
 
-    text_event.text.text_slices.push(TextSlice {
-        foreground: 23,
-        text: format!("You see {} leading", exit_phrase),
-        ..Default::default()
-    });
+    text_to_send.push_str(format!("<<23>>You see {} leading", exit_phrase).as_str());
 
     for (index, value) in exits.0.iter().enumerate() {
         if index == 0 {
-            text_event.text.text_slices.push(TextSlice {
-                foreground: 23,
-                text: " ".to_string(),
-                ..Default::default()
-            });
+            text_to_send.push(' ');
         } else if index == exits.0.len() - 1 {
-            text_event.text.text_slices.push(TextSlice {
-                foreground: 23,
-                text: " and ".to_string(),
-                ..Default::default()
-            });
+            text_to_send.push_str("<<23>> and ");
         } else {
-            text_event.text.text_slices.push(TextSlice {
-                foreground: 23,
-                text: ", ".to_string(),
-                ..Default::default()
-            });
+            text_to_send.push_str("<<23>>, ");
         }
 
         let exit = query.get(*value).expect("Unable to find exit");
-        text_event.text.text_slices.push(TextSlice {
-            foreground: 14,
-            text: get_long_direction(&exit.direction),
-            ..Default::default()
-        });
+        text_to_send.push_str(format!("<<14>>{}", get_long_direction(&exit.direction)).as_str());
     }
 
-    text_event.text.text_slices.push(TextSlice {
-        foreground: 23,
-        text: ".\n".to_string(),
-        ..Default::default()
-    });
+    text_to_send.push_str("<<23>>.\n");
+
+    let text_event = SendTextToEntityEvent {
+        entity: target,
+        text: text_to_send,
+    };
 
     text_event_tx.send(text_event);
 }
@@ -99,4 +66,4 @@ pub fn send_room_gmcp(
         entity: controller.0,
     });
 }
- */
+*/

@@ -5,7 +5,6 @@ use crate::helpers::send_room_descriptions::send_room_description;
 pub(crate) fn show_character_logging_in(
     mut character_logged_in_rx: EventReader<CharacterLoggedInEvent>,
     mut send_text_tx: EventWriter<SendTextToEntityEvent>,
-    mut text_event_tx: EventWriter<TextEvent>,
     character_query: Query<(&DisplayName, &Location), With<Character>>,
     mut room_query: Query<(
         &mut EntityCollection,
@@ -74,7 +73,7 @@ pub(crate) fn show_character_logging_in(
             &room_description.0,
             exits,
             &exit_query,
-            &mut text_event_tx,
+            &mut send_text_tx,
         )
     }
 }
