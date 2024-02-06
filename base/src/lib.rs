@@ -12,6 +12,7 @@ use systems::{
     run_user_commands::run_user_commands, spawn_character_in_room::spawn_character_in_room,
 };
 
+mod commands;
 mod enums;
 mod events;
 mod helpers;
@@ -23,7 +24,11 @@ pub struct BaseRinoraPlugin;
 impl Plugin for BaseRinoraPlugin {
     fn build(&self, app: &mut App) {
         let account_comands: AccountCommands = AccountCommands(Vec::new());
-        let game_commands: GameCommands = GameCommands(Vec::new());
+        let mut game_commands: GameCommands = GameCommands(Vec::new());
+
+        game_commands
+            .0
+            .push(Box::new(commands::say_command::SayCommand));
 
         app
             // System Plugins

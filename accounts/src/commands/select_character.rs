@@ -77,12 +77,16 @@ impl GameCommand for SelectCharacterCommand {
         character_entity.insert(IsControlledBy(command.entity));
         let character_entity_id = character_entity.id();
 
-        world.send_event(CharacterLoggedInEvent(character_entity_id));
-
         world
             .entity_mut(command.entity)
             .remove::<InLoginMenu>()
             .insert(InGame {});
+
+        if let Some(mut user_session_data) = world.get_mut::<UserSessionData>(command.entity) {
+            user_session_data.entity_they_are_controlling = Some(character_entity_id);
+        }
+
+        world.send_event(CharacterLoggedInEvent(character_entity_id));
 
         Ok(true)
     }
