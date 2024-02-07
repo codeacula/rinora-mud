@@ -22,7 +22,7 @@ impl GameCommand for SayCommand {
         };
 
         // Who all will hear the event
-        let mut listeners: Vec<Entity> = Vec::new();
+        let mut entities_present: Vec<Entity> = Vec::new();
 
         // If it's a user controlling someone, it should come from whom they're controlling
         if let Some(user_session_data) = world.get::<UserSessionData>(command.entity) {
@@ -36,11 +36,11 @@ impl GameCommand for SayCommand {
                 let entities_in_room = entity_collection.0.clone();
 
                 for entity_in_room in entities_in_room {
-                    listeners.push(entity_in_room);
+                    entities_present.push(entity_in_room);
                 }
             }
         } else {
-            error!("Expected speaker to be in a room but wasn't.");
+            error!("Expected speaker to be in a location but wasn't.");
             return Ok(true);
         }
 
@@ -54,10 +54,13 @@ impl GameCommand for SayCommand {
 
             if is_to_someone && who_to_option.is_some() {
                 let who_to = who_to_option.unwrap();
-                for listener in listeners {
-                    let display_name_option = world.get::<DisplayName>(listener);
-                    if display_name_option.is_some() && display_name_option.unwrap().0 == *who_to {
-                        speak_event.target = Some(listener);
+                for possible_target in entities_present {
+                    let display_name_option = world.get::<DisplayName>(possible_target);
+                    if possible_target != speak_event.speaker
+                        && display_name_option.is_some()
+                        && display_name_option.unwrap().0.to_lowercase() == *who_to.to_lowercase()
+                    {
+                        speak_event.target = Some(possible_target);
                         amount_to_skip = 2;
                     }
                 }
@@ -65,10 +68,7 @@ impl GameCommand for SayCommand {
         }
 
         let text_parts: Vec<String> = command.parts.iter().skip(amount_to_skip).cloned().collect();
-        speak_event.text = text_parts.concat();
-
-        info!("Gonna say {:?}", speak_event.text);
-        info!("Command: {:?}", command.full_command);
+        speak_event.text = text_parts.join(" ");
 
         world.send_event(speak_event);
 
