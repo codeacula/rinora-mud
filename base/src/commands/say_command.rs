@@ -67,8 +67,28 @@ impl GameCommand for SayCommand {
             }
         }
 
-        let text_parts: Vec<String> = command.parts.iter().skip(amount_to_skip).cloned().collect();
+        let mut text_parts: Vec<String> =
+            command.parts.iter().skip(amount_to_skip).cloned().collect();
+
+        // Make sure the first letter is capitalized
+        if let Some(first_part) = text_parts.first() {
+            let mut chars: Vec<char> = first_part.chars().collect();
+            chars[0] = chars[0].to_uppercase().nth(0).unwrap();
+            text_parts[0] = chars.iter().collect();
+        }
+
+        // Make sure it ends in punctuation
+        if let Some(last_part) = text_parts.last() {
+            if let Some(last_char) = last_part.chars().last() {
+                if !last_char.is_ascii_punctuation() {
+                    text_parts.last_mut().unwrap().push('.');
+                }
+            }
+        }
+
         speak_event.text = text_parts.join(" ");
+
+        info!("Event text: {:?}", speak_event.text);
 
         world.send_event(speak_event);
 
