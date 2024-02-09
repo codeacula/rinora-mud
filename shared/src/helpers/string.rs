@@ -23,6 +23,26 @@ pub fn is_valid_username(inc_str: &str) -> bool {
     length > 2 && length < 17 && !inc_str.starts_with(|c| invalid_starting_chars.contains(c))
 }
 
+/// Given a string, converts it to a full sentence, which starts with a capital letter and ends in punctuation
+pub fn to_full_sentence(inc_str: &str) -> String {
+    let mut characters: Vec<char> = inc_str.chars().collect();
+
+    // Capitalize the first character
+    if let Some(first_character) = characters.first_mut() {
+        first_character.make_ascii_uppercase();
+        characters[0] = *first_character;
+    }
+
+    // Add punctuation if missing at the end
+    if let Some(last_character) = characters.last() {
+        if !last_character.is_ascii_punctuation() {
+            characters.push('.')
+        }
+    }
+
+    characters.iter().collect()
+}
+
 /// Returns a [String] instance `inc_str` formatted in title case.
 ///
 /// # Example:
@@ -124,5 +144,23 @@ mod tests {
         assert!(!super::is_valid_username(
             "deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
         ));
+    }
+
+    #[test]
+    fn formats_sentences_correctly() {
+        assert_eq!(
+            super::to_full_sentence("this is a sentence"),
+            "This is a sentence."
+        );
+
+        assert_eq!(
+            super::to_full_sentence("this is a sentence?"),
+            "This is a sentence?"
+        );
+
+        assert_eq!(
+            super::to_full_sentence("This is a sentence."),
+            "This is a sentence."
+        );
     }
 }

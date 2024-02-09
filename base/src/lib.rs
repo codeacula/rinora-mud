@@ -9,7 +9,8 @@ use output::{
 };
 use shared::prelude::*;
 use systems::{
-    run_user_commands::run_user_commands, spawn_character_in_room::spawn_character_in_room,
+    handle_entities_talking::handle_entities_talking, run_user_commands::run_user_commands,
+    send_heard_to_user::send_heard_to_user, spawn_character_in_room::spawn_character_in_room,
 };
 
 mod commands;
@@ -48,7 +49,9 @@ impl Plugin for BaseRinoraPlugin {
                 AccountPlugin,
             ))
             .add_systems(First, (run_user_commands).in_set(GameOrderSet::Command))
+            .add_systems(Update, (handle_entities_talking).in_set(GameOrderSet::Pre))
             .add_systems(Update, (spawn_character_in_room).in_set(GameOrderSet::Game))
+            .add_systems(Update, (send_heard_to_user).in_set(GameOrderSet::Game))
             .add_systems(
                 Update,
                 (show_character_logging_in).in_set(GameOrderSet::Post),

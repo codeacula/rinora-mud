@@ -82,7 +82,8 @@ impl Plugin for SharedPlugin {
             .add_event::<SendGoAheadEvent>()
             .add_event::<ShowPromptEvent>()
             .add_event::<SendTextToEntityEvent>()
-            .add_event::<SpeakEvent>();
+            .add_event::<SpeakEvent>()
+            .add_event::<HeardEvent>();
     }
 }
 

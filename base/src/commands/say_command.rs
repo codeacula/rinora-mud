@@ -16,6 +16,7 @@ impl GameCommand for SayCommand {
 
         // The event we'll end up sending. Right now we'll use an empty string and no target
         let mut speak_event = SpeakEvent {
+            room: Entity::PLACEHOLDER,
             speaker: command.entity,
             target: None,
             text: String::from(""),
@@ -38,6 +39,8 @@ impl GameCommand for SayCommand {
                 for entity_in_room in entities_in_room {
                     entities_present.push(entity_in_room);
                 }
+
+                speak_event.room = location.entity;
             }
         } else {
             error!("Expected speaker to be in a location but wasn't.");
@@ -67,28 +70,9 @@ impl GameCommand for SayCommand {
             }
         }
 
-        let mut text_parts: Vec<String> =
-            command.parts.iter().skip(amount_to_skip).cloned().collect();
-
-        // Make sure the first letter is capitalized
-        if let Some(first_part) = text_parts.first() {
-            let mut chars: Vec<char> = first_part.chars().collect();
-            chars[0] = chars[0].to_uppercase().nth(0).unwrap();
-            text_parts[0] = chars.iter().collect();
-        }
-
-        // Make sure it ends in punctuation
-        if let Some(last_part) = text_parts.last() {
-            if let Some(last_char) = last_part.chars().last() {
-                if !last_char.is_ascii_punctuation() {
-                    text_parts.last_mut().unwrap().push('.');
-                }
-            }
-        }
-
-        speak_event.text = text_parts.join(" ");
-
-        info!("Event text: {:?}", speak_event.text);
+        // Fish out the part that's actually what they're saying
+        let text_parts: Vec<String> = command.parts.iter().skip(amount_to_skip).cloned().collect();
+        speak_event.text = to_full_sentence(&text_parts.join(" "));
 
         world.send_event(speak_event);
 
