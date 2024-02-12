@@ -18,7 +18,9 @@ pub fn send_heard_to_user(
         let mut speaker = String::from("An unknown voice");
         let mut to = String::from("");
 
-        if let Ok(display_name) = display_name_query.get(ev.speaker) {
+        if ev.speaker == ev.listener {
+            speaker = String::from("You");
+        } else if let Ok(display_name) = display_name_query.get(ev.speaker) {
             speaker = display_name.0.clone();
         }
 
