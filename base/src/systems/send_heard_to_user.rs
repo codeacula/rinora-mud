@@ -17,9 +17,11 @@ pub fn send_heard_to_user(
 
         let mut speaker = String::from("An unknown voice");
         let mut to = String::from("");
+        let mut say_type = String::from("says");
 
         if ev.speaker == ev.listener {
             speaker = String::from("You");
+            say_type = String::from("say");
         } else if let Ok(display_name) = display_name_query.get(ev.speaker) {
             speaker = display_name.0.clone();
         }
@@ -32,7 +34,7 @@ pub fn send_heard_to_user(
             }
         }
 
-        let text_to_send = format!("{} says{}, \"{}\"", speaker, to, ev.text);
+        let text_to_send = format!("{} {}{}, \"{}\"", speaker, say_type, to, ev.text);
 
         send_text_tx.send(SendTextToEntityEvent {
             entity: user_to_send_to.0,
