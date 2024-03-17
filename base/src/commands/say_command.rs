@@ -14,14 +14,6 @@ impl GameCommand for SayCommand {
         // This lets us know where we should start to concatenate from. By default we want 1, for "say Hello!"
         let mut amount_to_skip = 0;
 
-        // The event we'll end up sending. Right now we'll use an empty string and no target
-        let mut speak_event = SpeakEvent {
-            room: Entity::PLACEHOLDER,
-            speaker: command.entity,
-            target: None,
-            text: String::from(""),
-        };
-
         // Who all will hear the event
         let mut entities_present: Vec<Entity> = Vec::new();
 
@@ -31,6 +23,14 @@ impl GameCommand for SayCommand {
                 speaking_entity = controlled_entity;
             }
         }
+
+        // The event we'll end up sending. Right now we'll use an empty string and no target
+        let mut speak_event = SpeakEvent {
+            room: Entity::PLACEHOLDER,
+            speaker: speaking_entity,
+            target: None,
+            text: String::from(""),
+        };
 
         if let Some(location) = world.get::<Location>(speaking_entity) {
             if let Some(entity_collection) = world.get::<EntityCollection>(location.entity) {
